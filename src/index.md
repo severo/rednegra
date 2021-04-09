@@ -1,0 +1,9 @@
+---
+title: Sylvain Lesage
+---
+
+# Sylvain Lesage
+
+I'm a data visualization developer.
+
+You can find me on [Observable](https://observablehq.com/@severo), [Twitter](https://twitter.com/severo_dev), [Linkedin](https://www.linkedin.com/in/sylvain--lesage/), [ResearchGate](https://www.researchgate.net/profile/Sylvain_Lesage) and [Upwork](https://www.upwork.com/freelancers/~018d8dfa7ef658ec62).
