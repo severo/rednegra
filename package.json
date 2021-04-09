@@ -1,0 +1,31 @@
+{
+  "name": "rednegra",
+  "version": "1.0.0",
+  "description": "Public site for rednegra.net",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/severo/rednegra.git"
+  },
+  "keywords": [
+    "cv",
+    "portfolio",
+    "public",
+    "site",
+    "rednegra",
+    "sylvain",
+    "lesage"
+  ],
+  "author": "Sylvain Lesage <severo@rednegra.net>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/severo/rednegra/issues"
+  },
+  "homepage": "https://github.com/severo/rednegra#readme",
+  "devDependencies": {
+    "@11ty/eleventy": "^0.12.1"
+  }
+}
