@@ -7,7 +7,6 @@
 
 html,
 body {
-  /* background-color: #eee; */
   margin: 0;
   font-size: 1rem;
   font-family: var(--sans-font);
@@ -16,17 +15,39 @@ body {
 main {
   box-sizing: border-box;
   max-width: 45em;
-  /* min-height: 100vh; */
   padding: 2rem 0;
   margin: 0 auto;
   background: white;
+}
+
+.three-columns {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.card {
+  max-width: 12em;
+  font-size: 0.8em;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.card-description {
 }
 
 a {
   color: #000;
 }
 a:visited {
-  color: #666;
+  color: #444;
+}
+a:hover,
+a:active {
+  color: #000;
 }
 
 .gray,
@@ -36,6 +57,13 @@ a:visited {
 .gray a:hover,
 .gray a:active {
   color: #000;
+}
+
+dt {
+  margin-top: 0.5em;
+}
+dd {
+  font-size: 0.9em;
 }
 
 @media print {
