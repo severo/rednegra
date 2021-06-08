@@ -34,7 +34,7 @@ title: Resume - Sylvain Lesage
 ## Professional experience
 
 <dl>
-  <dt>Software Engineer · <a href="https://huggingface.co/">HuggingFace</a> · since 2021</dt>
+  <dt>Software Engineer · <a href="https://huggingface.co/">Hugging Face</a> · since 2021</dt>
   <dd>Frontend and data visualization. Technologies: JavaScript, Svelte, D3.js, Tailwind CSS, Python.</dd>
 
   <dt>Independent data visualization developer · since 2018</dt>
