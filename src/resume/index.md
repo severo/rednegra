@@ -5,7 +5,7 @@ title: Resume - Sylvain Lesage
 # Sylvain Lesage
 
 <div class="gray" style="font-size: 0.8em;">
-  <a href="https://rednegra.net">rednegra.net</a> · (33) 7 66 24 73 07 · <a href="mailto:severo@rednegra.net">severo@rednegra.net</a>
+  <a href="https://rednegra.net">rednegra.net</a> · <a href="mailto:severo@rednegra.net">severo+resume@rednegra.net</a>
 </div>
 
 **Data visualization developer**
