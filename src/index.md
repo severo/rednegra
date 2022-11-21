@@ -4,10 +4,8 @@ title: Sylvain Lesage
 
 # Sylvain Lesage
 
-I'm a data visualization developer.
+I'm a ML Engineer working on the intersection of Frontend/Product and AI at Hugging Face.
 
-Take a look at my [portfolio](https://illisible.net/sylvain-lesage?lang=en).
+Take a look at my [portfolio](https://illisible.net/sylvain-lesage?lang=en) or my [resume](https://rednegra.net/resume/).
 
-I also have a [resume](https://rednegra.net/resume/).
-
-You can find me on [Observable](https://observablehq.com/@severo), [Twitter](https://twitter.com/severo_dev), [Linkedin](https://www.linkedin.com/in/sylvain--lesage/), [Pinterest](https://www.pinterest.fr/severo_dev/observable/), [ResearchGate](https://www.researchgate.net/profile/Sylvain_Lesage) and [Upwork](https://www.upwork.com/freelancers/~018d8dfa7ef658ec62).
+You can find me on [Hugging Face](https://huggingface.co/@severo), [Observable](https://observablehq.com/@severo), [GitHub](https://github.com/severo), [Mastodon](https://mastodon.social/@severo), [Twitter](https://twitter.com/severo_dev), [Linkedin](https://www.linkedin.com/in/sylvain--lesage/) and [ResearchGate](https://www.researchgate.net/profile/Sylvain_Lesage).
