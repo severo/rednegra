@@ -1,6 +1,6 @@
 # rednegra.net
 
-Public site
+Public site.
 
 ## Build
 
