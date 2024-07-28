@@ -37,7 +37,7 @@ title: Resume - Sylvain Lesage
   <dt>Software Engineer · <a href="https://huggingface.co/">Hugging Face</a> · since 2021</dt>
   <dd>Building the dataset viewer in the Hugging Face Hub, for >100k datasets. Technologies: Python, MongoDB, Node.js, Svelte, Helm/Kubernetes</dd>
 
-  <dt>Independent data visualization developer · since 2018</dt>
+  <dt>Independent data visualization developer · 2018-2021</dt>
   <dd>Projects on data visualization, data analysis and software development for <a href="https://projet.liris.cnrs.fr/mi2/">LIRIS</a>, <a href="https://www.monde-diplomatique.fr/">Le Monde Diplomatique</a>, <a href="https://mabsilico.com/">MabSilico</a>, <a href="https://publiceye.ch/">Public Eye</a>, <a href="https://camptocamp.com/">Camptocamp</a> and <a href="https://www.purchase.edu/">Purchase College</a>. Technologies: JavaScript, Node.js, D3.js, three.js, Vue.js, Svelte, TypeScript, Java, Python, R, HTML, SVG, canvas. More details about the projects on <a href="https://rednegra.net">rednegra.net</a>.</dd>
 
   <dt>Head of Innovation, Research and Development Unit · <a href="https://agetic.gob.bo/">AGETIC</a> · 2017-2018</dt>
