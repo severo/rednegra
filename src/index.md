@@ -4,7 +4,7 @@ title: Sylvain Lesage
 
 # Sylvain Lesage
 
-I'm a ML Engineer working on the intersection of Frontend/Product and AI at Hugging Face.
+I'm a Software Engineer working on the intersection of Product and Data Engineering at Hugging Face.
 
 Take a look at my [portfolio](https://illisible.net/sylvain-lesage?lang=en) or my [resume](/resume/).
 
