@@ -103,4 +103,4 @@ PhD in Telecommunications and Signal Processing · [University of Rennes 1](http
 
 Engineering degree in Signal Processing ("Signal, Images, Forms") · [Supélec](https://www.centralesupelec.fr/) · 2003
 
-Master in Applied Mathematics · [University of Metz](http://www.math.univ-metz.fr/~dea/DEA/index.html) · 2003
+Master in Applied Mathematics · [University of Metz](https://web.archive.org/web/20170407213836/http://www.math.univ-metz.fr/~dea/DEA/index.html) · 2003
