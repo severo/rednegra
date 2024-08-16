@@ -25,7 +25,7 @@ title: Resume - Sylvain Lesage
   <dd>Modeling, numerical simulation, algorithms, data structures, optimization, linear algebra, signal processing</dd>
 
   <dt>Transverse abilities</dt>
-  <dd>Project management, redaction of technical standards and technological policies, animation of technical communities, teaching, state of art studies, oral presentation, public administration</dd>
+  <dd>Project management, redaction of technical standards and technological policies, animation of technical communities, teaching, state of the art studies, oral presentation, public administration</dd>
 
   <dt>Languages</dt>
   <dd>French, Spanish, English</dd>
@@ -43,7 +43,7 @@ title: Resume - Sylvain Lesage
   <dt>Head of Innovation, Research and Development Unit · <a href="https://agetic.gob.bo/">AGETIC</a> · 2017-2018</dt>
   <dd>Project management on public administration simplification and e-government, technical assessment and redaction of technical reports, redaction of public regulation and standardization texts, facilitation of working groups on technical standards in the Bolivian public administration. 30-40 persons team.</dd>
 
-  <dt>Head of Innovation and Development Unit, then Executive Director · <a href="href="https://adsib.gob.bo/">ADSIB</a> · 2014-2017</dt>
+  <dt>Head of Innovation and Development Unit, then Executive Director · <a href="https://adsib.gob.bo/">ADSIB</a> · 2014-2017</dt>
   <dd>As the executive director: decision-making on strategy, finances, public administration and technical projects, executive direction of services: country-level top level domain .bo (ccTLD, DNS), and launch of the first certification authority in Bolivia (digital signing, PKI), participation to the elaboration of norms (national e-government plan and free software and open standards implementation plan), representation of ADSIB in COPLUTIC, the Bolivian national committee in charge of the public policies and strategies of the sector. 30-40 persons institution. As a head of unit: project management and technical lead, technical design and implementation of the public certification authority (PKI, digital signature), technical design and supervision of the installation works of a new datacenter.</dd>
 
   <dt>Independent software developer · 2013</dt>
