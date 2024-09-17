@@ -4,7 +4,7 @@ title: Sylvain Lesage
 
 # Sylvain Lesage
 
-I'm a software engineer at Hugging Face, working at the intersection of product and data engineering.
+I'm a dataviz freelance developer. I also work part-time for 🤗 Hugging Face.
 
 Take a look at my [portfolio](https://illisible.net/sylvain-lesage?lang=en) or my [resume](/resume/).
 
