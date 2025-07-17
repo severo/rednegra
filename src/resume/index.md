@@ -35,7 +35,11 @@ title: Resume - Sylvain Lesage
 
 <dl>
   <dt>Independent data visualization developer · since 2024</dt>
-  <dd>Data tool for a major pharma company (not released yet). Technologies: JavaScript, React, D3.js, MapLibre.</dd>
+  <dd><ul>
+    <li>for Hyperparam: development of open source React components and apps (React, TypeScript, CSS Modules, Next.js, Parquet)</li>
+    <li>for Source Cooperative: development of open source React components (React, TypeScript, Next.js, OpenLayers)</li>
+    <li>for Jason Forrest Agency: migration of an interactive map from D3.js to MapLibre (D3.js, MapLibre, React)</li>
+  </ul></dd>
 
   <dt>Software Engineer · <a href="https://huggingface.co/">Hugging Face</a> · since 2021 (part-time since 2024)</dt>
   <dd>Building the dataset viewer in the Hugging Face Hub, for >100k datasets. Technologies: Python, MongoDB, Node.js, Svelte, Helm/Kubernetes</dd>
