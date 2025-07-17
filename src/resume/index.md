@@ -19,7 +19,7 @@ title: Resume - Sylvain Lesage
   <dd>JavaScript / Node.js, React, Next.js, D3.js, three.js, Vue.js, Svelte, TypeScript, Java, Python, R, HTML, SVG, canvas</dd>
 
   <dt>Spatial data</dt>
-  <dd>PostgreSQL / PostGIS, GeoNetwork, GeoServer, geOrchestra</dd>
+  <dd>MapLibre, OpenLayers, PostgreSQL / PostGIS, GeoNetwork, GeoServer, geOrchestra</dd>
 
   <dt>Applied mathematics</dt>
   <dd>Modeling, numerical simulation, algorithms, data structures, optimization, linear algebra, signal processing</dd>
