@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Public site for rednegra.net",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -27,5 +28,8 @@
   "homepage": "https://github.com/severo/rednegra#readme",
   "devDependencies": {
     "@11ty/eleventy": "^3.1.2"
+  },
+  "dependencies": {
+    "@11ty/eleventy-img": "^6.0.4"
   }
 }
