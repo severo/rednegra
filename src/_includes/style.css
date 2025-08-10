@@ -71,6 +71,14 @@ img {
   height: auto;
 }
 
+header {
+  padding-bottom: 1rem;
+
+  p.date {
+    color: #666;
+  }
+}
+
 @media print {
   a {
     text-decoration: none;

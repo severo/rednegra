@@ -1,12 +1,11 @@
 ---
 title: Blog - Sylvain Lesage
+layout: layouts/base.liquid
 ---
 
-# Blog
+# Blog posts
 
+{%- for post in collections.posts reversed %}
 
-## Posts
-
-{%- for post in collections.posts %}
-- [{{ post.data.title }}]({{ post.url}})
-{%- endfor %}
+- {{post.date | formatDate }} [{{ post.data.title }}]({{ post.url}})
+  {%- endfor %}

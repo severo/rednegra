@@ -3,8 +3,6 @@ title: Know your candidate to uninominal deputy (Bolivia)
 tags: posts, bolivia, elections
 ---
 
-# Know your candidate to uninominal deputy (Bolivia)
-
 The [2025 Bolivian general elections](https://en.wikipedia.org/wiki/2025_Bolivian_general_election) are in one week. We will vote for the president, senators, and deputies.
 
 There are three kinds of deputies:
