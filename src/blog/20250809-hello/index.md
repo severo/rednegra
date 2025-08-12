@@ -1,6 +1,6 @@
 ---
 title: Hello World
-tags: posts
+date: 2025-08-09
 ---
 
 I'm starting a blog, mostly to keep track of the things I see and want to share.

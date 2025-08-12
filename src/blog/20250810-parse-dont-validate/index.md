@@ -1,6 +1,7 @@
 ---
 title: Parse, don't validate
-tags: posts, programming
+tags: programming
+date: 2025-08-10
 ---
 
 Alexis King coined the expression ["Parse, don't validate"](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) in 2019.
