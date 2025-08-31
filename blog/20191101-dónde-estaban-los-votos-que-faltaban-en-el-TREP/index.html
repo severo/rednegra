@@ -1,0 +1,57 @@
+
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/prism.css">
+  <title>Bolivia 20.10.19: ¿dónde estaban el millón de votos que faltaban en el TREP?</title>
+  <link href="https://huggingface.co/severo" rel="me">
+  <link href="https://observablehq.com/@severo" rel="me">
+  <link href="https://github.com/severo" rel="me">
+  <link href="https://mastodon.social/@severo" rel="me">
+  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
+  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
+  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
+  <link href="https://mamot.fr/@severo_bo" rel="me">
+  <link href="https://seenthis.net/people/severo" rel="me">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Bolivia 20.10.19: ¿dónde estaban el millón de votos que faltaban en el TREP?</h1>
+      <p class="date">Published on: 2019-11-01</p>
+    </header>
+    <div><p>Autores: Louca Lerch, Sylvain Lesage</p>
+<blockquote>
+<p>Un primer análisis geográfico de los resultados parciales y finales de la elección presidencial 2019. Vídeo: https://youtu.be/YYe-Zq0a9hk</p>
+</blockquote>
+<p>Ante el conflicto generado por la publicación de resultados parciales (TREP, 20.10.2019), que abrían paso a una segunda vuelta y la posterior reversión de este resultado en el COMPUTO OFICIAL (25.10.2019), hemos analizado la distribución espacial de los votos que no estaban inicialmente tomados en cuenta. Para esto hemos realizado el siguiente análisis de datos : COMPUTO - TREP = VOTOS FALTANTES. Cada voto ha sido clasificado por municipio rural o urbano según datos de Instituto Nacional de Estadísticas (Censo 2012).</p>
+<p>Encontramos, en los votos que finalmente le dieron la victoria en primera vuelta a Evo Morales, la Bolivia periférica, productiva y resiliente, tantas veces invisibilizada …</p>
+<p>Conscientes que estos resultados deberán ser confirmados por la auditoría internacional en curso, libramos aquí un primer análisis cartográfico que ojalá sirva a tod@s para transformar el conflicto actual en un dialogo democrático informado.</p>
+<h2>Votos emitidos</h2>
+<p>Hemos clasificado los votos por municipio urbano o rural (&gt;50% indicador INE 2012)</p>
+<p><picture><source type="image/webp" srcset="/blog/20191101-dónde-estaban-los-votos-que-faltaban-en-el-TREP/hyt8CwLUpx-1908.webp 1908w"><img src="/blog/20191101-dónde-estaban-los-votos-que-faltaban-en-el-TREP/hyt8CwLUpx-1908.jpeg" alt="Tres mapas de Bolivia, mostrando todos los votos emitidos, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019." width="1908" height="796"></picture></p>
+<h2>Solamente los votos favorables al MAS-IPSP (Evo Morales)</h2>
+<p>Solamente los votos favorables al MAS-IPSP (Evo Morales)</p>
+<p><picture><source type="image/webp" srcset="/blog/20191101-dónde-estaban-los-votos-que-faltaban-en-el-TREP/iTG9duwA1f-1908.webp 1908w"><img src="/blog/20191101-dónde-estaban-los-votos-que-faltaban-en-el-TREP/iTG9duwA1f-1908.jpeg" alt="Tres mapas de Bolivia, mostrando únicamente los votos por el MAS-IPSP, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019." width="1908" height="796"></picture></p>
+<h2>Solamente los votos favorables a CC (Carlos Mesa)</h2>
+<p>Evidenciamos un voto mayoritariamente urbano en capitales departamentales y provinciales.</p>
+<p><picture><source type="image/webp" srcset="/blog/20191101-dónde-estaban-los-votos-que-faltaban-en-el-TREP/7pU3RE4YDt-1908.webp 1908w"><img src="/blog/20191101-dónde-estaban-los-votos-que-faltaban-en-el-TREP/7pU3RE4YDt-1908.jpeg" alt="Tres mapas de Bolivia mostrando únicamente los votos por Comunidad Ciudadana, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019." width="1908" height="796"></picture></p>
+<h2>Fuentes y metodología</h2>
+<p>Los datos provienen de:</p>
+<ul>
+<li>TREP: https://trep.oep.org.bo (domingo 20 de octubre)</li>
+<li>Computo final: https://computo.oep.org.bo (sábado 25 de octubre)</li>
+<li>Clasificación rural / urbano: http://datos.ine.gob.bo</li>
+<li>Geometrías: https://geo.gob.bo</li>
+</ul>
+<p>La metodología consiste en: 1. listar los números de mesas computadas el día 20 de octubre en el TREP, 2. separar en dos grupos las actas del computo final: mesas computadas en el TREP, y mesas que faltaban contabilizar el 20 de octubre, 3. agregar los resultados por municipio (suma de votos del computo final), 4. asignar los votos de cada municipio al voto urbano o al voto rural, según el indicador INE 2012.</p>
+<p>Los datos y el código están disponibles en https://observablehq.com/@severo/bolivia-20-10-19-donde-estaban-el-millon-de-votos-que-faltaba.</p>
+<blockquote>
+<p>Este artículo de blog fue publicado originalmente en https://telegra.ph/Bolivia-201019-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP-11-01.</p>
+</blockquote>
+</div>
+  </main>
+</body>
+
