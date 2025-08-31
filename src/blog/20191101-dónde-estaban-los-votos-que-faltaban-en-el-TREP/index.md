@@ -6,7 +6,7 @@ date: 2019-11-01
 
 Autores: Louca Lerch, Sylvain Lesage
 
-> Un primer análisis geográfico de los resultados parciales y finales de la elección presidencial 2019. Vídeo: https://youtu.be/YYe-Zq0a9hk
+> Un primer análisis geográfico de los resultados parciales y finales de la elección presidencial 2019. Vídeo: [https://youtu.be/YYe-Zq0a9hk](https://youtu.be/YYe-Zq0a9hk).
 
 Ante el conflicto generado por la publicación de resultados parciales (TREP, 20.10.2019), que abrían paso a una segunda vuelta y la posterior reversión de este resultado en el COMPUTO OFICIAL (25.10.2019), hemos analizado la distribución espacial de los votos que no estaban inicialmente tomados en cuenta. Para esto hemos realizado el siguiente análisis de datos : COMPUTO - TREP = VOTOS FALTANTES. Cada voto ha sido clasificado por municipio rural o urbano según datos de Instituto Nacional de Estadísticas (Censo 2012). 
 
@@ -37,13 +37,13 @@ Evidenciamos un voto mayoritariamente urbano en capitales departamentales y prov
 
 Los datos provienen de:
 
-- TREP: https://trep.oep.org.bo (domingo 20 de octubre)
-- Computo final: https://computo.oep.org.bo (sábado 25 de octubre)
-- Clasificación rural / urbano: http://datos.ine.gob.bo
-- Geometrías: https://geo.gob.bo
+- TREP: [https://trep.oep.org.bo](https://trep.oep.org.bo) (domingo 20 de octubre)
+- Computo final: [https://computo.oep.org.bo](https://computo.oep.org.bo) (sábado 25 de octubre)
+- Clasificación rural / urbano: [http://datos.ine.gob.bo](http://datos.ine.gob.bo)
+- Geometrías: [https://geo.gob.bo](https://geo.gob.bo)
 
 La metodología consiste en: 1. listar los números de mesas computadas el día 20 de octubre en el TREP, 2. separar en dos grupos las actas del computo final: mesas computadas en el TREP, y mesas que faltaban contabilizar el 20 de octubre, 3. agregar los resultados por municipio (suma de votos del computo final), 4. asignar los votos de cada municipio al voto urbano o al voto rural, según el indicador INE 2012.
 
-Los datos y el código están disponibles en https://observablehq.com/@severo/bolivia-20-10-19-donde-estaban-el-millon-de-votos-que-faltaba.
+Los datos y el código están disponibles en [https://observablehq.com/@severo/bolivia-20-10-19-donde-estaban-el-millon-de-votos-que-faltaba](https://observablehq.com/@severo/bolivia-20-10-19-donde-estaban-el-millon-de-votos-que-faltaba).
 
-> Este artículo de blog fue publicado originalmente en https://telegra.ph/Bolivia-201019-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP-11-01.
+> Este artículo de blog fue publicado originalmente en [https://telegra.ph/Bolivia-201019-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP-11-01](https://telegra.ph/Bolivia-201019-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP-11-01).
