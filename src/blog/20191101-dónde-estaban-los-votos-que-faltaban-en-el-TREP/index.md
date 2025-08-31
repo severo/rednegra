@@ -1,5 +1,5 @@
 ---
-title: Bolivia 20.10.19: ¿dónde estaban el millón de votos que faltaban en el TREP?
+title: "Bolivia 20.10.19: ¿dónde estaban el millón de votos que faltaban en el TREP?"
 tags: bolivia,elecciones,trep
 date: 2019-11-01
 ---
