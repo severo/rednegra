@@ -4,17 +4,36 @@ tags: parquet, geoparquet, geospatial, wkb, hyparquet, standards
 date: 2025-09-25
 ---
 
-[Parquet](https://parquet.apache.org/) is a column-oriented storage file format I love to use in web apps, because I can access large datasets from a remote location without loading the entire file into memory. Common libraries to do so: [DuckDB-WASM](https://github.com/duckdb/duckdb-wasm), [Parquet WASM](kylebarron.dev/parquet-wasm/) or [hyparquet](https://github.com/hyparam/hyparquet) which I regularly contribute to.
+[Parquet](https://parquet.apache.org/) is a column-oriented storage file format I love to use in web apps, because I can access large datasets from a remote location without loading the entire file into memory. Several JavaScript libraries allow reading remote Parquet files: [DuckDB-WASM](https://github.com/duckdb/duckdb-wasm), [Parquet WASM](kylebarron.dev/parquet-wasm/) or [hyparquet](https://github.com/hyparam/hyparquet) which I regularly contribute to.
 
 [GeoParquet](https://geoparquet.org/) is an extension of Parquet that defines how to store geospatial data.
 
-Since May of 2024, the maintainers of both projects have discussed how to support geospatial data natively in Parquet. You can do archeology in [PARQUET-2471](https://github.com/apache/parquet-format/pull/240). Nice discussion, more than 400 comments, 40 revisions, 15 participants (nearly all men, btw).
+In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with its new `GEOMETRY` and `GEOGRAPHY`.
 
-It culminated with the addition of the `GEOMETRY` and `GEOGRAPHY` logical types in the Parquet format, formally released in March of 2025 with version [2.11.0](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0) of the Parquet format.
+## TL;DR
 
-In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with `GEOMETRY` and `GEOGRAPHY`. My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as `WKB`.
+My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as `WKB`.
 
-## What is the GEOMETRY type in Parquet?
+The differences between the two standards are summarized in the table below.
+
+| Feature                                | Parquet with GEOMETRY/GEOGRAPHY                                                                                                                                                                                                                     | GeoParquet                                                                                 |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Location                               | Columns logical types, and row group level geospatial statistics                                                                                                                                                                                    | `geo` field in file metadata                                                               |
+| Logical type of `BYTE_ARRAY`           | `GEOMETRY`, `GEOGRAPHY`                                                                                                                                                                                                                             | None                                                                                       |
+| Encoding                               | WKB                                                                                                                                                                                                                                                 | WKB or Arrow native types                                                                  |
+| Primary geospatial column              | No                                                                                                                                                                                                                                                  | Yes                                                                                        |
+| Coordinate Reference System (CRS)      | Column level, optional                                                                                                                                                                                                                              | Column level, optional                                                                     |
+| Epoch (dynamic CRS year)               | No                                                                                                                                                                                                                                                  | Column level, optional                                                                     |
+| Geometry types                         | Row group level, optional                                                                                                                                                                                                                           | Column level, mandatory                                                                    |
+| Column bounding box                    | Row group level, optional                                                                                                                                                                                                                           | Column level, optional                                                                     |
+| Covering (link to bounding box column) | No                                                                                                                                                                                                                                                  | Column level, optional                                                                     |
+| Edges (planar/spherical)               | Column level (`GEOMETRY` / `GEOGRAPHY`), mandatory                                                                                                                                                                                                  | Column level, optional                                                                     |
+| Polygon orientation                    | No                                                                                                                                                                                                                                                  | Column level, optional                                                                     |
+| Versions compared                                | Introduced in [2.11.0 (March 2025)](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0), last version is [2.12.0 (August 2025)](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.12.0) | [1.1.0 (June 2025)](https://github.com/opengeospatial/geoparquet/releases/tag/v1.1.0%2Bp1) |
+| Implementations | See [Parquet implementations compliance table](https://parquet.apache.org/docs/file-format/implementationstatus/) (does not include GEOMETRY/GEOGRAPHY yet) | See [list of GeoParquet implementations](https://geoparquet.org/#implementations)           |
+| References | [Website](https://parquet.apache.org/), [Specification](https://github.com/apache/parquet-format), [Thrift](https://github.com/apache/parquet-format/blob/master/src/main/thrift/parquet.thrift) | [Website](https://geoparquet.org/), [Specification](https://geoparquet.org/releases/v1.1.0/), [JSON Schema](https://geoparquet.org/releases/v1.1.0/schema.json) |
+
+## What is the GEOMETRY type?
 
 The support for the GEOMETRY type in Parquet only brings [two changes to the standard](https://github.com/apache/parquet-format/pull/240/files#diff-834c5a8d91719350b20995ad99d1cb6d8d68332b9ac35694f40e375bdb2d3e7c).
 
@@ -34,21 +53,27 @@ The first optional statistic is a bounding box that gives the minimum and maximu
 
 The second optional statistics is the list of geospatial types present in the column chunk (e.g., `Point`, `Polygon`, `MultiLineString`, etc.) There is no way to define a specific geometry type for the column, unlike GeoParquet. It's done at the row group level.
 
-## What is the GEOGRAPHY type in Parquet?
+## What is the GEOGRAPHY type?
 
 `GEOGRAPHY` can be seen as an extension of `GEOMETRY` for the sphere. The only difference in the standard is an additional optional parameter for the logical type, which gives the algorithm used for edge interpolation on the sphere.
 
-## Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?
+## When were GEOMETRY and GEOGRAPHY added to Parquet?
 
-No. The [GeoParquet 1.1.0 standard](https://geoparquet.org/releases/v1.1.0/), published three months after the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet, does not mention these logical types or the new geospatial statistics at all.
+Since May of 2024, the maintainers of both projects have discussed how to support geospatial data natively in Parquet. You can do archeology in [PARQUET-2471](https://github.com/apache/parquet-format/pull/240). Nice discussion, more than 400 comments, 40 revisions, 15 participants (nearly all men, btw).
+
+It culminated with the addition of the `GEOMETRY` and `GEOGRAPHY` logical types in the Parquet format, formally released in March of 2025 with version [2.11.0](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0) of the Parquet format.
+
+## Are GeoParquet and Parquet with GEOMETRY the same thing?
+
+No. Parquet with `GEOMETRY` and `GEOGRAPHY` is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.
 
 ## Is GeoParquet deprecated?
 
 No. It's still an active standard, and a [version](https://geoparquet.org/releases/v1.1.0/) was published three months after the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet.
 
-## Are GeoParquet and Parquet with GEOMETRY the same thing?
+## Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?
 
-No. Parquet with `GEOMETRY` and `GEOGRAPHY` is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.
+No. The [GeoParquet 1.1.0 standard](https://geoparquet.org/releases/v1.1.0/), published three months after the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet, does not mention these logical types or the new geospatial statistics at all.
 
 ## What are the differences between GeoParquet and Parquet with GEOMETRY?
 
