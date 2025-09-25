@@ -12,6 +12,26 @@ body {
   font-family: var(--sans-font);
 }
 
+table {
+  border: solid 1px black;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border: solid 1px black;
+  text-align: left;
+}
+
+th {
+  background: #ddd;
+  padding: 0.4em 0.5em;
+}
+td {
+  vertical-align: top;
+  padding: 0.2em 0.5em;
+}
+
 main {
   box-sizing: border-box;
   max-width: 45em;
