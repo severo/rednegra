@@ -10,6 +10,8 @@ date: 2025-09-25
 
 In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with its new `GEOMETRY` and `GEOGRAPHY`.
 
+_edit (2025-10-03): I updated parts of this post, after Chris Holmes pointed out that I had misunderstood the chronology. GeoParquet's last version was actually 9 months before the new types, and the goal for GeoParquet is to "go native"._
+
 ## TL;DR
 
 My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as `WKB`.
@@ -29,7 +31,7 @@ The differences between the two standards are summarized in the table below.
 | Covering (link to bounding box column) | No                                                                                                                                                                                                                                                  | Column level, optional                                                                                                                                          |
 | Edges (planar/spherical)               | Column level (`GEOMETRY` / `GEOGRAPHY`), mandatory                                                                                                                                                                                                  | Column level, optional                                                                                                                                          |
 | Polygon orientation                    | No                                                                                                                                                                                                                                                  | Column level, optional                                                                                                                                          |
-| Versions compared                      | Introduced in [2.11.0 (March 2025)](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0), last version is [2.12.0 (August 2025)](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.12.0) | [1.1.0 (June 2025)](https://github.com/opengeospatial/geoparquet/releases/tag/v1.1.0%2Bp1)                                                                      |
+| Versions compared                      | Introduced in [2.11.0 (March 2025)](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0), last version is [2.12.0 (August 2025)](https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.12.0) | [1.1.0 (June 2024)](https://github.com/opengeospatial/geoparquet/releases/tag/v1.1.0%2Bp1)                                                                      |
 | Implementations                        | See [Parquet implementations compliance table](https://parquet.apache.org/docs/file-format/implementationstatus/) (does not include GEOMETRY/GEOGRAPHY yet)                                                                                         | See [list of GeoParquet implementations](https://geoparquet.org/#implementations)                                                                               |
 | References                             | [Website](https://parquet.apache.org/), [Specification](https://github.com/apache/parquet-format), [Thrift](https://github.com/apache/parquet-format/blob/master/src/main/thrift/parquet.thrift)                                                    | [Website](https://geoparquet.org/), [Specification](https://geoparquet.org/releases/v1.1.0/), [JSON Schema](https://geoparquet.org/releases/v1.1.0/schema.json) |
 | Example file | TODO | [GeoParquet example file](https://source-cooperative.github.io/parquet-table/?lens=metadata&url=https%3A%2F%2Fraw.githubusercontent.com%2Fopengeospatial%2Fgeoparquet%2Fmain%2Fexamples%2Fexample.parquet) |
@@ -68,17 +70,25 @@ It culminated with the addition of the `GEOMETRY` and `GEOGRAPHY` logical types 
 
 No. Parquet with `GEOMETRY` and `GEOGRAPHY` is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.
 
+_edit (2025-10-03): but the plan for GeoParquet 2.0 is to be Parquet with GEOMETRY/GEOGRAPHY. See these two blog posts by Chris Holmes: ["Geoparquet 2.0: Going Native"](https://cloudnativegeo.org/blog/2025/02/geoparquet-2.0-going-native/), ["GeoParquet & Parquet geospatial types: A time of transition"](https://cholmes.medium.com/geoparquet-parquet-geospatial-types-a-time-of-transition-a42e391cdab2)._
+
 ## Is GeoParquet deprecated?
 
-No. It's still an active standard, and a [version](https://geoparquet.org/releases/v1.1.0/) was published three months after the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet.
+No. It's still an active standard<strike>, and a [version](https://geoparquet.org/releases/v1.1.0/) was published three months after the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet</strike>.
+
+_edit (2025-10-03): I misread the year! Version v1.1.0 was actually published 9 months before, and the plan for Geoparquet is to "go native". Sorry about that, and thanks for Chris Holmes for noticing!_
 
 ## Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?
 
-No. The [GeoParquet 1.1.0 standard](https://geoparquet.org/releases/v1.1.0/), published three months after the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet, does not mention these logical types or the new geospatial statistics at all.
+No. The [GeoParquet 1.1.0 standard](https://geoparquet.org/releases/v1.1.0/), published <strike>three months after</strike> nine months before the introduction of `GEOMETRY` and `GEOGRAPHY` in Parquet, does not yet mention these logical types or the new geospatial statistics.
+
+_edit (2025-10-03): see above!_
 
 ## What are the differences between GeoParquet and Parquet with GEOMETRY?
 
-The two standards seem to have diverged, even if the GeoParquet maintainers participated in the creation of the `GEOMETRY` logical type in Parquet.
+<strike>The two standards seem to have diverged, even if the GeoParquet maintainers participated in the creation of the `GEOMETRY` logical type in Parquet.</strike>
+
+_edit (2025-10-03): see above! The two standards have not diverged, I misunderstood, and the plan for GeoParquet is to "go native"._
 
 ### No overlap
 
@@ -125,6 +135,8 @@ I have no clear idea of how the libraries write Parquet files that include geosp
 ### and in hyparquet?
 
 [hyparquet](https://github.com/hyparam/hyparquet) does not yet support reading `GEOMETRY` and `GEOGRAPHY`, or the geospatial statistics. It has two companion projects: [geoparquet](https://github.com/hyparam/geoparquet), which reads GeoParquet, and [hyparquet-writer](https://github.com/hyparam/hyparquet-writer), which writes Parquet in JavaScript. The [plan](https://github.com/hyparam/hyparquet/issues/124) is to improve the support for geospatial data in hyparquet. Time to start coding!
+
+_edit (2025-10-03): hyparquet now supports reading `GEOMETRY` and `GEOGRAPHY`._
 
 ## Conclusion
 
