@@ -13,5 +13,3 @@ You can find me on [Hugging Face](https://huggingface.co/severo), [Observable](h
 I also have a [blog](./blog/).
 
 Here is my [picture](/assets/images/sylvain-lesage.jpeg).
-
-For payments, you can use [PayPal](https://www.paypal.com/paypalme/rednegra).
