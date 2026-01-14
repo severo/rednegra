@@ -1,5 +1,6 @@
 ---
 title: Virtual Scrolling for Billions of Rows — Techniques from HighTable
+description: Techniques used in HighTable to efficiently render and navigate billions of rows in the browser using lazy loading, slicing, scrollbar downscaling, local scrolling, and keyboard navigation.
 tags: web, ui, javascript, performance, react, accessibility, virtualization
 date: 2026-01-14
 ---
