@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
+  <title>Blog - Sylvain Lesage</title>
+  <subtitle>Web development and data visualization.</subtitle>
+  <link href="https://rednegra.net/feed.xml" rel="self" />
+  <link href="https://rednegra.net/blog/" />
+  <updated>2025-09-25T00:00:00Z</updated>
+  <id>https://rednegra.net/blog/</id>
+  <author>
+    <name>Sylvain Lesage</name>
+    <email>severo@rednegra.net</email>
+  </author>
+  <entry>
+    <title>Parquet with GEOMETRY type is not GeoParquet</title>
+    <link href="https://rednegra.net/blog/20250925-parquet-with-geometry-type-is-not-geoparquet/" />
+    <updated>2025-09-25T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20250925-parquet-with-geometry-type-is-not-geoparquet/</id>
+    <content type="html">&lt;p&gt;&lt;a href=&quot;https://parquet.apache.org/&quot;&gt;Parquet&lt;/a&gt; is a column-oriented storage file format I love to use in web apps, because I can access large datasets from a remote location without loading the entire file into memory. Several JavaScript libraries allow reading remote Parquet files: &lt;a href=&quot;https://github.com/duckdb/duckdb-wasm&quot;&gt;DuckDB-WASM&lt;/a&gt;, &lt;a href=&quot;https://rednegra.net/blog/20250925-parquet-with-geometry-type-is-not-geoparquet/kylebarron.dev/parquet-wasm/&quot;&gt;Parquet WASM&lt;/a&gt; or &lt;a href=&quot;https://github.com/hyparam/hyparquet&quot;&gt;hyparquet&lt;/a&gt; which I regularly contribute to.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&quot;https://geoparquet.org/&quot;&gt;GeoParquet&lt;/a&gt; is an extension of Parquet that defines how to store geospatial data.&lt;/p&gt;
+&lt;p&gt;In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with its new &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;edit (2025-10-03): I updated parts of this post, after Chris Holmes pointed out that I had misunderstood the chronology. GeoParquet&#39;s last version was actually 9 months before the new types, and the goal for GeoParquet is to &amp;quot;go native&amp;quot;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2&gt;TL;DR&lt;/h2&gt;
+&lt;p&gt;My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The differences between the two standards are summarized in the table below.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Feature&lt;/th&gt;
+&lt;th&gt;Parquet with GEOMETRY/GEOGRAPHY&lt;/th&gt;
+&lt;th&gt;GeoParquet&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Location&lt;/td&gt;
+&lt;td&gt;Columns logical types, and row group level geospatial statistics&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;geo&lt;/code&gt; field in file metadata&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Logical type of &lt;code&gt;BYTE_ARRAY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;&lt;code&gt;GEOMETRY&lt;/code&gt;, &lt;code&gt;GEOGRAPHY&lt;/code&gt;&lt;/td&gt;
+&lt;td&gt;None&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Encoding&lt;/td&gt;
+&lt;td&gt;WKB&lt;/td&gt;
+&lt;td&gt;WKB or Arrow native types&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Primary geospatial column&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;td&gt;Yes&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Coordinate Reference System (CRS)&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Epoch (dynamic CRS year)&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Geometry types&lt;/td&gt;
+&lt;td&gt;Row group level, optional&lt;/td&gt;
+&lt;td&gt;Column level, mandatory&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Column bounding box&lt;/td&gt;
+&lt;td&gt;Row group level, optional&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Covering (link to bounding box column)&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Edges (planar/spherical)&lt;/td&gt;
+&lt;td&gt;Column level (&lt;code&gt;GEOMETRY&lt;/code&gt; / &lt;code&gt;GEOGRAPHY&lt;/code&gt;), mandatory&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Polygon orientation&lt;/td&gt;
+&lt;td&gt;No&lt;/td&gt;
+&lt;td&gt;Column level, optional&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Versions compared&lt;/td&gt;
+&lt;td&gt;Introduced in &lt;a href=&quot;https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0&quot;&gt;2.11.0 (March 2025)&lt;/a&gt;, last version is &lt;a href=&quot;https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.12.0&quot;&gt;2.12.0 (August 2025)&lt;/a&gt;&lt;/td&gt;
+&lt;td&gt;&lt;a href=&quot;https://github.com/opengeospatial/geoparquet/releases/tag/v1.1.0%2Bp1&quot;&gt;1.1.0 (June 2024)&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Implementations&lt;/td&gt;
+&lt;td&gt;See &lt;a href=&quot;https://parquet.apache.org/docs/file-format/implementationstatus/&quot;&gt;Parquet implementations compliance table&lt;/a&gt; (does not include GEOMETRY/GEOGRAPHY yet)&lt;/td&gt;
+&lt;td&gt;See &lt;a href=&quot;https://geoparquet.org/#implementations&quot;&gt;list of GeoParquet implementations&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;References&lt;/td&gt;
+&lt;td&gt;&lt;a href=&quot;https://parquet.apache.org/&quot;&gt;Website&lt;/a&gt;, &lt;a href=&quot;https://github.com/apache/parquet-format&quot;&gt;Specification&lt;/a&gt;, &lt;a href=&quot;https://github.com/apache/parquet-format/blob/master/src/main/thrift/parquet.thrift&quot;&gt;Thrift&lt;/a&gt;&lt;/td&gt;
+&lt;td&gt;&lt;a href=&quot;https://geoparquet.org/&quot;&gt;Website&lt;/a&gt;, &lt;a href=&quot;https://geoparquet.org/releases/v1.1.0/&quot;&gt;Specification&lt;/a&gt;, &lt;a href=&quot;https://geoparquet.org/releases/v1.1.0/schema.json&quot;&gt;JSON Schema&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Example file&lt;/td&gt;
+&lt;td&gt;TODO&lt;/td&gt;
+&lt;td&gt;&lt;a href=&quot;https://source-cooperative.github.io/parquet-table/?lens=metadata&amp;amp;url=https%3A%2F%2Fraw.githubusercontent.com%2Fopengeospatial%2Fgeoparquet%2Fmain%2Fexamples%2Fexample.parquet&quot;&gt;GeoParquet example file&lt;/a&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h2&gt;What is the GEOMETRY type?&lt;/h2&gt;
+&lt;p&gt;The support for the GEOMETRY type in Parquet only brings &lt;a href=&quot;https://github.com/apache/parquet-format/pull/240/files#diff-834c5a8d91719350b20995ad99d1cb6d8d68332b9ac35694f40e375bdb2d3e7c&quot;&gt;two changes to the standard&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;Logical type&lt;/h3&gt;
+&lt;p&gt;Logical types in Parquet are a way to add semantic meaning to primitive types. They are defined in the Parquet &amp;quot;schema&amp;quot;, the part of the metadata that lists the columns and their characteristics. &lt;code&gt;GEOMETRY&lt;/code&gt; is a new logical type for the primitive type &lt;code&gt;BYTE_ARRAY&lt;/code&gt;, and has an optional parameter to define the CRS (Coordinate Reference System) of the column.&lt;/p&gt;
+&lt;p&gt;The data in the GEOMETRY columns must be encoded in &lt;a href=&quot;https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry#Well-known_binary&quot;&gt;WKB&lt;/a&gt; (Well-Known Binary), a binary format to represent geometric objects defined by the &lt;a href=&quot;https://www.ogc.org/&quot;&gt;OGC&lt;/a&gt; (Open Geospatial Consortium). Note that the axis order is explicitly &lt;code&gt;(x,y)&lt;/code&gt; and cannot be overridden by the CRS.&lt;/p&gt;
+&lt;h3&gt;Statistics&lt;/h3&gt;
+&lt;p&gt;Apart from the logical type in the schema, the new version also includes optional geospatial statistics in the column metadata at the row group level. The aim is to speed up geospatial queries by filtering out row groups that do not intersect with the query&#39;s bounding box.&lt;/p&gt;
+&lt;p&gt;The geospatial statistics can include two optional fields.&lt;/p&gt;
+&lt;p&gt;The first optional statistic is a bounding box that gives the minimum and maximum coordinates of all the geometries in the column chunk. Note that it includes x, y, but also z and m if present.&lt;/p&gt;
+&lt;p&gt;The second optional statistics is the list of geospatial types present in the column chunk (e.g., &lt;code&gt;Point&lt;/code&gt;, &lt;code&gt;Polygon&lt;/code&gt;, &lt;code&gt;MultiLineString&lt;/code&gt;, etc.) There is no way to define a specific geometry type for the column, unlike GeoParquet. It&#39;s done at the row group level.&lt;/p&gt;
+&lt;h2&gt;What is the GEOGRAPHY type?&lt;/h2&gt;
+&lt;p&gt;&lt;code&gt;GEOGRAPHY&lt;/code&gt; can be seen as an extension of &lt;code&gt;GEOMETRY&lt;/code&gt; for the sphere. The only difference in the standard is an additional optional parameter for the logical type, which gives the algorithm used for edge interpolation on the sphere.&lt;/p&gt;
+&lt;h2&gt;When were GEOMETRY and GEOGRAPHY added to Parquet?&lt;/h2&gt;
+&lt;p&gt;Since May of 2024, the maintainers of both projects have discussed how to support geospatial data natively in Parquet. You can do archeology in &lt;a href=&quot;https://github.com/apache/parquet-format/pull/240&quot;&gt;PARQUET-2471&lt;/a&gt;. Nice discussion, more than 400 comments, 40 revisions, 15 participants (nearly all men, btw).&lt;/p&gt;
+&lt;p&gt;It culminated with the addition of the &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; logical types in the Parquet format, formally released in March of 2025 with version &lt;a href=&quot;https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0&quot;&gt;2.11.0&lt;/a&gt; of the Parquet format.&lt;/p&gt;
+&lt;h2&gt;Are GeoParquet and Parquet with GEOMETRY the same thing?&lt;/h2&gt;
+&lt;p&gt;No. Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;edit (2025-10-03): but the plan for GeoParquet 2.0 is to be Parquet with GEOMETRY/GEOGRAPHY. See these two blog posts by Chris Holmes: &lt;a href=&quot;https://cloudnativegeo.org/blog/2025/02/geoparquet-2.0-going-native/&quot;&gt;&amp;quot;Geoparquet 2.0: Going Native&amp;quot;&lt;/a&gt;, &lt;a href=&quot;https://cholmes.medium.com/geoparquet-parquet-geospatial-types-a-time-of-transition-a42e391cdab2&quot;&gt;&amp;quot;GeoParquet &amp;amp; Parquet geospatial types: A time of transition&amp;quot;&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2&gt;Is GeoParquet deprecated?&lt;/h2&gt;
+&lt;p&gt;No. It&#39;s still an active standard&lt;strike&gt;, and a &lt;a href=&quot;https://geoparquet.org/releases/v1.1.0/&quot;&gt;version&lt;/a&gt; was published three months after the introduction of &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; in Parquet&lt;/strike&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;edit (2025-10-03): I misread the year! Version v1.1.0 was actually published 9 months before, and the plan for Geoparquet is to &amp;quot;go native&amp;quot;. Sorry about that, and thanks for Chris Holmes for noticing!&lt;/em&gt;&lt;/p&gt;
+&lt;h2&gt;Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?&lt;/h2&gt;
+&lt;p&gt;No. The &lt;a href=&quot;https://geoparquet.org/releases/v1.1.0/&quot;&gt;GeoParquet 1.1.0 standard&lt;/a&gt;, published &lt;strike&gt;three months after&lt;/strike&gt; nine months before the introduction of &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; in Parquet, does not yet mention these logical types or the new geospatial statistics.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;edit (2025-10-03): see above!&lt;/em&gt;&lt;/p&gt;
+&lt;h2&gt;What are the differences between GeoParquet and Parquet with GEOMETRY?&lt;/h2&gt;
+&lt;p&gt;&lt;strike&gt;The two standards seem to have diverged, even if the GeoParquet maintainers participated in the creation of the &lt;code&gt;GEOMETRY&lt;/code&gt; logical type in Parquet.&lt;/strike&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;edit (2025-10-03): see above! The two standards have not diverged, I misunderstood, and the plan for GeoParquet is to &amp;quot;go native&amp;quot;.&lt;/em&gt;&lt;/p&gt;
+&lt;h3&gt;No overlap&lt;/h3&gt;
+&lt;p&gt;GeoParquet does not mention the new logical types and geospatial statistics. All GeoParquet features are included in a &lt;code&gt;geo&lt;/code&gt; field in the file metadata, which is not part of the Parquet standard.&lt;/p&gt;
+&lt;h3&gt;GeoParquet features&lt;/h3&gt;
+&lt;p&gt;GeoParquet has many features that are not in Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;A GeoParquet file must include a &lt;code&gt;geo&lt;/code&gt; field, encoded as JSON, in the file metadata. This object contains the GeoParquet version and the name of the primary geospatial column. Parquet has no concept of such a &amp;quot;primary&amp;quot; geospatial column.&lt;/p&gt;
+&lt;p&gt;The same &lt;code&gt;geo&lt;/code&gt; metadata must also include a list of column metadata for each geospatial column in the file.&lt;/p&gt;
+&lt;p&gt;Each column metadata mandatorily includes the encoding, which might be WKB or a native Arrow type, called &lt;code&gt;point&lt;/code&gt;, &lt;code&gt;linestring&lt;/code&gt;, &lt;code&gt;polygon&lt;/code&gt;, etc. This means that the binary data in the columns is not necessarily WKB as in Parquet.&lt;/p&gt;
+&lt;p&gt;It also includes the list of geometry types present in the column (e.g., &lt;code&gt;Point&lt;/code&gt;, &lt;code&gt;Polygon&lt;/code&gt;, etc.) It&#39;s done for the entire column, while in Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt;, it&#39;s optional and done at the row group level.&lt;/p&gt;
+&lt;p&gt;The column metadata can also include the CRS (feature parity with Parquet, but not located in the schema).&lt;/p&gt;
+&lt;p&gt;The difference between planar and spherical data is given by the &amp;quot;edges&amp;quot; field (&lt;code&gt;spherical&lt;/code&gt; or &lt;code&gt;planar&lt;/code&gt;). It is complemented by the orientation field that must be &lt;code&gt;counterclockwise&lt;/code&gt; or undefined, and gives the orientation of polygon rings. Parquet uses the logical type to differentiate between planar (&lt;code&gt;GEOMETRY&lt;/code&gt;) and spherical (&lt;code&gt;GEOGRAPHY&lt;/code&gt;) data. It has no concept of orientation, and it gives more details for the GEOGRAPHY logical type by defining how to interpolate edges on the sphere.&lt;/p&gt;
+&lt;p&gt;GeoParquet still has several additional features at the column level that have no equivalent in Parquet.&lt;/p&gt;
+&lt;p&gt;It can include a bounding box for the entire column, which is very handy to get an immediate idea of the data extent. I created a small tool, called &lt;a href=&quot;https://observablehq.com/@severo/hello-foursquare-places&quot;&gt;&amp;quot;Hello Foursquare places&amp;quot;&lt;/a&gt;, that uses that information to quickly find which of the 100 GeoParquet files published by Foursquare contains a specific area.&lt;/p&gt;
+&lt;p&gt;You can also see a specialized field, called &lt;code&gt;epoch&lt;/code&gt;, which gives the year of the CRS when it&#39;s a dynamic one. It surely helps in some edge cases.&lt;/p&gt;
+&lt;p&gt;Finally, a recent addition to the column metadata is &lt;code&gt;covering&lt;/code&gt;, which maps a geospatial column to a bounding box column, which can help to speed up queries. If I read correctly, it&#39;s limited to the x and y dimensions. I&#39;m not yet sure what the tradeoffs are between using &lt;code&gt;covering&lt;/code&gt; in GeoParquet and using geospatial statistics in Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt;.&lt;/p&gt;
+&lt;h2&gt;Are they compatible?&lt;/h2&gt;
+&lt;p&gt;Yes! It&#39;s the good news. As the two standards are orthogonal, you can combine them, with only one caveat: the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Otherwise, the files can be written with both the &lt;code&gt;geo&lt;/code&gt; metadata (GeoParquet), and the &lt;code&gt;GEOMETRY&lt;/code&gt;/&lt;code&gt;GEOGRAPHY&lt;/code&gt; logical types + geospatial statistics (Parquet).&lt;/p&gt;
+&lt;h2&gt;How to read them?&lt;/h2&gt;
+&lt;p&gt;As the two standards are orthogonal, their features can be read and interpreted independently of each other. The only caveat is that the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt; to be compatible with both standards, and I imagine that Parquet takes precedence over GeoParquet. So, if a GeoParquet file defines an Arrow native encoding, while the column is marked as a &lt;code&gt;GEOMETRY&lt;/code&gt; logical type in the schema, a reader should raise an error.&lt;/p&gt;
+&lt;h2&gt;What is the support in libraries?&lt;/h2&gt;
+&lt;p&gt;I have no clear idea of how the libraries write Parquet files that include geospatial data, and how they support reading both formats. If you want to investigate, you can consult the &lt;a href=&quot;https://geoparquet.org/#implementations&quot;&gt;list of GeoParquet implementations&lt;/a&gt; and the &lt;a href=&quot;https://parquet.apache.org/docs/file-format/implementationstatus/&quot;&gt;Parquet implementations compliance table&lt;/a&gt; (which unfortunately does not include &lt;code&gt;GEOMETRY&lt;/code&gt;, &lt;code&gt;GEOGRAPHY &lt;/code&gt;, and the geospatial statistics).&lt;/p&gt;
+&lt;h3&gt;and in hyparquet?&lt;/h3&gt;
+&lt;p&gt;&lt;a href=&quot;https://github.com/hyparam/hyparquet&quot;&gt;hyparquet&lt;/a&gt; does not yet support reading &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt;, or the geospatial statistics. It has two companion projects: &lt;a href=&quot;https://github.com/hyparam/geoparquet&quot;&gt;geoparquet&lt;/a&gt;, which reads GeoParquet, and &lt;a href=&quot;https://github.com/hyparam/hyparquet-writer&quot;&gt;hyparquet-writer&lt;/a&gt;, which writes Parquet in JavaScript. The &lt;a href=&quot;https://github.com/hyparam/hyparquet/issues/124&quot;&gt;plan&lt;/a&gt; is to improve the support for geospatial data in hyparquet. Time to start coding!&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;edit (2025-10-03): hyparquet now supports reading &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; is not GeoParquet. The two standards are orthogonal and compatible, and can be combined, with the caveat that the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt;. GeoParquet has more features, while Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; brings native support for geospatial data in the Parquet format. The new geospatial additions in Parquet seem too recent to have had widespread adoption.&lt;/p&gt;
+&lt;p&gt;Do you have comments? Did I misunderstand something? Do you know if Parquet and GeoParquet will merge at some point? Please reach out on &lt;a href=&quot;https://mastodon.social/@severo/&quot;&gt;Mastodon&lt;/a&gt; or &lt;a href=&quot;https://www.linkedin.com/in/sylvain--lesage/&quot;&gt;LinkedIn&lt;/a&gt;.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Parse, don&#39;t validate</title>
+    <link href="https://rednegra.net/blog/20250810-parse-dont-validate/" />
+    <updated>2025-08-10T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20250810-parse-dont-validate/</id>
+    <content type="html">&lt;p&gt;Alexis King coined the expression &lt;a href=&quot;https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/&quot;&gt;&amp;quot;Parse, don&#39;t validate&amp;quot;&lt;/a&gt; in 2019.&lt;/p&gt;
+&lt;p&gt;I discovered it today reading &lt;a href=&quot;https://marvinh.dev/blog/speeding-up-javascript-ecosystem-part-12/&quot;&gt;Speeding up the JavaScript ecosystem - Semver&lt;/a&gt; by Marvin Hagemeister.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;To validate input correctness, both validator functions parse the input data, allocate the resulting data structure and return back the original input string if it passed the check. When we call the satisfies function, we do the same work that we just threw away again. This is a classic case of doing twice the work necessary due to not following the &amp;quot;Parse, don&#39;t validate&amp;quot; rule.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Quoting Alexis King, the principle is to use the typing system to:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Use a data structure that makes illegal states unrepresentable,&lt;/li&gt;
+&lt;li&gt;Push the burden of proof upward as far as possible, but no further.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I think the most useful insight is the first point: &lt;em&gt;using a data structure that makes illegal states unrepresentable&lt;/em&gt; and its comment:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Model your data using the most precise data structure you reasonably can. If ruling out a particular possibility is too hard using the encoding you are currently using, consider alternate encodings that can express the property you care about more easily. Don’t be afraid to refactor.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The second point is a direct consequence of the first.&lt;/p&gt;
+&lt;p&gt;His example uses Haskell and treats the problem of an array that should not be empty. Instead of passing a regular array along all the code, he creates a &amp;quot;non empty array&amp;quot; type, and parses his array as soon as possible, returning a &amp;quot;non empty array&amp;quot;, or failing. It&#39;s known as &lt;a href=&quot;https://www.typescriptlang.org/docs/handbook/2/narrowing.html&quot;&gt;&amp;quot;type narrowing&amp;quot;&lt;/a&gt; (or type guarding) in TypeScript.&lt;/p&gt;
+&lt;h2&gt;Translated in TypeScript&lt;/h2&gt;
+&lt;p&gt;Let&#39;s reproduce the example in TypeScript. We want to parse a regular array and ensure it&#39;s not empty.&lt;/p&gt;
+&lt;p&gt;We define type as:&lt;/p&gt;
+&lt;pre class=&quot;language-ts&quot;&gt;&lt;code class=&quot;language-ts&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;NonEmptyArray&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(thanks Copilot for helping me with that, as generic types are not my favorite hobby)&lt;/p&gt;
+&lt;p&gt;Then, the parsing function is:&lt;/p&gt;
+&lt;pre class=&quot;language-ts&quot;&gt;&lt;code class=&quot;language-ts&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;token function&quot;&gt;parseArray&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;input&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token builtin&quot;&gt;unknown&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; NonEmptyArray&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token builtin&quot;&gt;unknown&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;token builtin&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;isArray&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;input&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;Input is not an array&quot;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;input&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;length &lt;span class=&quot;token operator&quot;&gt;===&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;throw&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Error&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&quot;Array is empty&quot;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; input &lt;span class=&quot;token keyword&quot;&gt;as&lt;/span&gt; NonEmptyArray&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token builtin&quot;&gt;unknown&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Once the array has been parsed, you will never have to check its emptiness again. If you modify the array with &lt;code&gt;.map&lt;/code&gt;, TypeScript will ensure you still have a non-empty array as a result.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Know your candidate to uninominal deputy (Bolivia)</title>
+    <link href="https://rednegra.net/blog/20250809-know-your-deputy-candidates-Bolivia/" />
+    <updated>2025-08-09T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20250809-know-your-deputy-candidates-Bolivia/</id>
+    <content type="html">&lt;p&gt;The &lt;a href=&quot;https://en.wikipedia.org/wiki/2025_Bolivian_general_election&quot;&gt;2025 Bolivian general elections&lt;/a&gt; are in one week. We will vote for the president, senators, and deputies.&lt;/p&gt;
+&lt;p&gt;There are three kinds of deputies:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&amp;quot;plurinominal&amp;quot;: elected based on the score of their presidential candidate,&lt;/li&gt;
+&lt;li&gt;&amp;quot;especial&amp;quot;: representatives of indigenous peoples and nations,&lt;/li&gt;
+&lt;li&gt;&amp;quot;uninominal&amp;quot;: 63 local elections.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;For the latter, Mauricio Foronda created a tool that gives you the list of candidates for uninominal deputy in your electoral circumscription: &lt;a href=&quot;https://observablehq.com/@mauforonda/en-que-circunscripcion-me-encuentro&quot;&gt;En qué circunscripción me encuentro&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You must allow the page to use your localization (and be in Bolivia) to view the list. For me, in the center of La Paz, it&#39;s the following:&lt;/p&gt;
+&lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20250809-know-your-deputy-candidates-Bolivia/khaMAc34RB-1340.webp 1340w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20250809-know-your-deputy-candidates-Bolivia/khaMAc34RB-1340.jpeg&quot; alt=&quot;Screenshot of the tool&quot; width=&quot;1340&quot; height=&quot;1028&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
+&lt;p&gt;Note that I don&#39;t get the same list if I use my cellphone (4G) or my laptop (WiFi).&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Hello World</title>
+    <link href="https://rednegra.net/blog/20250809-hello/" />
+    <updated>2025-08-09T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20250809-hello/</id>
+    <content type="html">&lt;p&gt;I&#39;m starting a blog, mostly to keep track of the things I see and want to share.&lt;/p&gt;
+&lt;p&gt;It will be about the web, data, visualization, possibly Bolivia, and more.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Bolivia 20.10.19: ¿dónde estaban el millón de votos que faltaban en el TREP?</title>
+    <link href="https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/" />
+    <updated>2019-11-01T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/</id>
+    <content type="html">&lt;p&gt;Autores: Louca Lerch, Sylvain Lesage&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Un primer análisis geográfico de los resultados parciales y finales de la elección presidencial 2019. Vídeo: &lt;a href=&quot;https://youtu.be/YYe-Zq0a9hk&quot;&gt;https://youtu.be/YYe-Zq0a9hk&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Ante el conflicto generado por la publicación de resultados parciales (TREP, 20.10.2019), que abrían paso a una segunda vuelta y la posterior reversión de este resultado en el COMPUTO OFICIAL (25.10.2019), hemos analizado la distribución espacial de los votos que no estaban inicialmente tomados en cuenta. Para esto hemos realizado el siguiente análisis de datos : COMPUTO - TREP = VOTOS FALTANTES. Cada voto ha sido clasificado por municipio rural o urbano según datos de Instituto Nacional de Estadísticas (Censo 2012).&lt;/p&gt;
+&lt;p&gt;Encontramos, en los votos que finalmente le dieron la victoria en primera vuelta a Evo Morales, la Bolivia periférica, productiva y resiliente, tantas veces invisibilizada …&lt;/p&gt;
+&lt;p&gt;Conscientes que estos resultados deberán ser confirmados por la auditoría internacional en curso, libramos aquí un primer análisis cartográfico que ojalá sirva a tod@s para transformar el conflicto actual en un dialogo democrático informado.&lt;/p&gt;
+&lt;h2&gt;Votos emitidos&lt;/h2&gt;
+&lt;p&gt;Hemos clasificado los votos por municipio urbano o rural (&amp;gt;50% indicador INE 2012)&lt;/p&gt;
+&lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/hyt8CwLUpx-1908.webp 1908w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/hyt8CwLUpx-1908.jpeg&quot; alt=&quot;Tres mapas de Bolivia, mostrando todos los votos emitidos, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019.&quot; width=&quot;1908&quot; height=&quot;796&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
+&lt;h2&gt;Solamente los votos favorables al MAS-IPSP (Evo Morales)&lt;/h2&gt;
+&lt;p&gt;Solamente los votos favorables al MAS-IPSP (Evo Morales)&lt;/p&gt;
+&lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/iTG9duwA1f-1908.webp 1908w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/iTG9duwA1f-1908.jpeg&quot; alt=&quot;Tres mapas de Bolivia, mostrando únicamente los votos por el MAS-IPSP, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019.&quot; width=&quot;1908&quot; height=&quot;796&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
+&lt;h2&gt;Solamente los votos favorables a CC (Carlos Mesa)&lt;/h2&gt;
+&lt;p&gt;Evidenciamos un voto mayoritariamente urbano en capitales departamentales y provinciales.&lt;/p&gt;
+&lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/7pU3RE4YDt-1908.webp 1908w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/7pU3RE4YDt-1908.jpeg&quot; alt=&quot;Tres mapas de Bolivia mostrando únicamente los votos por Comunidad Ciudadana, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019.&quot; width=&quot;1908&quot; height=&quot;796&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
+&lt;h2&gt;Fuentes y metodología&lt;/h2&gt;
+&lt;p&gt;Los datos provienen de:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;TREP: &lt;a href=&quot;https://trep.oep.org.bo&quot;&gt;https://trep.oep.org.bo&lt;/a&gt; (domingo 20 de octubre)&lt;/li&gt;
+&lt;li&gt;Computo final: &lt;a href=&quot;https://computo.oep.org.bo&quot;&gt;https://computo.oep.org.bo&lt;/a&gt; (sábado 25 de octubre)&lt;/li&gt;
+&lt;li&gt;Clasificación rural / urbano: &lt;a href=&quot;http://datos.ine.gob.bo&quot;&gt;http://datos.ine.gob.bo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Geometrías: &lt;a href=&quot;https://geo.gob.bo&quot;&gt;https://geo.gob.bo&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;La metodología consiste en: 1. listar los números de mesas computadas el día 20 de octubre en el TREP, 2. separar en dos grupos las actas del computo final: mesas computadas en el TREP, y mesas que faltaban contabilizar el 20 de octubre, 3. agregar los resultados por municipio (suma de votos del computo final), 4. asignar los votos de cada municipio al voto urbano o al voto rural, según el indicador INE 2012.&lt;/p&gt;
+&lt;p&gt;Los datos y el código están disponibles en &lt;a href=&quot;https://observablehq.com/@severo/bolivia-20-10-19-donde-estaban-el-millon-de-votos-que-faltaba&quot;&gt;https://observablehq.com/@severo/bolivia-20-10-19-donde-estaban-el-millon-de-votos-que-faltaba&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Este artículo de blog fue publicado originalmente en &lt;a href=&quot;https://telegra.ph/Bolivia-201019-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP-11-01&quot;&gt;https://telegra.ph/Bolivia-201019-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP-11-01&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+</content>
+  </entry>
+</feed>
