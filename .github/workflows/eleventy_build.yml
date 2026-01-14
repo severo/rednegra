@@ -1,5 +1,8 @@
 name: Eleventy Build
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build_deploy:
@@ -9,7 +12,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 'latest'
+          node-version: "latest"
 
       - name: Install packages
         run: npm ci
