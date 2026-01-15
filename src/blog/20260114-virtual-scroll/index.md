@@ -37,6 +37,8 @@ Indeed, the scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio]
 
 As an additional anecdote, know that setting the scroll value programmatically isn't really predictable anyway. It depends on the browser, the zoom, the device pixel ratio, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
 
+The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and appies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
+
 ## Technique 4: local scrolling
 
 The previous technique allows to scroll globally through the file, but it does not allow fine scrolling, and prevents some rows from being reachable. To fix that, we had to keep a state of the current scrollbar position and of the current visible rows, and implemented the following behavior:
@@ -49,7 +51,7 @@ The previous technique allows to scroll globally through the file, but it does n
 
 One of the HighTable requirements is to allow keyboard navigation. Fortunately, the Web Accessibility Initiative (WAI) provides guides like the [Grid Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) and the [Data Grid Examples](https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/). We use [tabindex roving](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex) to handle the focus, providing all the expected [keyboard interactions](https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation).
 
-Focusing the current cell when navigating the keyboard is easy: calling `element.focus()` automatically scrolls to it. In HighTable, we don't use this default behavior, because it positions the cell at the center of the viewport, causing jumps when navigating with the keyboard. Instead, we first call `element.scrollIntoView({block: 'nearest'})` to scroll by the minimal amount to show the current row, then focus with `element.focus({preventScroll: true})`.
+Focusing the current cell when navigating the keyboard is easy: calling `element.focus()` automatically scrolls to it. In HighTable, we don't use this default behavior, because it positions the cell at the center of the viewport, causing jumps when navigating with the keyboard. Instead, we first call `element.scrollIntoView({block: 'nearest', inline: 'nearest'})` to scroll by the minimal amount to show the current row and column, then focus with `element.focus({preventScroll: true})`.
 
 As an implementation detail, before calling the `scrollIntoView` method, we have to ensure that the target row is rendered. We achieve that by computing the next range of visible rows, updating the table slice accordingly, and then calling `scrollIntoView` once the cell is in the DOM. When computing the nex range, we have to reproduce the `block: 'nearest'` behavior by computing the top position depending on the relative positions of the current row and the next row: if the next row is below, we set it at the top of the viewport, it it's above, we put it as the bottom of the viewport.
 
