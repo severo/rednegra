@@ -41,7 +41,7 @@ The [hyparam/hightable](https://github.com/hyparam/hightable/) library was creat
 
 The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, <strong>HighTable only loads the cells it needs for the current view</strong>.
 
-How you load the data is not part of HighTable. Instead, you pass the data as a `DataFrame` object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
+How you load the data is not part of HighTable. Instead, you pass the data as a [DataFrame](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
 ```typescript
 const cache = new Map<number, number>();
@@ -75,10 +75,9 @@ The dataframe must also provide a synchronous `df.getCell()` method to get the c
 
 When rendering, HighTable will first call `df.getCell()` for the visible rows. If some cells are missing, it will call `df.fetch()` to load them in the background, and re-render the table when the data is available (listening for the `resolve` event).
 
-Read more:
+> You can find a more complete example of a DataFrame that loads a remote Parquet file using HTTP range requests in the [hyparquet demo](https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23).
 
-- [DataFrame interface definition](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38).
-- [Usage of DataFrame to load a remote Parquet file](https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23)
+Lazy loading the data is the first step to handle large datasets. The next step is to avoid rendering too many HTML elements at once.
 
 ## Technique 2: table slice
 
@@ -140,21 +139,37 @@ HighTable reacts to resizing and scrolling. If the user scrolls, it recomputes t
 
 <!-- TODO: add a diagram, or an interactive widget -->
 
-A detail worth mentioning is the sticky header. In HighTable, the table header is rendered as part of the table element, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to  CSS ([`position: sticky`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky)), the header row remains visible at the top of the viewport when scrolling. We take it into account to compute the first visible row.
+> A detail worth mentioning is the sticky header. In HighTable, the table header is rendered as part of the table element, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to  CSS ([`position: sticky`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky)), the header row remains visible at the top of the viewport when scrolling. We take it into account to compute the first visible row.
 
-Also, note that the same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending [discussion on virtual columns](https://github.com/hyparam/hightable/issues/297) if you're interested in having it in HighTable.
+> Also, note that the same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending [discussion on virtual columns](https://github.com/hyparam/hightable/issues/297) if you're interested in having it in HighTable.
+
+Until now, everything is pretty standard. The next techniques are more specific to HighTable, and address challenges that arise when dealing with billions of rows.
 
 ## Technique 3: downscale the scrollbar
 
 Technique 2 works perfectly, until it breaks... As explained in Eric Meyer's blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the value depends on the browser. The worst case is Firefox: about 17 million pixels. As the background div height increases with the number of rows, if the row height is 33px (the default in HighTable), we cannot render more than 500K rows.
 
-Our approach to this issue is to clamp the background div to some threshold (8M pixels), and for larger values, to apply a scale between the scroll position and the absolute position of the table slice. So, if you scroll 50% of the background div, we show the middle rows. It gives the ability to the user to navigate the whole table, but has a drawback: some rows are now unreachable.
+Our approach to this issue in HighTable is to <strong>set a maximum height for the background div (8M pixels) and downscale the scrollbar above this limit.<strong>
 
-Indeed, the scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio), but let's keep one pixel for simplicity. It means that, if you have billions of rows, scrolling down by the minimal step will move thousands of rows down the table. If `scrollTop = 0` shows the first rows, and `scrollTop = 1` shows rows `1000-1030`, there is no way to set `scrollTop = 0.03` to show rows from `30-60`. If you try to scroll programmatically with `element.scrollTo({top: 0.03})`, the result will be rounded by the browser to `scrollTop = 0`.
+Concretely, above the threshold, we compute a downscaling factor between the theoretical height of the full table and the maximum height of the background div, and use it to compute the visible rows from the scroll position, so that if you scroll to half the scrollbar, you reach the middle of the table.
 
-As an additional anecdote, know that setting the scroll value programmatically isn't really predictable anyway. It depends on the browser, the zoom, the device pixel ratio, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
+Below the threshold, the downscaling factor is 1, so everything works as before.
 
-The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and appies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
+<!-- Diagram/widget with the height vs the number of rows -->
+
+With this approach, the user can navigate the whole table, but some rows in-between are now unreachable, due to the scroll bar precision.
+
+Indeed, the scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio), but let's keep one pixel for simplicity. It means that, if you have billions of rows, scrolling down by the minimal step will move thousands of rows down the table. If `scrollTop = 0` shows the first rows, and `scrollTop = 1` shows rows `1000-1030`, there is no way to set `scrollTop = 0.03` to show rows from `30-60`. If you try to scroll programmatically with `element.scrollTo({top: 0.03})`, the result will be rounded by the browser to `scrollTop = 0`, and the visible rows will be `0-30`, not `30-60` as expected.
+
+> As an anecdote, know that setting the scroll value programmatically isn't really predictable anyway. It depends on the browser, the zoom, the device pixel ratio, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
+
+> The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and applies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
+
+
+<!-- Diagram/widget showing the unreachable rows -->
+
+Hence, if technique 3 provides global navigation through billions of rows, it does not allow fine scrolling, and some rows are unreachable. Technique 4 addresses this issue.
+
 
 ## Technique 4: local scrolling
 
