@@ -7,19 +7,78 @@ date: 2026-01-14
 
 TL;DR: In this post, I present five techniques used in HighTable, a React component that can display billions of rows in a table with vertical scrolling, while keeping good performance and accessibility.
 
+You can jump directly to the techniques if you want to skip the introduction.
+
+- [Technique 1: load the data lazily](#technique-1-load-the-data-lazily)
+- [Technique 2: table slice](#technique-2-table-slice)
+- [Technique 3: downscale the scrollbar](#technique-3-downscale-the-scrollbar)
+- [Technique 4: local scrolling](#technique-4-local-scrolling)
+- [Technique 5: keyboard navigation](#technique-5-keyboard-navigation)
+
 ## Introduction
 
-Showing data in a table is one of the first exercises you'll find in HTML 101 courses. But, as often in data science, what works for simple cases breaks when the size increases.
+Showing data in a table is one of the first exercises you'll find in HTML 101 courses.
 
-In this post, I'll showcase some techniques used in `<HighTable>`, a React component that can handle billions of rows. I'll focus on the challenges related to vertical scrolling. The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to look at the code if you're interested in them.
+```html
+<table>
+  <thead>
+    <tr><th>Name</th><th>Age</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Alice</td><td>64</td></tr>
+    <tr><td>Bob</td><td>37</td></tr>
+  </tbody>
+</table>
+```
+
+But, as often in data science, what works for simple cases breaks when the size increases.
+
+In this post, I'll showcase some techniques used in `<HighTable>`, a React component that can handle billions of rows, focusing on the challenges related to vertical scrolling. The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.
 
 The [hyparam/hightable](https://github.com/hyparam/hightable/) library was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to the development for one year now. Try it in the [demo](https://hyparam.github.io/demos/hightable/#/large), or as part of the web [Parquet viewer](https://hyparam.github.io/demos/hyparquet/).
 
 ## Technique 1: load the data lazily
 
-The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either. So, instead of loading the whole data file at start, HighTable only loads the cells it needs for the current view.
+The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, <strong>HighTable only loads the cells it needs for the current view</strong>.
 
-How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38). This interface is designed for lazy-loading the cells on demand. For example, if the first 30 rows are visible, HighTable will call the dataframe's synchronous `getCell` method to fill the cells with the cached data, and at the same time, call the asynchronous `fetch` method to lazy-load the missing ones. The table will refresh on every loaded cell.
+How you load the data is not part of HighTable. Instead, you pass the data as a `DataFrame` object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
+
+```typescript
+const cache = new Map<number, number>();
+const eventTarget = new EventTarget();
+const df = {
+  numRows: 1_000_000,
+  columnDescriptors: [{name: 'Age'}],
+  eventTarget,
+
+  async fetch({ rowStart, rowEnd }: { rowStart: number, rowEnd: number}): Promise<void> {
+    // Simulate network delay
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    for (let row = rowStart; row < rowEnd; row++) {
+      if (cache.has(row)) continue;
+      const value = Math.floor(Math.random() * 100);
+      cache.set(row, {value});
+    }
+    // The resolve event tells HighTable to re-render the visible cells
+    eventTarget.dispatchEvent(new Event('resolve'));
+  },
+
+  getCell({ row }: { row: number }): { value: number } | undefined {
+    return cache.get(row);
+  },
+}
+```
+
+The dataframe loads the data from the source using the asynchronous `df.fetch()` method, which must cache the results, and dispatch a `resolve` event when new data is available. The source can be anything. Here it is randomly generated data. It can also be a [local file](https://developer.mozilla.org/en-US/docs/Web/API/File), an in-memory array, a remote file (using HTTP range requests), or a REST API, for example.
+
+The dataframe must also provide a synchronous `df.getCell()` method to get the cached data for a given cell, or `undefined` if the data is not loaded yet.
+
+When rendering, HighTable will first call `df.getCell()` for the visible rows. If some cells are missing, it will call `df.fetch()` to load them in the background, and re-render the table when the data is available (listening for the `resolve` event).
+
+Read more:
+
+- [DataFrame interface definition](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38).
+- [Usage of DataFrame to load a remote Parquet file](https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23)
 
 ## Technique 2: table slice
 
