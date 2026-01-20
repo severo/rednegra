@@ -82,9 +82,67 @@ Read more:
 
 ## Technique 2: table slice
 
-In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? HighTable only renders a small table, with the header, some padding rows, the visible rows, and then some other padding rows, which generally results in less than one hundred rows. This table slice is absolutely positioned on a background div that has the same height as the theoretical table, in order for the visible rows to be on the viewport.
+In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? As a data point, Chrome [recommends](https://developer.chrome.com/docs/performance/insights/dom-size) creating or updating less than 300 HTML elements for optimal responsiveness.
 
-When scrolling, the absolute position is updated to keep things aligned. The header is always visible and aligned at the top when scrolling thanks to CSS ([`position: sticky`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky)).
+<strong>HighTable is a virtual table, which renders only the visible slice of the table</strong>. Concretely, it renders a table with the header, some padding rows, the visible rows, and then some other padding rows, which generally results in less than one hundred rows:
+
+```html
+<table>
+  <thead>
+    <tr>...header cells...</tr>
+  </thead>
+  <tbody>
+    <!-- padding rows before -->
+    <tr>...row 980...</tr>
+    ...
+    <tr>...row 999...</tr>
+    <!-- visible rows -->
+    <tr>...row 1000...</tr>
+    <tr>...row 1001...</tr>
+    ...
+    <tr>...row 1029...</tr>
+    <!-- padding rows after -->
+    <tr>...row 1030...</tr>
+    ...
+    <tr>...row 1049...</tr>
+  </tbody>
+</table>
+```
+
+The padding rows are used to prevent empty spaces when scrolling quickly. When the user scrolls down, the visible rows are updated accordingly, and the padding rows are adjusted to keep some extra rows before and after the visible rows.
+
+This table slice is rendered inside wrappers that handle the scrolling:
+
+```html
+<!-- the viewport has a scrollbar and its height is small, e.g. 600px. -->
+<div class="viewport" style="overflow-y: auto;">
+  <!-- the background height is big, e.g. 33px * 1_000_000 (rows) -->
+  <div class="background" style="height: 33000000px; position: relative;">
+    <!-- the table wrapper is positioned at the viewport scrollTop value, e.g 33,000px -->
+    <div class="wrapper" style="position: absolute; top: 33000px;">
+      <!-- the table renders rows from 1000 to 1030 (first visible row: scrollTop / 33) -->
+      <table>...</table>
+      ...
+    </div>
+  </div>
+</div>
+```
+
+In this structure, the viewport is a div with `overflow-y: auto` and a fixed height (for example 600px, or the available height of the container). It has a vertical scrollbar, the user scrolls to navigate through the table. The important value is `viewport.scrollTop`, which gives the vertical scroll position in pixels.
+
+The background div has a height equal to the theoretical height of the full table (number of rows multiplied by the row height). It is used to provide the scrollbar with the correct size (`viewport.scrollHeight` is equal to `background.style.height - viewport.clientHeight`).
+
+The wrapper div is absolutely positioned inside the background div, at a `top` position equal to the current `viewport.scrollTop` value, so that the its top pixel is shown at the top of the viewport.
+
+The table element is rendered inside the wrapper. The visible rows are computed from the `viewport.scrollTop` value: if each row is 33px height, and `viewport.scrollTop = 33000px`, the first visible row is `33000 / 33 = 1000`.
+
+HighTable reacts to resizing and scrolling. If the user scrolls, it recomputes the indexes of the visible rows, fetches the data if needed (technique 1), and re-renders the table slice. At the same time, it updates the absolute positioning to keep things aligned. If the user resizes the viewport, for example by resizing the browser window, HighTable recomputes how many rows are visible at once, and re-renders accordingly.
+
+<!-- TODO: add a diagram, or an interactive widget -->
+
+A detail worth mentioning is the sticky header. In HighTable, the table header is rendered as part of the table element, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to  CSS ([`position: sticky`](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky)), the header row remains visible at the top of the viewport when scrolling. We take it into account to compute the first visible row.
+
+Also, note that the same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending [discussion on virtual columns](https://github.com/hyparam/hightable/issues/297) if you're interested in having it in HighTable.
 
 ## Technique 3: downscale the scrollbar
 
