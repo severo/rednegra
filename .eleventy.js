@@ -1,6 +1,7 @@
 import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
 import syntaxHighlight from "@11ty/eleventy-plugin-syntaxhighlight";
 import { feedPlugin } from "@11ty/eleventy-plugin-rss";
+import { IdAttributePlugin } from "@11ty/eleventy";
 
 export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({
@@ -12,6 +13,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy("CNAME");
   eleventyConfig.addPlugin(eleventyImageTransformPlugin);
   eleventyConfig.addPlugin(syntaxHighlight);
+  eleventyConfig.addPlugin(IdAttributePlugin);
   eleventyConfig.addFilter("formatDate", function (value) {
     const offset = value.getTimezoneOffset();
     value = new Date(value.getTime() - offset * 60 * 1000);
