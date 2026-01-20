@@ -157,6 +157,8 @@ Below the threshold, the downscaling factor is 1, so everything works as before.
 
 <!-- Diagram/widget with the height vs the number of rows -->
 
+<!-- Add the formulas -->
+
 With this approach, the user can navigate the whole table, but some rows in-between are now unreachable, due to the scroll bar precision.
 
 Indeed, the scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio), but let's keep one pixel for simplicity. It means that, if you have billions of rows, scrolling down by the minimal step will move thousands of rows down the table. If `scrollTop = 0` shows the first rows, and `scrollTop = 1` shows rows `1000-1030`, there is no way to set `scrollTop = 0.03` to show rows from `30-60`. If you try to scroll programmatically with `element.scrollTo({top: 0.03})`, the result will be rounded by the browser to `scrollTop = 0`, and the visible rows will be `0-30`, not `30-60` as expected.
@@ -170,24 +172,39 @@ Indeed, the scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio]
 
 Hence, if technique 3 provides global navigation through billions of rows, it does not allow fine scrolling, and some rows are unreachable. Technique 4 addresses this issue.
 
-
 ## Technique 4: local scrolling
 
-The previous technique allows to scroll globally through the file, but it does not allow fine scrolling, and prevents some rows from being reachable. To fix that, we had to keep a state of the current scrollbar position and of the current visible rows, and implemented the following behavior:
+The previous technique allows to scroll globally through the file, but prevent users to scroll locally.
 
-- local scroll: if the scroll move is small, for example when using the mouse wheel, adjust the visible rows accordingly, so that the move appears local (for example, 3 rows downwards)
-- global scroll: if the scroll move is big, typically on scrollbar drag and drop, jump to the global position given by technique 3
-- resynchronization: if many local scrolls have been accumulated, stop the local scroll mode, and jump to the global position corresponding to the scrollbar. In HighTable, we trigger resynchronization after scrolling 500 rows locally.
+To fix that, we <strong>scroll globally or locally depending on the magnitude of the scroll move.</strong>
+
+The logic requires to store the current scrollbar position <em>and</em> the current visible rows.
+
+On every scroll event, we compute the move magnitude (delta) and apply one of the three cases:
+
+- <b>local scroll</b>: if the scroll move is small, for example when using the mouse wheel, adjust the visible rows accordingly, so that the move appears local (for example, 3 rows downwards)
+- <b>global scroll</b>: if the scroll move is big, typically on scrollbar drag and drop, jump to the global position given by technique 3
+- <b>resynchronization</b>: if many local scrolls have been accumulated, stop the local scroll mode, and jump to the global position corresponding to the scrollbar. In HighTable, we trigger resynchronization after scrolling 500 rows locally.
+
+<!-- add the formulas -->
+
+With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. But this only handles the native browser scrolling. What about programmatic scrolling, for example when navigating with the keyboard? Technique 5 explains how we handle that.
 
 ## Technique 5: keyboard navigation
 
-One of the HighTable requirements is to allow keyboard navigation. Fortunately, the Web Accessibility Initiative (WAI) provides guides like the [Grid Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) and the [Data Grid Examples](https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/). We use [tabindex roving](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex) to handle the focus, providing all the expected [keyboard interactions](https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation).
+One of the HighTable requirements is to allow keyboard navigation (e.g. Down Arrow to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guides like the [Grid Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) and the [Data Grid Examples](https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/). We use [tabindex roving](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex) to handle the focus, providing all the expected [keyboard interactions](https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation).
 
-Focusing the current cell when navigating the keyboard is easy: calling `element.focus()` automatically scrolls to it. In HighTable, we don't use this default behavior, because it positions the cell at the center of the viewport, causing jumps when navigating with the keyboard. Instead, we first call `element.scrollIntoView({block: 'nearest', inline: 'nearest'})` to scroll by the minimal amount to show the current row and column, then focus with `element.focus({preventScroll: true})`.
+> The simplest way to focus the current cell when navigating the keyboard is to call `element.focus()`: it automatically scrolls to the focused cell. In HighTable, we don't use this default behavior, because it positions the cell at the center of the viewport, causing jumps when navigating with the keyboard. Instead, we first call `element.scrollIntoView({block: 'nearest', inline: 'nearest'})` to scroll by the minimal amount to show the current row and column, then focus with `element.focus({preventScroll: true})`.
 
-As an implementation detail, before calling the `scrollIntoView` method, we have to ensure that the target row is rendered. We achieve that by computing the next range of visible rows, updating the table slice accordingly, and then calling `scrollIntoView` once the cell is in the DOM. When computing the nex range, we have to reproduce the `block: 'nearest'` behavior by computing the top position depending on the relative positions of the current row and the next row: if the next row is below, we set it at the top of the viewport, it it's above, we put it as the bottom of the viewport.
+But, the keyboard navigation techniques explained in these resources are designed for normal tables, not virtual tables. Due to techniques 3 and 4, the vertical and horizontal scroll positions must be handled differently.
 
-Unfortunately, it conflicts with techniques 3 (downscaled scrollbar) and 4 (local scrolling). In that case, as the scroll bar precision is not enough to reach the target row, we cannot rely on it to reach the exact expected `scrollTop` position. Instead, we have to do the following:
+In HighTable, when the user navigates with the keyboard, <strong>we first render the new visible rows, as if the table had been scrolled, then programmatically scroll to the visible rows, and once done, scroll horizontally and focus the target cell.</strong>
+
+<!-- finish rewriting this section -->
+
+As an implementation detail, before calling the `scrollIntoView` method, we have to ensure that the target row is rendered. We achieve that by computing the next range of visible rows, updating the table slice accordingly, and then calling `scrollIntoView` once the cell is in the DOM. When computing the next range, we have to reproduce the `block: 'nearest'` behavior by computing the top position depending on the relative positions of the current row and the next row: if the next row is below, we set it at the top of the viewport, it it's above, we put it as the bottom of the viewport.
+
+Unfortunately, it conflicts with techniques 3 (downscaled scrollbar) and 4 (local scrolling). In that case, due to the limited scrollbar precision, we cannot rely on `scrollIntoView` to set the exact expected `scrollTop` position. Instead, we have to do the following:
 - compute the exact `scrollTop` position that would show the target row at the expected place in the viewport
 - set the internal state to this `scrollTop` position, so that the next render shows the table slice at the expected place
 - programmatically scroll to this `scrollTop` position using `element.scrollTo({top, behavior: 'instant'})`. We force `behavior: 'instant` to avoid multiple `scroll` events due to smooth scrolling, which would conflict with our internal state due to intermediate unexpected `scrollTop` positions.
