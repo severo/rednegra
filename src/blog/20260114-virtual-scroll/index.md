@@ -41,7 +41,7 @@ The [hyparam/hightable](https://github.com/hyparam/hightable/) library was creat
 
 The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, <strong>HighTable only loads the cells it needs for the current view</strong>.
 
-How you load the data is not part of HighTable. Instead, you pass the data as a [DataFrame](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
+How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
 ```typescript
 const cache = new Map<number, number>();
@@ -311,4 +311,6 @@ if (!isSemaphoreSet('programmaticScroll')) {
 
 ## Conclusion
 
-No need for a fake scroll bar. No need to render the table as a `<canvas>`. Thanks to these five techniques that rely on native HTML elements, HighTable lets you navigate through billions of rows of a remote data file, in the browser.
+No need for a [fake scroll bar](https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol). No need to render the table [as a `<canvas>`](https://github.com/xwinstone/canvastable). Thanks to these five techniques that rely on native HTML elements, [HighTable](https://github.com/hyparam/hightable) lets you navigate through billions of rows of a remote data file, in the browser.
+
+Give a star ⭐ to the [GitHub repo](https://github.com/hyparam/hightable) if you liked the article!
