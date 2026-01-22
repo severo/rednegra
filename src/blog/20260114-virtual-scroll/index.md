@@ -10,10 +10,10 @@ TL;DR: In this post, I present five techniques used in HighTable, a React compon
 You can jump directly to the techniques if you want to skip the introduction.
 
 - [Technique 1: load the data lazily](#technique-1-load-the-data-lazily)
-- [Technique 2: table slice](#technique-2-table-slice)
-- [Technique 3: downscale the scrollbar](#technique-3-downscale-the-scrollbar)
-- [Technique 4: local scrolling](#technique-4-local-scrolling)
-- [Technique 5: keyboard navigation](#technique-5-keyboard-navigation)
+- [Technique 2: only render a table slice](#technique-2-only-render-a-table-slice)
+- [Technique 3: downscale the scrollbar for global scrolling](#technique-3-downscale-the-scrollbar-for-global-scrolling)
+- [Technique 4: add a local scrolling mode](#technique-4-add-a-local-scrolling-mode)
+- [Technique 5: decouple vertical and horizontal scrolling](#technique-5-decouple-vertical-and-horizontal-scrolling)
 
 ## Introduction
 
@@ -79,7 +79,7 @@ When rendering, HighTable will first call `df.getCell()` for the visible rows. I
 
 Lazy loading the data is the first step to handle large datasets. The next step is to avoid rendering too many HTML elements at once.
 
-## Technique 2: table slice
+## Technique 2: only render a table slice
 
 In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? As a data point, Chrome [recommends](https://developer.chrome.com/docs/performance/insights/dom-size) creating or updating less than 300 HTML elements for optimal responsiveness.
 
@@ -145,7 +145,7 @@ HighTable reacts to resizing and scrolling. If the user scrolls, it recomputes t
 
 Until now, everything is pretty standard. The next techniques are more specific to HighTable, and address challenges that arise when dealing with billions of rows.
 
-## Technique 3: downscale the scrollbar
+## Technique 3: downscale the scrollbar for global scrolling
 
 Technique 2 works perfectly, until it breaks... As explained in Eric Meyer's blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the value depends on the browser. The worst case is Firefox: about 17 million pixels. As the background div height increases with the number of rows, if the row height is 33px (the default in HighTable), we cannot render more than 500K rows.
 
@@ -155,60 +155,126 @@ Concretely, above the threshold, we compute a downscaling factor between the the
 
 Below the threshold, the downscaling factor is 1, so everything works as before.
 
+The downscale factor is computed with:
+
+```typescript
+maxBackgroundHeight = 8_000_000 // in pixels
+rowHeight = 33 // in pixels
+numRows = df.numRows // total number of rows in the table
+if (numRows * rowHeight <= maxBackgroundHeight) {
+  downscaleFactor = 1
+} else {
+  downscaleFactor = (numRows * rowHeight) / maxBackgroundHeight
+}
+```
+
 <!-- Diagram/widget with the height vs the number of rows -->
 
-<!-- Add the formulas -->
+And the first visible row is computed with:
 
-With this approach, the user can navigate the whole table, but some rows in-between are now unreachable, due to the scroll bar precision.
+```typescript
+firstVisibleRow = Math.floor(
+  (viewport.scrollTop * downscaleFactor) / rowHeight
+)
+```
 
-Indeed, the scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio), but let's keep one pixel for simplicity. It means that, if you have billions of rows, scrolling down by the minimal step will move thousands of rows down the table. If `scrollTop = 0` shows the first rows, and `scrollTop = 1` shows rows `1000-1030`, there is no way to set `scrollTop = 0.03` to show rows from `30-60`. If you try to scroll programmatically with `element.scrollTo({top: 0.03})`, the result will be rounded by the browser to `scrollTop = 0`, and the visible rows will be `0-30`, not `30-60` as expected.
+This lets the user navigate through the whole table, even with billions of rows.
 
-> As an anecdote, know that setting the scroll value programmatically isn't really predictable anyway. It depends on the browser, the zoom, the device pixel ratio, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
+But there is a drawback, due to the limited precision of the scrollbar. The scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio), but let's keep one pixel for simplicity.
 
-> The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and applies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
+So, if the downscale factor is big, let's say 10,000, the minimal scroll move (1px) corresponds to 10,000 pixels in the full table. With a row height of 33px, it means that the minimal scroll move corresponds to about 300 rows. It creates <em>gaps</em> in the reachable rows:
 
+- if `scrollTop = 0`, the visible rows are `0-30`
+- if `scrollTop = 1`, the visible rows are `1000-1030`
+- if `scrollTop = 2`, the visible rows are `2000-2030`
+- and so on...
+
+There is no way to reach rows `31-60`, for example. Setting `scrollTop = 0.03` to reach rows `30-60` is impossible, because the browser rounds the scroll position to the nearest integer pixel.
 
 <!-- Diagram/widget showing the unreachable rows -->
 
+> As an anecdote, know that setting the scroll value programmatically isn't really predictable anyway. It depends on the browser, the zoom, the device pixel ratio, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
+>
+> The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and applies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
+
 Hence, if technique 3 provides global navigation through billions of rows, it does not allow fine scrolling, and some rows are unreachable. Technique 4 addresses this issue.
 
-## Technique 4: local scrolling
+## Technique 4: add a local scrolling mode
 
-The previous technique allows to scroll globally through the file, but prevent users to scroll locally.
+The previous technique allows to scroll globally through the file, but prevent users to scroll locally because any scroll gesture will jump over gaps of unreachable rows.
 
-To fix that, we <strong>scroll globally or locally depending on the magnitude of the scroll move.</strong>
+To fix that, we implement <strong>two scrolling modes: local and global scrolling</strong>. Local scrolling means moving row by row, while global scrolling means jumping to the position given by the scrollbar.
 
-The logic requires to store the current scrollbar position <em>and</em> the current visible rows.
+The logic requires a state with:
+- the global anchor (`globalAnchor`) corresponding to a scrollbar position,
+- an offset (`localOffset`) to adjust the position for local scrolling.
 
-On every scroll event, we compute the move magnitude (delta) and apply one of the three cases:
+The absolute positioning of the table wrapper is:
 
-- <b>local scroll</b>: if the scroll move is small, for example when using the mouse wheel, adjust the visible rows accordingly, so that the move appears local (for example, 3 rows downwards)
-- <b>global scroll</b>: if the scroll move is big, typically on scrollbar drag and drop, jump to the global position given by technique 3
+```typescript
+wrapper.style.top = `${viewport.scrollTop * downscaleFactor + state.localOffset}px`;
+```
+
+On every scroll event, we compute the magnitude of the scroll move (difference between the viewport's scrollTop and the global anchor) and apply one of the three cases:
+
+- <b>global scroll</b>: if the scroll move is big, typically on scrollbar drag and drop, jump to the new global position (technique 3)
 - <b>resynchronization</b>: if many local scrolls have been accumulated, stop the local scroll mode, and jump to the global position corresponding to the scrollbar. In HighTable, we trigger resynchronization after scrolling 500 rows locally.
+- <b>local scroll</b>: if the scroll move is small, for example when using the mouse wheel, keep the state's `globalAnchor` value unchanged (ie: desynchronized from the real `scrollTop` value) and adjust the `localOffset`, so that the move appears local (for example, 3 rows downwards)
 
-<!-- add the formulas -->
+Represented as code, the logic looks like this (simplified, pseudo-code):
 
-With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. But this only handles the native browser scrolling. What about programmatic scrolling, for example when navigating with the keyboard? Technique 5 explains how we handle that.
+```typescript
+const state = getState()
+const delta = viewport.scrollTop - state.globalAnchor;
+if (Math.abs(delta) > localThreshold) {
+  // global scroll
+  state.localOffset = 0;
+  state.globalAnchor = viewport.scrollTop;
+} else if (Math.abs(state.localOffset + delta) > resyncThreshold) {
+  // resync to global scroll
+  state.localOffset = 0;
+  state.globalAnchor = viewport.scrollTop;
+} else {
+  // local scroll.
+  // Accumulate the local offset, leaving the global anchor unchanged
+  state.localOffset += delta
+}
+setState(state);
+```
 
-## Technique 5: keyboard navigation
+With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.
+
+<!-- video showing the three cases (with annotations on the video) -->
+
+But we also wanted to navigate the table with the keyboard by moving an active cell as in any Excel / Google Sheet. It requires programmatic scrolling, and is not trivial due to virtual scrolling. We explain it in the next section.
+
+## Technique 5: decouple vertical and horizontal scrolling
 
 One of the HighTable requirements is to allow keyboard navigation (e.g. Down Arrow to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guides like the [Grid Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) and the [Data Grid Examples](https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/). We use [tabindex roving](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex) to handle the focus, providing all the expected [keyboard interactions](https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation).
 
-> The simplest way to focus the current cell when navigating the keyboard is to call `element.focus()`: it automatically scrolls to the focused cell. In HighTable, we don't use this default behavior, because it positions the cell at the center of the viewport, causing jumps when navigating with the keyboard. Instead, we first call `element.scrollIntoView({block: 'nearest', inline: 'nearest'})` to scroll by the minimal amount to show the current row and column, then focus with `element.focus({preventScroll: true})`.
+> The simplest way to focus the current cell when navigating the keyboard is to call `cell.focus()`: it automatically scrolls to the focused cell. In HighTable, we don't use this default behavior, because it positions the cell at the <em>center</em> of the viewport, which does not feel natural.
+>
+> Instead, we first call `cell.scrollIntoView({block: 'nearest', inline: 'nearest'})` to scroll by the minimal amount to show the next row and column.
+>
+> We then only set the focus, with no scroll action, with `cell.focus({preventScroll: true})`.
 
-But, the keyboard navigation techniques explained in these resources are designed for normal tables, not virtual tables. Due to techniques 3 and 4, the vertical and horizontal scroll positions must be handled differently.
+Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for fully rendered tables. Due to techniques 3 and 4, the vertical and horizontal scroll positions must be handled differently. In HighTable, to let the user navigate moving the current cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.
 
-In HighTable, when the user navigates with the keyboard, <strong>we first render the new visible rows, as if the table had been scrolled, then programmatically scroll to the visible rows, and once done, scroll horizontally and focus the target cell.</strong>
+When the user moves the active cell, the next cell can be anywhere in the table, as all the expected keyboard interactions are supported. The next row can be near or far from the current row, which means that we might have to update the scrollbar position.
 
-<!-- finish rewriting this section -->
+To update the table view accordingly, we first ensure the row is visible by:
 
-As an implementation detail, before calling the `scrollIntoView` method, we have to ensure that the target row is rendered. We achieve that by computing the next range of visible rows, updating the table slice accordingly, and then calling `scrollIntoView` once the cell is in the DOM. When computing the next range, we have to reproduce the `block: 'nearest'` behavior by computing the top position depending on the relative positions of the current row and the next row: if the next row is below, we set it at the top of the viewport, it it's above, we put it as the bottom of the viewport.
+1. computing the next state (global position: scrollTop, and local position: localOffset),
+2. re-rendering the table slice,
+3. programmatically scrolling to the new scrollTop position, if the global position has changed.
 
-Unfortunately, it conflicts with techniques 3 (downscaled scrollbar) and 4 (local scrolling). In that case, due to the limited scrollbar precision, we cannot rely on `scrollIntoView` to set the exact expected `scrollTop` position. Instead, we have to do the following:
-- compute the exact `scrollTop` position that would show the target row at the expected place in the viewport
-- set the internal state to this `scrollTop` position, so that the next render shows the table slice at the expected place
-- programmatically scroll to this `scrollTop` position using `element.scrollTo({top, behavior: 'instant'})`. We force `behavior: 'instant` to avoid multiple `scroll` events due to smooth scrolling, which would conflict with our internal state due to intermediate unexpected `scrollTop` positions.
-- and finally, after the browser applies the scroll, call `scrollIntoView()` only for horizontal alignment (with `inline: 'nearest'`) and focus the cell (with `preventScroll: true`)
+Once the row is visible, we ensure the column is visible by calling `cell.scrollIntoView({inline: 'nearest'})`, which only scrolls horizontally if needed.
+
+Then, we set the focus to the new cell with `cell.focus({preventScroll: true})`.
+
+Note that, for point 1. (computing the next state), we follow the `block: nearest` behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.
+
+For point 3. (programmatically scrolling to the new scrollTop position), we call `element.scrollTo({top: newScrollTop, behavior: 'instant'})`. We force `behavior: 'instant'`, to receive only one `scroll` event. The alternative (`behavior: 'smooth'`) would trigger multiple `scroll` events, conflicting with the internal state due to intermediate unexpected `scrollTop` positions.
 
 ## Conclusion
 
