@@ -274,7 +274,40 @@ Then, we set the focus to the new cell with `cell.focus({preventScroll: true})`.
 
 Note that, for point 1. (computing the next state), we follow the `block: nearest` behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.
 
-For point 3. (programmatically scrolling to the new scrollTop position), we call `element.scrollTo({top: newScrollTop, behavior: 'instant'})`. We force `behavior: 'instant'`, to receive only one `scroll` event. The alternative (`behavior: 'smooth'`) would trigger multiple `scroll` events, conflicting with the internal state due to intermediate unexpected `scrollTop` positions.
+The pseudo-code for decoupling vertical and horizontal scrolling requires a semaphore to prevent horizontal scrolling and focus during the programmatic vertical scroll:
+
+```typescript
+/* in the cell navigation code */
+const shouldScroll = state.update() // technique 4
+renderTableSlice()
+if (shouldScroll) {
+  // set a semaphore to prevent horizontal scrolling + focus
+  // during programmatic scroll
+  setSemaphore('programmaticScroll')
+  viewport.scrollTo({top: state.globalAnchor, behavior: 'instant'})
+}
+```
+
+```typescript
+/* in the scroll event handler */
+if (isSemaphoreSet('programmaticScroll')) {
+  // allow horizontal scrolling + focus,
+  // once the programmatic scroll is done
+  clearSemaphore('programmaticScroll')
+}
+```
+
+```typescript
+/* in the cell rendering code */
+if (!isSemaphoreSet('programmaticScroll')) {
+  // horizontal scrolling + focus allowed
+  cell.scrollIntoView({inline: 'nearest'})
+  cell.focus({preventScroll: true})
+}
+```
+
+> Note that we set `behavior: 'instant'` as a `scrollTo()` option, to ensure we only receive one `scroll` event. The alternative (`behavior: 'smooth'`) would trigger multiple `scroll` events, clearing the semaphore too early, and generating conflicts with the internal state due to intermediate unexpected `scrollTop` positions. An alternative would be to compare the `scrollTop` value in the scroll event handler with the expected value ([issue opened](https://github.com/hyparam/hightable/issues/393)).
+
 
 ## Conclusion
 
