@@ -180,7 +180,9 @@ firstVisibleRow = Math.floor(
 
 This lets the user navigate through the whole table, even with billions of rows.
 
-But there is a drawback, due to the limited precision of the scrollbar. The scroll bar precision is about 1px. Well, it's 1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio), but let's keep one pixel for simplicity.
+But there is a drawback, due to the limited precision of the scrollbar. The scroll bar precision is 1 <em>physical</em> pixel. Hence, on "high-resolution" screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio).
+
+Let's keep one pixel for simplicity.
 
 So, if the downscale factor is big, let's say 10,000, the minimal scroll move (1px) corresponds to 10,000 pixels in the full table. With a row height of 33px, it means that the minimal scroll move corresponds to about 300 rows. It creates <em>gaps</em> in the reachable rows:
 
@@ -193,7 +195,7 @@ There is no way to reach rows `31-60`, for example. Setting `scrollTop = 0.03` t
 
 <!-- Diagram/widget showing the unreachable rows -->
 
-> As an anecdote, know that setting the scroll value programmatically isn't really predictable anyway. It depends on the browser, the zoom, the device pixel ratio, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
+> As an anecdote, know that setting the scroll value programmatically is hard to predict anyway. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
 >
 > The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and applies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
 
