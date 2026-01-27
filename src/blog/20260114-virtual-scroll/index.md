@@ -1,6 +1,6 @@
 ---
 title: Virtual Scrolling for Billions of Rows — Techniques from HighTable
-description: Techniques used in HighTable to efficiently render and navigate billions of rows in the browser using lazy loading, slicing, scrollbar downscaling, local scrolling, and keyboard navigation.
+description: Techniques used in HighTable to efficiently render and navigate billions of rows in the browser using lazy loading, slicing, scrollbar downscaling, local scrolling, and vertical/horizontal scroll decoupling.
 tags: web, ui, javascript, performance, react, accessibility, virtualization
 date: 2026-01-14
 ---
@@ -33,9 +33,24 @@ Showing data in a table is one of the first exercises you'll find in HTML 101 co
 
 But, as often in data science, what works for simple cases breaks when the size increases.
 
-In this post, I'll showcase some techniques used in `<HighTable>`, a React component that can handle billions of rows, focusing on the challenges related to vertical scrolling. The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.
+In this post, I'll showcase five techniques we use to solve challenges related to vertical scrolling in `<HighTable>`, a table React component that can handle billions of rows.
+
+The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.
 
 The [hyparam/hightable](https://github.com/hyparam/hightable/) library was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to the development for one year now. Try it in the [demo](https://hyparam.github.io/demos/hightable/#/large), or as part of the web [Parquet viewer](https://hyparam.github.io/demos/hyparquet/).
+
+## Starting point
+
+Before diving into the techniques, let's remember how scrolling works in a standard HTML table.
+
+In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect:
+
+<!-- add a button to run the animation -->
+{% renderTemplate "webc" %}
+<scroll-native></scroll-native>
+{% endrenderTemplate %}
+
+The <em>viewport</em> (blue border) is the visible area of the table. It has a fixed height, and a vertical scrollbar to navigate through the content. In the classic case, the table (yellow border) is fully rendered in the DOM, and the browser handles the scrolling natively, so that the visible part of the table is shown in the viewport.
 
 ## Technique 1: load the data lazily
 
@@ -51,7 +66,9 @@ const df = {
   columnDescriptors: [{name: 'Age'}],
   eventTarget,
 
-  async fetch({ rowStart, rowEnd }: { rowStart: number, rowEnd: number}): Promise<void> {
+  async fetch(
+    { rowStart, rowEnd }: { rowStart: number, rowEnd: number}
+  ): Promise<void> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
     for (let row = rowStart; row < rowEnd; row++) {
@@ -81,7 +98,7 @@ Lazy loading the data is the first step to handle large datasets. The next step 
 
 ## Technique 2: only render a table slice
 
-In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? As a data point, Chrome [recommends](https://developer.chrome.com/docs/performance/insights/dom-size) creating or updating less than 300 HTML elements for optimal responsiveness.
+In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? As a reference, Chrome [recommends](https://developer.chrome.com/docs/performance/insights/dom-size) creating or updating less than 300 HTML elements for optimal responsiveness.
 
 <strong>HighTable is a virtual table, which renders only the visible slice of the table</strong>. Concretely, it renders a table with the header, some padding rows, the visible rows, and then some other padding rows, which generally results in less than one hundred rows:
 
@@ -91,19 +108,25 @@ In software engineering, when you try to optimize, the first step is to remove u
     <tr>...header cells...</tr>
   </thead>
   <tbody>
+    <!-- Rows 0 to 979 are not rendered -->
+
     <!-- padding rows before -->
     <tr>...row 980...</tr>
     ...
     <tr>...row 999...</tr>
+
     <!-- visible rows -->
     <tr>...row 1000...</tr>
     <tr>...row 1001...</tr>
     ...
     <tr>...row 1029...</tr>
+
     <!-- padding rows after -->
     <tr>...row 1030...</tr>
     ...
     <tr>...row 1049...</tr>
+
+    <!-- Rows 1050 to 999,999 are not rendered -->
   </tbody>
 </table>
 ```
@@ -113,13 +136,15 @@ The padding rows are used to prevent empty spaces when scrolling quickly. When t
 This table slice is rendered inside wrappers that handle the scrolling:
 
 ```html
-<!-- the viewport has a scrollbar and its height is small, e.g. 600px. -->
+<!-- the viewport has a scrollbar; its height is small, e.g. 600px -->
 <div class="viewport" style="overflow-y: auto;">
   <!-- the background height is big, e.g. 33px * 1_000_000 (rows) -->
-  <div class="background" style="height: 33000000px; position: relative;">
-    <!-- the table wrapper is positioned at the viewport scrollTop value, e.g 33,000px -->
+  <div class="bg" style="height: 33000000px; position: relative;">
+    <!-- the wrapper is positioned at the viewport scrollTop value,
+      e.g. 33,000px -->
     <div class="wrapper" style="position: absolute; top: 33000px;">
-      <!-- the table renders rows from 1000 to 1030 (first visible row: scrollTop / 33) -->
+      <!-- the table renders rows from 1000 to 1030
+        (first visible row: scrollTop / 33) -->
       <table>...</table>
       ...
     </div>

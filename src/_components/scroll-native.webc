@@ -1,0 +1,216 @@
+<div webc:root id="scroll-example">
+  <div class="content">
+    <div id="demo">
+      <div class="viewport">
+        <div class="background-element">
+          <div class="wrapper">
+            <!-- Webc does not allow to create this in a loop without JS, iirc -->
+            <table>
+              <tr>
+                <td>row 0</td>
+              </tr>
+              <tr>
+                <td>row 1</td>
+              </tr>
+              <tr>
+                <td>row 2</td>
+              </tr>
+              <tr>
+                <td>row 3</td>
+              </tr>
+              <tr>
+                <td>row 4</td>
+              </tr>
+              <tr>
+                <td>row 5</td>
+              </tr>
+              <tr>
+                <td>row 6</td>
+              </tr>
+              <tr>
+                <td>row 7</td>
+              </tr>
+              <tr>
+                <td>row 8</td>
+              </tr>
+              <tr>
+                <td>row 9</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="text-description">
+        <p class="table-legend">full table</p>
+        <p class="viewport-legend">viewport</p>
+        <p>
+          Scroll the left box to see how the right box mimics the scrolling
+          effect.
+        </p>
+      </div>
+    </div>
+    <div id="explanation">
+      <div class="background-element">
+        <table>
+          <tr>
+            <td>row 0</td>
+          </tr>
+          <tr>
+            <td>row 1</td>
+          </tr>
+          <tr>
+            <td>row 2</td>
+          </tr>
+          <tr>
+            <td>row 3</td>
+          </tr>
+          <tr>
+            <td>row 4</td>
+          </tr>
+          <tr>
+            <td>row 5</td>
+          </tr>
+          <tr>
+            <td>row 6</td>
+          </tr>
+          <tr>
+            <td>row 7</td>
+          </tr>
+          <tr>
+            <td>row 8</td>
+          </tr>
+          <tr>
+            <td>row 9</td>
+          </tr>
+        </table>
+      </div>
+      <div class="viewport"></div>
+    </div>
+  </div>
+</div>
+
+<style webc:scoped>
+  :host {
+    * {
+      box-sizing: border-box;
+    }
+
+    --color-1: #1f1f1f; /*hsl(0, 0%, 8%);*/
+    --color-2: #d7ba7d;
+    --color-3: #569cd6;
+    --color-4: #cccccc;
+    --color-5: hsl(4, 97%, 55%);
+
+    --dark-color: var(--color-1);
+    --light-color: var(--color-4);
+    --table-color: var(--color-2);
+    --viewport-color: var(--color-3);
+
+    --row-height: 30px;
+    --border-width: 1px;
+    --wide-border-width: 4px;
+    --num_rows: 10;
+    --num_visible_rows: 5.7;
+    --viewport-height: calc(var(--row-height) * var(--num_visible_rows));
+
+    /* widget */
+    width: 100%;
+
+    .content {
+      /* external aspect */
+      margin: 0 auto;
+      width: 60%;
+      border-radius: 8px;
+      /* internal layout */
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      padding: 20px;
+      gap: 40px;
+      /* colors */
+      background-color: var(--dark-color);
+      color: var(--light-color);
+    }
+
+    .text-description {
+      padding-top: 20px;
+      font-size: 0.9em;
+      line-height: 1.4em;
+
+      .table-legend {
+        border-bottom: 2px solid currentColor;
+        color: var(--table-color);
+      }
+
+      .viewport-legend {
+        border-bottom: 2px solid currentColor;
+        color: var(--viewport-color);
+        margin-top: 10px;
+      }
+    }
+
+    table {
+      width: 100%;
+      color: var(--table-color);
+      border: var(--border-width) solid var(--table-color);
+      border-collapse: collapse;
+      user-select: none;
+      td {
+        border: none;
+        padding: 0 0.5em;
+        vertical-align: middle;
+        height: var(--row-height);
+      }
+      tr:not(:last-child) td {
+        border-bottom: var(--border-width) solid var(--table-color);
+      }
+    }
+
+    .viewport {
+      box-sizing: border-box;
+      border-radius: calc(var(--wide-border-width) * 2);
+
+      height: var(--viewport-height);
+      border: var(--wide-border-width) solid var(--viewport-color);
+    }
+
+    .background-element {
+      margin: 0 16px;
+      border: none;
+      background: transparent;
+    }
+
+    #demo {
+      .viewport {
+        overflow-y: scroll;
+        scroll-behavior: instant;
+      }
+    }
+
+    #explanation {
+      position: relative;
+      padding: var(--wide-border-width);
+
+      .viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+      }
+    }
+  }
+</style>
+
+<script webc:keep>
+  const scrollExample = document.getElementById("scroll-example");
+
+  const viewport = scrollExample.querySelector("#demo .viewport");
+
+  viewport.onscroll = function () {
+    const scrollTop = viewport.scrollTop;
+    const explanationViewport = scrollExample.querySelector(
+      "#explanation .viewport",
+    );
+    explanationViewport.style.top = `${scrollTop}px`;
+  };
+</script>
