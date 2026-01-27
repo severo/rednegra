@@ -1,0 +1,53 @@
+<table class="full-table">
+  <tr>
+    <td>row 0</td>
+  </tr>
+  <tr>
+    <td>row 1</td>
+  </tr>
+  <tr>
+    <td>row 2</td>
+  </tr>
+  <tr>
+    <td>row 3</td>
+  </tr>
+  <tr>
+    <td>row 4</td>
+  </tr>
+  <tr>
+    <td>row 5</td>
+  </tr>
+  <tr>
+    <td>row 6</td>
+  </tr>
+  <tr>
+    <td>row 7</td>
+  </tr>
+  <tr>
+    <td>row 8</td>
+  </tr>
+  <tr>
+    <td>row 9</td>
+  </tr>
+</table>
+
+<style webc:scoped>
+  table.full-table {
+    box-sizing: border-box;
+
+    width: 100%;
+    color: var(--table-color);
+    border: var(--border-width) solid var(--table-color);
+    border-collapse: collapse;
+    user-select: none;
+    td {
+      border: none;
+      padding: 0 0.5em;
+      vertical-align: middle;
+      height: var(--row-height);
+    }
+    tr:not(:last-child) td {
+      border-bottom: var(--border-width) solid var(--table-color);
+    }
+  }
+</style>

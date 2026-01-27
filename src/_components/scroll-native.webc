@@ -4,39 +4,7 @@
       <div class="viewport">
         <div class="background-element">
           <div class="wrapper">
-            <!-- Webc does not allow to create this in a loop without JS, iirc -->
-            <table>
-              <tr>
-                <td>row 0</td>
-              </tr>
-              <tr>
-                <td>row 1</td>
-              </tr>
-              <tr>
-                <td>row 2</td>
-              </tr>
-              <tr>
-                <td>row 3</td>
-              </tr>
-              <tr>
-                <td>row 4</td>
-              </tr>
-              <tr>
-                <td>row 5</td>
-              </tr>
-              <tr>
-                <td>row 6</td>
-              </tr>
-              <tr>
-                <td>row 7</td>
-              </tr>
-              <tr>
-                <td>row 8</td>
-              </tr>
-              <tr>
-                <td>row 9</td>
-              </tr>
-            </table>
+            <scroll-full-table></scroll-full-table>
           </div>
         </div>
       </div>
@@ -51,38 +19,7 @@
     </div>
     <div class="explanation">
       <div class="background-element">
-        <table>
-          <tr>
-            <td>row 0</td>
-          </tr>
-          <tr>
-            <td>row 1</td>
-          </tr>
-          <tr>
-            <td>row 2</td>
-          </tr>
-          <tr>
-            <td>row 3</td>
-          </tr>
-          <tr>
-            <td>row 4</td>
-          </tr>
-          <tr>
-            <td>row 5</td>
-          </tr>
-          <tr>
-            <td>row 6</td>
-          </tr>
-          <tr>
-            <td>row 7</td>
-          </tr>
-          <tr>
-            <td>row 8</td>
-          </tr>
-          <tr>
-            <td>row 9</td>
-          </tr>
-        </table>
+        <scroll-full-table></scroll-full-table>
       </div>
       <div class="viewport"></div>
     </div>
@@ -146,23 +83,6 @@
         border-bottom: 2px solid currentColor;
         color: var(--viewport-color);
         margin-top: 10px;
-      }
-    }
-
-    table {
-      width: 100%;
-      color: var(--table-color);
-      border: var(--border-width) solid var(--table-color);
-      border-collapse: collapse;
-      user-select: none;
-      td {
-        border: none;
-        padding: 0 0.5em;
-        vertical-align: middle;
-        height: var(--row-height);
-      }
-      tr:not(:last-child) td {
-        border-bottom: var(--border-width) solid var(--table-color);
       }
     }
 
