@@ -120,6 +120,7 @@
       /* external aspect */
       margin: 0 auto;
       width: 60%;
+      min-width: 320px;
       border-radius: 8px;
       /* internal layout */
       display: grid;
