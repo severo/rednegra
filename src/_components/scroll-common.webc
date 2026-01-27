@@ -1,0 +1,116 @@
+<slot></slot>
+
+<style webc:scoped>
+  :host {
+    * {
+      box-sizing: border-box;
+    }
+
+    --color-1: #1f1f1f;
+    --color-2: #d7ba7d;
+    --color-3: #569cd6;
+    --color-4: #cccccc;
+    --color-5: hsl(4, 97%, 55%);
+
+    --dark-color: var(--color-1);
+    --light-color: var(--color-4);
+    --table-color: var(--color-2);
+    --viewport-color: var(--color-3);
+
+    --row-height: 30px;
+    --border-width: 1px;
+    --wide-border-width: 4px;
+    --num_rows: 10;
+    --num_visible_rows: 5.7;
+    --viewport-height: calc(var(--row-height) * var(--num_visible_rows));
+
+    /* widget */
+    width: 100%;
+
+    .content {
+      /* external aspect */
+      margin: 0 auto;
+      width: 60%;
+      min-width: 320px;
+      border-radius: 8px;
+      /* internal layout */
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      padding: 20px;
+      gap: 40px;
+      /* colors */
+      background-color: var(--dark-color);
+      color: var(--light-color);
+    }
+
+    .text-description {
+      padding-top: 20px;
+      font-size: 0.9em;
+      line-height: 1.4em;
+
+      .table-legend {
+        border-bottom: 2px solid currentColor;
+        color: var(--table-color);
+      }
+
+      .viewport-legend {
+        border-bottom: 2px solid currentColor;
+        color: var(--viewport-color);
+        margin-top: 10px;
+      }
+    }
+
+    table {
+      box-sizing: border-box;
+
+      width: 100%;
+      color: var(--table-color);
+      border: var(--border-width) solid var(--table-color);
+      border-collapse: collapse;
+      user-select: none;
+      td {
+        border: none;
+        padding: 0 0.5em;
+        vertical-align: middle;
+        height: var(--row-height);
+      }
+      tr:not(:last-child) td {
+        border-bottom: var(--border-width) solid var(--table-color);
+      }
+    }
+
+    .viewport {
+      box-sizing: border-box;
+      border-radius: calc(var(--wide-border-width) * 2);
+
+      height: var(--viewport-height);
+      border: var(--wide-border-width) solid var(--viewport-color);
+    }
+
+    .background-element {
+      margin: 0 16px;
+      border: none;
+      background: transparent;
+    }
+
+    .demo {
+      .viewport {
+        overflow-y: scroll;
+        scroll-behavior: instant;
+      }
+    }
+
+    .explanation {
+      position: relative;
+      padding: var(--wide-border-width);
+
+      .viewport {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        pointer-events: none;
+      }
+    }
+  }
+</style>
