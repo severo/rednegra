@@ -1,4 +1,4 @@
-<div webc:root id="scroll-native">
+<div webc:root id="scroll-lazy-load">
   <div class="content">
     <div class="demo">
       <div class="viewport">
@@ -159,6 +159,10 @@
         padding: 0 0.5em;
         vertical-align: middle;
         height: var(--row-height);
+
+        &.hidden {
+          color: transparent;
+        }
       }
       tr:not(:last-child) td {
         border-bottom: var(--border-width) solid var(--table-color);
@@ -202,18 +206,38 @@
 </style>
 
 <script webc:keep>
-  function initNative() {
-    const component = document.getElementById("scroll-native");
-
+  function initLazyLoad() {
+    const component = document.getElementById("scroll-lazy-load");
     const viewport = component.querySelector(".demo .viewport");
+    const explanationViewport = component.querySelector(
+      ".explanation .viewport",
+    );
+
+    function updateLoadedRows() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.ceil(
+        (scrollTop + viewport.clientHeight) / rowHeight,
+      );
+      const tableRows = component.querySelectorAll(".explanation table tr");
+
+      tableRows.forEach((row, index) => {
+        if (index < firstVisibleRow || index >= lastVisibleRow) {
+          row.firstElementChild.classList.add("hidden");
+        } else {
+          row.firstElementChild.classList.remove("hidden");
+        }
+      });
+    }
 
     viewport.onscroll = function () {
-      const scrollTop = viewport.scrollTop;
-      const explanationViewport = component.querySelector(
-        ".explanation .viewport",
-      );
-      explanationViewport.style.top = `${scrollTop}px`;
+      explanationViewport.style.top = `${viewport.scrollTop}px`;
+      updateLoadedRows();
     };
+    updateLoadedRows();
   }
-  document.addEventListener("DOMContentLoaded", initNative);
+  document.addEventListener("DOMContentLoaded", initLazyLoad);
 </script>

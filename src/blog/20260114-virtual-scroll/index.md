@@ -56,6 +56,12 @@ The <em>viewport</em> (blue border) is the visible area of the table. It has a f
 
 The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, <strong>HighTable only loads the cells it needs for the current view</strong>.
 
+<!-- add a button to run the animation -->
+{% renderTemplate "webc" %}
+<scroll-lazy-load></scroll-lazy-load>
+{% endrenderTemplate %}
+
+
 How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
 ```typescript
