@@ -61,7 +61,6 @@ The first challenge when working on a large dataset is that it will not fit in y
 <scroll-lazy-load></scroll-lazy-load>
 {% endrenderTemplate %}
 
-
 How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
 ```typescript
@@ -106,7 +105,14 @@ Lazy loading the data is the first step to handle large datasets. The next step 
 
 In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? As a reference, Chrome [recommends](https://developer.chrome.com/docs/performance/insights/dom-size) creating or updating less than 300 HTML elements for optimal responsiveness.
 
-<strong>HighTable is a virtual table, which renders only the visible slice of the table</strong>. Concretely, it renders a table with the header, some padding rows, the visible rows, and then some other padding rows, which generally results in less than one hundred rows:
+<strong>HighTable is a virtual table, which renders only the visible slice of the table</strong>.
+
+<!-- add a button to run the animation -->
+{% renderTemplate "webc" %}
+<scroll-slice></scroll-slice>
+{% endrenderTemplate %}
+
+Concretely, it renders a table with the header, some padding rows, the visible rows, and then some other padding rows, which generally results in less than one hundred rows:
 
 ```html
 <table>

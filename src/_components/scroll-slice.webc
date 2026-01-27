@@ -1,0 +1,100 @@
+<div webc:root>
+  <scroll-common id="scroll-slice">
+    <div class="content">
+      <div class="demo">
+        <div class="viewport">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+          </div>
+        </div>
+        <div class="legend">
+          <p class="table-legend">full table</p>
+          <p class="viewport-legend">viewport</p>
+          <p class="wrapper-legend">wrapper</p>
+        </div>
+        <div class="text-description">
+          <p>
+            Scroll the left box to see how the right box mimics the scrolling
+            effect.
+          </p>
+        </div>
+      </div>
+      <div class="explanation">
+        <div class="background-element">
+          <scroll-full-table></scroll-full-table>
+          <div class="wrapper"></div>
+        </div>
+        <div class="viewport"></div>
+      </div>
+    </div>
+  </scroll-common>
+</div>
+
+<style webc:scoped>
+  :host {
+    .content {
+      --slice-color: var(--color-2);
+    }
+
+    .legend {
+      .table-legend {
+        color: var(--color-6);
+      }
+      .wrapper-legend {
+        color: var(--slice-color);
+      }
+    }
+
+    .explanation {
+      --table-color: var(--color-6);
+      .wrapper {
+        --table-color: var(--slice-color);
+        position: absolute;
+        width: 100%;
+        top: 0;
+      }
+    }
+  }
+</style>
+
+<script webc:keep>
+  function initSlice() {
+    const component = document.getElementById("scroll-slice");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationViewport = component.querySelector(
+      ".explanation .viewport",
+    );
+
+    function updateLoadedRows() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.min(
+        Math.ceil((scrollTop + viewport.clientHeight) / rowHeight),
+        parseInt(getComputedStyle(component).getPropertyValue("--num_rows")),
+      );
+      for (const wrapper of component.querySelectorAll(".wrapper")) {
+        const table = document.createElement("table");
+        for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+          const row = document.createElement("tr");
+          const cell = document.createElement("td");
+          cell.textContent = `row ${i}`;
+          row.appendChild(cell);
+          table.appendChild(row);
+        }
+        wrapper.innerHTML = "";
+        wrapper.appendChild(table);
+        wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+      }
+    }
+
+    viewport.onscroll = function () {
+      explanationViewport.style.top = `${viewport.scrollTop}px`;
+      updateLoadedRows();
+    };
+    updateLoadedRows();
+  }
+  document.addEventListener("DOMContentLoaded", initSlice);
+</script>

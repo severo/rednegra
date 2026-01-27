@@ -9,9 +9,11 @@
             </div>
           </div>
         </div>
-        <div class="text-description">
+        <div class="legend">
           <p class="table-legend">full table</p>
           <p class="viewport-legend">viewport</p>
+        </div>
+        <div class="text-description">
           <p>
             Scroll the left box to see how the right box mimics the scrolling
             effect.

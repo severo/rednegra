@@ -11,6 +11,7 @@
     --color-3: #569cd6;
     --color-4: #cccccc;
     --color-5: hsl(4, 97%, 55%);
+    --color-6: #d7ba7d63;
 
     --dark-color: var(--color-1);
     --light-color: var(--color-4);
@@ -43,21 +44,24 @@
       color: var(--light-color);
     }
 
-    .text-description {
-      padding-top: 20px;
+    .legend {
       font-size: 0.9em;
-      line-height: 1.4em;
+      & > p {
+        border-bottom: 2px solid currentColor;
+      }
 
       .table-legend {
-        border-bottom: 2px solid currentColor;
         color: var(--table-color);
       }
 
       .viewport-legend {
-        border-bottom: 2px solid currentColor;
         color: var(--viewport-color);
-        margin-top: 10px;
       }
+    }
+
+    .text-description {
+      font-size: 0.9em;
+      line-height: 1.4em;
     }
 
     table {
@@ -88,12 +92,15 @@
     }
 
     .background-element {
+      position: relative;
       margin: 0 16px;
-      border: none;
-      background: transparent;
     }
 
     .demo {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
       .viewport {
         overflow-y: scroll;
         scroll-behavior: instant;
