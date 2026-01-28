@@ -3,7 +3,9 @@
     <div class="content">
       <div class="demo">
         <div class="legend">
-          <p class="table-legend">full table</p>
+          <p class="table-legend">
+            full table<button type="button">Hide</button>
+          </p>
           <p class="viewport-legend">viewport</p>
           <p class="wrapper-legend">wrapper</p>
         </div>
@@ -38,7 +40,19 @@
 
     .legend {
       .table-legend {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
         color: var(--color-6);
+
+        button {
+          font-size: 0.8em;
+          border: var(--border-width) solid var(--color-6);
+          border-bottom: none;
+          background-color: transparent;
+          color: var(--color-6);
+          cursor: pointer;
+        }
       }
       .wrapper-legend {
         color: var(--slice-color);
@@ -64,6 +78,9 @@
     const explanationBackground = component.querySelector(
       ".explanation .background-element",
     );
+    const toggleButton = component.querySelector(".table-legend button");
+    const explanationFullTable =
+      explanationBackground.querySelector(".full-table");
 
     function updateLoadedRows() {
       const scrollTop = viewport.scrollTop;
@@ -94,6 +111,18 @@
       explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
       updateLoadedRows();
     };
+
+    toggleButton.onclick = function () {
+      const isHidden = toggleButton.textContent === "Show";
+      if (isHidden) {
+        explanationFullTable.style.visibility = "visible";
+        toggleButton.textContent = "Hide";
+      } else {
+        explanationFullTable.style.visibility = "hidden";
+        toggleButton.textContent = "Show";
+      }
+    };
+
     updateLoadedRows();
   }
   document.addEventListener("DOMContentLoaded", initSlice);
