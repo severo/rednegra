@@ -2,15 +2,15 @@
   <scroll-common id="scroll-slice">
     <div class="content">
       <div class="demo">
-        <div class="viewport">
-          <div class="background-element">
-            <scroll-full-table></scroll-full-table>
-          </div>
-        </div>
         <div class="legend">
           <p class="table-legend">full table</p>
           <p class="viewport-legend">viewport</p>
           <p class="wrapper-legend">wrapper</p>
+        </div>
+        <div class="viewport">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+          </div>
         </div>
         <div class="text-description">
           <p>
@@ -61,8 +61,8 @@
   function initSlice() {
     const component = document.getElementById("scroll-slice");
     const viewport = component.querySelector(".demo .viewport");
-    const explanationViewport = component.querySelector(
-      ".explanation .viewport",
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
     );
 
     function updateLoadedRows() {
@@ -91,7 +91,7 @@
     }
 
     viewport.onscroll = function () {
-      explanationViewport.style.top = `${viewport.scrollTop}px`;
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
       updateLoadedRows();
     };
     updateLoadedRows();

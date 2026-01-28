@@ -24,6 +24,10 @@
     --num_rows: 10;
     --num_visible_rows: 5.7;
     --viewport-height: calc(var(--row-height) * var(--num_visible_rows));
+    --hidden-content: calc(
+      var(--row-height) * (var(--num_rows) - var(--num_visible_rows))
+    );
+    --gap: 16px;
 
     /* widget */
     width: 100%;
@@ -99,8 +103,11 @@
     .demo {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: var(--gap);
 
+      .legend {
+        height: calc(var(--hidden-content) - var(--gap));
+      }
       .viewport {
         overflow-y: scroll;
         scroll-behavior: instant;
@@ -109,14 +116,18 @@
 
     .explanation {
       position: relative;
-      padding: var(--wide-border-width);
+
+      .background-element {
+        position: absolute;
+        top: calc(var(--hidden-content) + var(--wide-border-width));
+        left: 0;
+        width: calc(100% - 32px);
+        pointer-events: none;
+      }
 
       .viewport {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        pointer-events: none;
+        position: relative;
+        margin: var(--hidden-content) 0;
       }
     }
   }

@@ -2,16 +2,14 @@
   <scroll-common id="scroll-native">
     <div class="content">
       <div class="demo">
-        <div class="viewport">
-          <div class="background-element">
-            <div class="wrapper">
-              <scroll-full-table></scroll-full-table>
-            </div>
-          </div>
-        </div>
         <div class="legend">
           <p class="table-legend">full table</p>
           <p class="viewport-legend">viewport</p>
+        </div>
+        <div class="viewport">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+          </div>
         </div>
         <div class="text-description">
           Scroll the left box to see how the right box mimics the scrolling
@@ -31,15 +29,14 @@
 <script webc:keep>
   function initNative() {
     const component = document.getElementById("scroll-native");
-
     const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
 
     viewport.onscroll = function () {
       const scrollTop = viewport.scrollTop;
-      const explanationViewport = component.querySelector(
-        ".explanation .viewport",
-      );
-      explanationViewport.style.top = `${scrollTop}px`;
+      explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
     };
   }
   document.addEventListener("DOMContentLoaded", initNative);
