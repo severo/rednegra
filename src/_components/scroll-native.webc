@@ -3,8 +3,8 @@
     <div class="content">
       <div class="demo">
         <div class="legend">
-          <p class="table-legend">full table</p>
           <p class="viewport-legend">viewport</p>
+          <p class="table-legend">table</p>
         </div>
         <div class="viewport">
           <div class="background-element">

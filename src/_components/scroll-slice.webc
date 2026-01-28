@@ -3,11 +3,11 @@
     <div class="content">
       <div class="demo">
         <div class="legend">
-          <p class="table-legend">
+          <p class="viewport-legend">viewport</p>
+          <p class="table-legend">table</p>
+          <p class="wrapper-legend">
             full table<button type="button">Hide</button>
           </p>
-          <p class="viewport-legend">viewport</p>
-          <p class="wrapper-legend">wrapper</p>
         </div>
         <div class="viewport">
           <div class="background-element">
@@ -39,7 +39,7 @@
     }
 
     .legend {
-      .table-legend {
+      .wrapper-legend {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -54,7 +54,7 @@
           cursor: pointer;
         }
       }
-      .wrapper-legend {
+      .table-legend {
         color: var(--slice-color);
       }
     }
@@ -78,7 +78,7 @@
     const explanationBackground = component.querySelector(
       ".explanation .background-element",
     );
-    const toggleButton = component.querySelector(".table-legend button");
+    const toggleButton = component.querySelector(".wrapper-legend button");
     const explanationFullTable =
       explanationBackground.querySelector(".full-table");
 
