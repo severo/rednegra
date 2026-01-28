@@ -6,7 +6,7 @@
           <p class="viewport-legend">viewport</p>
           <p class="table-legend">table</p>
           <p class="wrapper-legend">
-            full table<button type="button">Hide</button>
+            full table<button type="button">Show</button>
           </p>
         </div>
         <div class="viewport">
@@ -61,6 +61,11 @@
 
     .explanation {
       --table-color: var(--color-6);
+
+      .full-table {
+        visibility: hidden;
+      }
+
       .wrapper {
         --table-color: var(--slice-color);
         position: absolute;
