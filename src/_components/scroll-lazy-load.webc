@@ -1,0 +1,67 @@
+<div webc:root>
+  <scroll-common id="scroll-lazy-load">
+    <div class="content">
+      <div class="demo">
+        <div class="legend">
+          <p class="table-legend">full table</p>
+          <p class="viewport-legend">viewport</p>
+        </div>
+        <div class="viewport">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+          </div>
+        </div>
+        <div class="text-description">
+          <p>
+            Scroll the left box to see how the right box mimics the scrolling
+            effect.
+          </p>
+        </div>
+      </div>
+      <div class="explanation">
+        <div class="background-element">
+          <scroll-full-table></scroll-full-table>
+        </div>
+        <div class="viewport"></div>
+      </div>
+    </div>
+  </scroll-common>
+</div>
+
+<script webc:keep>
+  function initLazyLoad() {
+    const component = document.getElementById("scroll-lazy-load");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+
+    function updateLoadedRows() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.ceil(
+        (scrollTop + viewport.clientHeight) / rowHeight,
+      );
+      for (const table of component.querySelectorAll("table")) {
+        const tableRows = table.querySelectorAll("tr");
+        tableRows.forEach((row, index) => {
+          if (index < firstVisibleRow || index >= lastVisibleRow) {
+            row.firstElementChild.textContent = "";
+          } else {
+            row.firstElementChild.textContent = `row ${index}`;
+          }
+        });
+      }
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      updateLoadedRows();
+    };
+    updateLoadedRows();
+  }
+  document.addEventListener("DOMContentLoaded", initLazyLoad);
+</script>

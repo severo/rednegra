@@ -1,0 +1,43 @@
+<div webc:root>
+  <scroll-common id="scroll-native">
+    <div class="content">
+      <div class="demo">
+        <div class="legend">
+          <p class="table-legend">full table</p>
+          <p class="viewport-legend">viewport</p>
+        </div>
+        <div class="viewport">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+          </div>
+        </div>
+        <div class="text-description">
+          Scroll the left box to see how the right box mimics the scrolling
+          effect.
+        </div>
+      </div>
+      <div class="explanation">
+        <div class="background-element">
+          <scroll-full-table></scroll-full-table>
+        </div>
+        <div class="viewport"></div>
+      </div>
+    </div>
+  </scroll-common>
+</div>
+
+<script webc:keep>
+  function initNative() {
+    const component = document.getElementById("scroll-native");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+
+    viewport.onscroll = function () {
+      const scrollTop = viewport.scrollTop;
+      explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initNative);
+</script>
