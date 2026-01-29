@@ -1,0 +1,164 @@
+<slot></slot>
+
+<style webc:scoped>
+  :host {
+    * {
+      box-sizing: border-box;
+    }
+
+    --color-1: hsl(0, 0%, 12.2%);
+    --color-2: hsl(40.7, 52.9%, 66.7%);
+    --color-3: hsl(207.2, 61%, 58.8%);
+    --color-4: hsl(0, 0%, 80%);
+    --color-5: hsl(334.7, 60.7%, 67.1%);
+    --dark-color: var(--color-1);
+    --light-color: var(--color-4);
+    --table-color: var(--color-2);
+    --viewport-color: var(--color-3);
+
+    --row-height: 30px;
+    --border-width: 1px;
+    --wide-border-width: 4px;
+    --num_rows: 10;
+    --num_visible_rows: 5.7;
+    --viewport-height: calc(var(--row-height) * var(--num_visible_rows));
+    --hidden-content: calc(
+      var(--row-height) * (var(--num_rows) - var(--num_visible_rows))
+    );
+    --gap: 16px;
+
+    /* widget */
+    width: 100%;
+
+    .main {
+      /* external aspect */
+      margin: 0 auto;
+      width: 80%;
+      min-width: 320px;
+      border-radius: 8px;
+      /* internal layout */
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+      /* colors */
+      background-color: var(--dark-color);
+      color: var(--light-color);
+    }
+    .content {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 40px;
+    }
+    .variables {
+      border-top: 1px solid var(--light-color);
+      padding-top: 20px;
+      font-family: var(--mono-font);
+
+      table {
+        border: none;
+        width: 100%;
+        td {
+          border: none;
+          padding-right: 16px;
+          text-align: right;
+          &:first-child {
+            text-align: left;
+          }
+        }
+      }
+      .viewport-variable {
+        color: var(--viewport-color);
+      }
+      .table-variable {
+        color: var(--table-color);
+      }
+      .variable {
+        color: var(--light-color);
+      }
+    }
+
+    .legend {
+      font-size: 0.9em;
+      & > p {
+        border-bottom: 2px solid currentColor;
+      }
+
+      .table-legend {
+        color: var(--table-color);
+      }
+
+      .viewport-legend {
+        color: var(--viewport-color);
+      }
+    }
+
+    .text-description {
+      font-size: 0.9em;
+      line-height: 1.4em;
+    }
+
+    .content table {
+      box-sizing: border-box;
+
+      width: 100%;
+      color: var(--table-color);
+      border: var(--border-width) solid var(--table-color);
+      border-collapse: collapse;
+      user-select: none;
+      td {
+        border: none;
+        padding: 0 0.5em;
+        vertical-align: middle;
+        height: var(--row-height);
+      }
+      tr:not(:last-child) td {
+        border-bottom: var(--border-width) solid var(--table-color);
+      }
+    }
+
+    .viewport {
+      box-sizing: border-box;
+      border-radius: calc(var(--wide-border-width) * 2);
+
+      height: var(--viewport-height);
+      border: var(--wide-border-width) solid var(--viewport-color);
+    }
+
+    .background-element {
+      position: relative;
+      margin: 0 16px;
+    }
+
+    .demo {
+      display: flex;
+      flex-direction: column;
+      gap: var(--gap);
+
+      .legend {
+        height: calc(var(--hidden-content) - var(--gap));
+      }
+      .viewport {
+        overflow-y: scroll;
+        scroll-behavior: instant;
+      }
+    }
+
+    .explanation {
+      position: relative;
+
+      .background-element {
+        position: absolute;
+        top: calc(var(--hidden-content) + var(--wide-border-width));
+        left: 0;
+        width: calc(100% - 32px);
+        pointer-events: none;
+      }
+
+      .viewport {
+        position: relative;
+        margin: var(--hidden-content) 0;
+      }
+    }
+  }
+</style>
