@@ -33,7 +33,7 @@ Showing data in a table is one of the first exercises you'll find in HTML 101 co
 
 But, as often in data science, what works for simple cases breaks when the size increases.
 
-In this post, I'll showcase five techniques we use to solve challenges related to vertical scrolling in `<HighTable>`, a table React component that can handle billions of rows.
+In this post, I'll showcase five techniques we use to <strong>solve challenges related to vertical scrolling</strong> in `<HighTable>`, a table React component that can handle billions of rows.
 
 The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.
 
@@ -41,7 +41,7 @@ The [hyparam/hightable](https://github.com/hyparam/hightable/) library was creat
 
 ## Starting point
 
-Before diving into the techniques, let's remember how scrolling works in a standard HTML table.
+Before diving into the techniques, let's describe how scrolling works using a standard HTML table.
 
 In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect:
 
@@ -50,18 +50,34 @@ In the following widget, scroll the left box up and down to see how the right bo
 <scroll-native></scroll-native>
 {% endrenderTemplate %}
 
-The <em>viewport</em> (blue border) is the visible area of the table. It has a fixed height, and a vertical scrollbar to navigate through the content. In the classic case, the table (yellow border) is fully rendered in the DOM, and the browser handles the scrolling natively, so that the visible part of the table is shown in the viewport.
+The <em>viewport</em> (blue border) delimits the fixed size of the component. The table (gold border) fully rendered within the viewport. As the table height is larger than the viewport height, a vertical scrollbar appears. When scrolling, the inner table element moves up and down within the viewport, creating the scrolling effect.
+
+On the right side, we mimic the scrolling effect, showing the position of the table relative to the viewport.
 
 ## Technique 1: load the data lazily
 
 The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, <strong>HighTable only loads the cells it needs for the current view</strong>.
+
+The following widgets shows how lazy loading works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while loading data on demand:
 
 <!-- add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-lazy-load></scroll-lazy-load>
 {% endrenderTemplate %}
 
-How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a minimal (and simplified) DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
+On the right side, the empty cells are not loaded yet. When scrolling, new cells are requested and loaded in the background, and rendered when available.
+
+To do so, we compute the visible rows, and only load them:
+
+```typescript
+const rowStart = Math.floor(viewport.scrollTop / rowHeight);
+const rowEnd = Math.ceil(
+  (viewport.scrollTop + viewport.clientHeight) / rowHeight
+);
+// ^ rowEnd is exclusive
+```
+
+How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a simplified DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
 ```typescript
 const cache = new Map<number, number>();
@@ -76,26 +92,28 @@ const df = {
   ): Promise<void> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
+    // Generate random values for the missing rows, and cache them
     for (let row = rowStart; row < rowEnd; row++) {
       if (cache.has(row)) continue;
       const value = Math.floor(Math.random() * 100);
       cache.set(row, {value});
     }
-    // The resolve event tells HighTable to re-render the visible cells
+    // Emit an event to tell HighTable to re-render the visible cells
     eventTarget.dispatchEvent(new Event('resolve'));
   },
 
   getCell({ row }: { row: number }): { value: number } | undefined {
+    // Synchronously return the cached value (if any)
     return cache.get(row);
   },
 }
 ```
 
-The dataframe loads the data from the source using the asynchronous `df.fetch()` method, which must cache the results, and dispatch a `resolve` event when new data is available. The source can be anything. Here it is randomly generated data. It can also be a [local file](https://developer.mozilla.org/en-US/docs/Web/API/File), an in-memory array, a remote file (using HTTP range requests), or a REST API, for example.
+The dataframe loads the data from the source using the asynchronous `df.fetch()` method. It must cache the results, and dispatch a `resolve` event when new data is available. The source can be anything. Here the data is randomly generated. It can also be a [local file](https://developer.mozilla.org/en-US/docs/Web/API/File), an in-memory array, a remote file (using HTTP range requests), or a REST API, for example.
 
 The dataframe must also provide a synchronous `df.getCell()` method to get the cached data for a given cell, or `undefined` if the data is not loaded yet.
 
-When rendering, HighTable will first call `df.getCell()` for the visible rows. If some cells are missing, it will call `df.fetch()` to load them in the background, and re-render the table when the data is available (listening for the `resolve` event).
+When rendering, HighTable will call `df.getCell()` for the visible rows. If some cells are missing, it will also call `df.fetch()` to load them in the background, and re-render the table when the data is available (listening for the `resolve` event).
 
 > You can find a more complete example of a DataFrame that loads a remote Parquet file using HTTP range requests in the [hyparquet demo](https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23).
 
@@ -105,43 +123,36 @@ Lazy loading the data is the first step to handle large datasets. The next step 
 
 In software engineering, when you try to optimize, the first step is to remove useless computing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million `<tr>` HTML elements? As a reference, Chrome [recommends](https://developer.chrome.com/docs/performance/insights/dom-size) creating or updating less than 300 HTML elements for optimal responsiveness.
 
-<strong>HighTable is a virtual table, which renders only the visible slice of the table</strong>.
+HighTable is a virtual table, which <strong>renders only the visible slice of the table</strong>.
+
+The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the "full table" button to see how the rendered rows fit in the full table:
 
 <!-- add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-slice></scroll-slice>
 {% endrenderTemplate %}
 
-Concretely, it renders a table with the header, some padding rows, the visible rows, and then some other padding rows, which generally results in less than one hundred rows:
+On the right side, you see that only the visible rows are rendered. The rendered table only contains 6 rows instead of 10 (or 7, depending on the scroll position). Its top position is adjusted to fit in the full table ("Show" the full table to see it).
+
+The corresponding HTML structure looks like this. Let's assume the table has 1,000,000 rows, each row is 30px height, and the viewport height is 600px (so that about 20 rows are visible at once). If the user has scrolled down to show rows 1000 to 1019, HighTable only renders these rows:
 
 ```html
 <table>
-  <thead>
-    <tr>...header cells...</tr>
-  </thead>
   <tbody>
-    <!-- Rows 0 to 979 are not rendered -->
+    <!-- Rows 0 to 999 are not rendered -->
 
-    <!-- padding rows before -->
-    <tr>...row 980...</tr>
-    ...
-    <tr>...row 999...</tr>
-
-    <!-- visible rows -->
+    <!-- Visible rows -->
     <tr>...row 1000...</tr>
     <tr>...row 1001...</tr>
     ...
-    <tr>...row 1029...</tr>
+    <tr>...row 1019...</tr>
 
-    <!-- padding rows after -->
-    <tr>...row 1030...</tr>
-    ...
-    <tr>...row 1049...</tr>
-
-    <!-- Rows 1050 to 999,999 are not rendered -->
+    <!-- Rows 1020 to 999,999 are not rendered -->
   </tbody>
 </table>
 ```
+
+> The HTML above is a simplification. In reality, HighTable renders a table header, and adds some padding rows before and after the visible rows, to improve the scrolling experience.
 
 The padding rows are used to prevent empty spaces when scrolling quickly. When the user scrolls down, the visible rows are updated accordingly, and the padding rows are adjusted to keep some extra rows before and after the visible rows.
 
