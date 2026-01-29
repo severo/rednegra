@@ -1,27 +1,57 @@
 <div webc:root>
   <scroll-common id="scroll-native">
-    <div class="content">
-      <div class="demo">
-        <div class="legend">
-          <p class="viewport-legend">viewport</p>
-          <p class="table-legend">table</p>
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table></scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            Scroll the left box to see how the right box mimics the scrolling
+            effect.
+          </div>
         </div>
-        <div class="viewport">
+        <div class="explanation">
           <div class="background-element">
             <scroll-full-table></scroll-full-table>
           </div>
+          <div class="viewport"></div>
         </div>
-        <div class="text-description">
-          Scroll the left box to see how the right box mimics the scrolling
-          effect.
-        </div>
-      </div>
-      <div class="explanation">
-        <div class="background-element">
-          <scroll-full-table></scroll-full-table>
-        </div>
-        <div class="viewport"></div>
-      </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tr class="viewport-variable">
+            <td>viewport.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr class="viewport-variable">
+            <td>viewport.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr class="table-variable">
+            <td>table.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr class="viewport-variable">
+            <td>viewport.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr class="variable">
+            <td>first visible pixel (inclusive)</td>
+            <td class="first-visible-pixel"></td>
+          </tr>
+          <tr class="variable">
+            <td>last visible pixel (exclusive)</td>
+            <td class="last-visible-pixel"></td>
+          </tr>
+        </table>
+      </section>
     </div>
   </scroll-common>
 </div>
@@ -33,11 +63,38 @@
     const explanationBackground = component.querySelector(
       ".explanation .background-element",
     );
+    const viewportScrollTop = component.querySelector(
+      ".variables .viewport-scroll-top",
+    );
+    const viewportClientHeight = component.querySelector(
+      ".variables .viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".variables .viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(
+      ".variables .table-client-height",
+    );
+    const firstVisiblePixel = component.querySelector(
+      ".variables .first-visible-pixel",
+    );
+    const lastVisiblePixel = component.querySelector(
+      ".variables .last-visible-pixel",
+    );
 
-    viewport.onscroll = function () {
+    function update() {
       const scrollTop = viewport.scrollTop;
       explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
-    };
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisiblePixel.textContent = `${scrollTop}px`;
+      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
+    }
+
+    viewport.onscroll = update;
+    update();
   }
   document.addEventListener("DOMContentLoaded", initNative);
 </script>

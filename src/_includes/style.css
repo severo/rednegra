@@ -108,6 +108,22 @@ code {
   border-radius: 0.3em;
 }
 
+/* for blog post about virtual scrolling */
+code.viewport {
+  background: none;
+  color: hsl(207.2, 61%, 40%);
+  font-weight: bold;
+  font-size: 1em;
+  padding: 0;
+}
+code.table {
+  background: none;
+  color: hsl(40.7, 52.9%, 40%);
+  font-weight: bold;
+  font-size: 1em;
+  padding: 0;
+}
+
 @media print {
   a {
     text-decoration: none;

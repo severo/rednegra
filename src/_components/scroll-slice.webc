@@ -1,33 +1,71 @@
 <div webc:root>
   <scroll-common id="scroll-slice">
-    <div class="content">
-      <div class="demo">
-        <div class="legend">
-          <p class="viewport-legend">viewport</p>
-          <p class="table-legend">table</p>
-          <p class="wrapper-legend">
-            full table<button type="button">Show</button>
-          </p>
-        </div>
-        <div class="viewport">
-          <div class="background-element">
-            <scroll-full-table></scroll-full-table>
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+            <p class="wrapper-legend">
+              full table<button type="button">Show</button>
+            </p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table></scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box to see how the right box mimics the scrolling
+              effect.
+            </p>
           </div>
         </div>
-        <div class="text-description">
-          <p>
-            Scroll the left box to see how the right box mimics the scrolling
-            effect.
-          </p>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+            <div class="wrapper"></div>
+          </div>
+          <div class="viewport"></div>
         </div>
-      </div>
-      <div class="explanation">
-        <div class="background-element">
-          <scroll-full-table></scroll-full-table>
-          <div class="wrapper"></div>
-        </div>
-        <div class="viewport"></div>
-      </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tr class="viewport-variable">
+            <td>viewport.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr class="viewport-variable">
+            <td>viewport.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr class="table-variable">
+            <td>table.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr class="viewport-variable">
+            <td>viewport.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr class="variable">
+            <td>first visible pixel (inclusive)</td>
+            <td class="first-visible-pixel"></td>
+          </tr>
+          <tr class="variable">
+            <td>last visible pixel (exclusive)</td>
+            <td class="last-visible-pixel"></td>
+          </tr>
+          <tr class="variable">
+            <td>first visible row (inclusive)</td>
+            <td class="first-visible-row"></td>
+          </tr>
+          <tr class="variable">
+            <td>last visible row (exclusive)</td>
+            <td class="last-visible-row"></td>
+          </tr>
+        </table>
+      </section>
     </div>
   </scroll-common>
 </div>
@@ -43,14 +81,14 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        color: var(--color-6);
+        color: var(--color-5);
 
         button {
           font-size: 0.8em;
-          border: var(--border-width) solid var(--color-6);
+          border: var(--border-width) solid var(--color-5);
           border-bottom: none;
           background-color: transparent;
-          color: var(--color-6);
+          color: var(--color-5);
           cursor: pointer;
         }
       }
@@ -60,7 +98,7 @@
     }
 
     .explanation {
-      --table-color: var(--color-6);
+      --table-color: var(--color-5);
 
       .full-table {
         visibility: hidden;
@@ -86,8 +124,21 @@
     const toggleButton = component.querySelector(".wrapper-legend button");
     const explanationFullTable =
       explanationBackground.querySelector(".full-table");
+    const wrapper = component.querySelector(".wrapper");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const firstVisiblePixel = component.querySelector(".first-visible-pixel");
+    const lastVisiblePixel = component.querySelector(".last-visible-pixel");
+    const firstVisibleRowTd = component.querySelector(".first-visible-row");
+    const lastVisibleRowTd = component.querySelector(".last-visible-row");
 
-    function updateLoadedRows() {
+    function update() {
       const scrollTop = viewport.scrollTop;
       const rowHeight = parseInt(
         getComputedStyle(component).getPropertyValue("--row-height"),
@@ -97,24 +148,32 @@
         Math.ceil((scrollTop + viewport.clientHeight) / rowHeight),
         parseInt(getComputedStyle(component).getPropertyValue("--num_rows")),
       );
-      for (const wrapper of component.querySelectorAll(".wrapper")) {
-        const table = document.createElement("table");
-        for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
-          const row = document.createElement("tr");
-          const cell = document.createElement("td");
-          cell.textContent = `row ${i}`;
-          row.appendChild(cell);
-          table.appendChild(row);
-        }
-        wrapper.innerHTML = "";
-        wrapper.appendChild(table);
-        wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+
+      const table = document.createElement("table");
+      for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.textContent = `row ${i}`;
+        row.appendChild(cell);
+        table.appendChild(row);
       }
+      wrapper.innerHTML = "";
+      wrapper.appendChild(table);
+      wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisiblePixel.textContent = `${scrollTop}px`;
+      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
+      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
+      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
     }
 
     viewport.onscroll = function () {
       explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
-      updateLoadedRows();
+      update();
     };
 
     toggleButton.onclick = function () {
@@ -128,7 +187,7 @@
       }
     };
 
-    updateLoadedRows();
+    update();
   }
   document.addEventListener("DOMContentLoaded", initSlice);
 </script>

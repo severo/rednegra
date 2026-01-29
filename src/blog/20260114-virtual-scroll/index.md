@@ -5,7 +5,7 @@ tags: web, ui, javascript, performance, react, accessibility, virtualization
 date: 2026-02-02
 ---
 
-TL;DR: In this post, I present five techniques used in HighTable, a React component that can display billions of rows in a table with vertical scrolling, while keeping good performance and accessibility.
+TL;DR: In this post, I present <strong>five techniques related to vertical scrolling</strong> used in HighTable, a React component that can display billions of rows in a table while keeping good performance and accessibility.
 
 You can jump directly to the techniques if you want to skip the introduction.
 
@@ -37,45 +37,73 @@ In this post, I'll showcase five techniques we use to <strong>solve challenges r
 
 The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.
 
-The [hyparam/hightable](https://github.com/hyparam/hightable/) library was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to the development for one year now. Try it in the [demo](https://hyparam.github.io/demos/hightable/#/large), or as part of the web [Parquet viewer](https://hyparam.github.io/demos/hyparquet/).
+The `<HighTable>` component is developed at [hyparam/hightable](https://github.com/hyparam/hightable/). It was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to its development for one year now. Try it in the [demo](https://hyparam.github.io/demos/hightable/#/large), or as part of the [Parquet viewer](https://hyparam.github.io/demos/hyparquet/).
 
-## Starting point
+## Scrolling basics
 
-Before diving into the techniques, let's describe how scrolling works using a standard HTML table.
-
-In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect:
+Before diving into the techniques, let's describe how scrolling works using a standard HTML table. In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect:
 
 <!-- add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-native></scroll-native>
 {% endrenderTemplate %}
 
-The <em>viewport</em> (blue border) delimits the fixed size of the component. The table (gold border) fully rendered within the viewport. As the table height is larger than the viewport height, a vertical scrollbar appears. When scrolling, the inner table element moves up and down within the viewport, creating the scrolling effect.
+The component is delimited by its fixed-size <em>viewport</em> (blue border). The table (golden border) is rendered inside the component. As its height is larger than the viewport height, only part of the table is visible, and a vertical scrollbar lets changing the visible part. When scrolling, the inner table element moves up and down within the viewport, creating the scrolling effect.
 
 On the right side, we mimic the scrolling effect, showing the position of the table relative to the viewport.
+
+Let's settle some definitions and formulas that will be useful later:
+
+1. in this post, we assume <code class="viewport">viewport.clientHeight</code>, the height of the visible area, is constant. In HighTable, it's measured and we react to resizing.
+
+2. <code class="viewport">viewport.scrollHeight</code>, the total height of the scrollable content, is equal to <code class="table">table.clientHeight</code>. Both are equal to the number of rows multiplied by the row height:
+
+    ```typescript
+    const rowHeight = 33; // in pixels
+    const numRows = df.numRows; // total number of rows in the table
+    const height = numRows * rowHeight;
+    ```
+
+    In this post, we assume the row height and the number of rows are constant. In HighTable, we react to changes in the number of rows (for example when filtering), but the row height is fixed (see [issue #395](https://github.com/hyparam/hightable/issues/395) about variable row heights).
+
+3. <code class="viewport">viewport.scrollTop</code>, the vertical scroll position in pixels, indicates how many pixels the table has been scrolled upwards.
+    - its minimum value is <code class="viewport">0</code> (top of the table)
+    - its maximum value is <code class="viewport">viewport.scrollHeight - viewport.clientHeight</code> (bottom of the table).
+
+4. The visible pixels can be computed from the viewport scroll position:
+
+    ```typescript
+    // firstVisiblePixel is inclusive, lastVisiblePixel is exclusive
+    const firstVisiblePixel = viewport.scrollTop;
+    const lastVisiblePixel = viewport.scrollTop + viewport.clientHeight;
+    ```
+
 
 ## Technique 1: load the data lazily
 
 The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news is that you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, <strong>HighTable only loads the cells it needs for the current view</strong>.
 
-The following widgets shows how lazy loading works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while loading data on demand:
+The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:
 
 <!-- add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-lazy-load></scroll-lazy-load>
 {% endrenderTemplate %}
 
-On the right side, the empty cells are not loaded yet. When scrolling, new cells are requested and loaded in the background, and rendered when available.
+In the table, only the visible cells are loaded. When scrolling, newly visible cells are requested and loaded in the background, and rendered when available.
 
 To do so, we compute the visible rows, and only load them:
 
 ```typescript
+// rowStart is inclusive, rowEnd is exclusive
 const rowStart = Math.floor(viewport.scrollTop / rowHeight);
 const rowEnd = Math.ceil(
   (viewport.scrollTop + viewport.clientHeight) / rowHeight
 );
-// ^ rowEnd is exclusive
 ```
+
+> This computation requires the row height to be constant. HighTable currently relies on fixed-height rows. See the ["Allow variable row height"](https://github.com/hyparam/hightable/issues/395) issue.
+
 
 How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a simplified DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
