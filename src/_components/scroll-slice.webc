@@ -32,35 +32,39 @@
       </section>
       <section class="variables">
         <table>
-          <tr class="viewport-variable">
-            <td>viewport.clientHeight</td>
+          <tr>
+            <td><span class="viewport">viewport</span>.clientHeight</td>
             <td class="viewport-client-height"></td>
           </tr>
-          <tr class="viewport-variable">
-            <td>viewport.scrollHeight</td>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
             <td class="viewport-scroll-height"></td>
           </tr>
-          <tr class="table-variable">
-            <td>table.clientHeight</td>
+          <tr>
+            <td><span class="full-table">full_table</span>.clientHeight</td>
+            <td class="full-table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
             <td class="table-client-height"></td>
           </tr>
-          <tr class="viewport-variable">
-            <td>viewport.scrollTop</td>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
             <td class="viewport-scroll-top"></td>
           </tr>
-          <tr class="variable">
+          <tr>
             <td>first visible pixel (inclusive)</td>
             <td class="first-visible-pixel"></td>
           </tr>
-          <tr class="variable">
+          <tr>
             <td>last visible pixel (exclusive)</td>
             <td class="last-visible-pixel"></td>
           </tr>
-          <tr class="variable">
+          <tr>
             <td>first visible row (inclusive)</td>
             <td class="first-visible-row"></td>
           </tr>
-          <tr class="variable">
+          <tr>
             <td>last visible row (exclusive)</td>
             <td class="last-visible-row"></td>
           </tr>
@@ -81,14 +85,14 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        color: var(--color-5);
+        color: var(--full-table-color);
 
         button {
           font-size: 0.8em;
-          border: var(--border-width) solid var(--color-5);
+          border: var(--border-width) solid var(--full-table-color);
           border-bottom: none;
           background-color: transparent;
-          color: var(--color-5);
+          color: var(--full-table-color);
           cursor: pointer;
         }
       }
@@ -98,7 +102,7 @@
     }
 
     .explanation {
-      --table-color: var(--color-5);
+      --table-color: var(--full-table-color);
 
       .full-table {
         visibility: hidden;
@@ -132,6 +136,9 @@
       ".viewport-scroll-height",
     );
     const tableClientHeight = component.querySelector(".table-client-height");
+    const fullTableClientHeight = component.querySelector(
+      ".full-table-client-height",
+    );
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
     const firstVisiblePixel = component.querySelector(".first-visible-pixel");
     const lastVisiblePixel = component.querySelector(".last-visible-pixel");
@@ -164,7 +171,8 @@
       viewportScrollTop.textContent = `${scrollTop}px`;
       viewportClientHeight.textContent = `${viewport.clientHeight}px`;
       viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      fullTableClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
       firstVisiblePixel.textContent = `${scrollTop}px`;
       firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
       lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;

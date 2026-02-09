@@ -41,11 +41,39 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 40px;
+
+      table {
+        box-sizing: border-box;
+
+        width: 100%;
+        color: var(--table-color);
+        border: var(--border-width) solid var(--table-color);
+        border-collapse: collapse;
+        user-select: none;
+        td {
+          border: none;
+          padding: 0 0.5em;
+          vertical-align: middle;
+          height: var(--row-height);
+        }
+        tr:not(:last-child) td {
+          border-bottom: var(--border-width) solid var(--table-color);
+        }
+      }
+
+      .viewport {
+        box-sizing: border-box;
+        border-radius: calc(var(--wide-border-width) * 2);
+
+        height: var(--viewport-height);
+        border: var(--wide-border-width) solid var(--viewport-color);
+      }
     }
     .variables {
       border-top: 1px solid var(--light-color);
       padding-top: 20px;
       font-family: var(--mono-font);
+      color: var(--light-color);
 
       table {
         border: none;
@@ -59,14 +87,17 @@
           }
         }
       }
-      .viewport-variable {
+      .viewport {
+        border: revert;
         color: var(--viewport-color);
       }
-      .table-variable {
+      .table {
+        border: revert;
         color: var(--table-color);
       }
-      .variable {
-        color: var(--light-color);
+      .full-table {
+        border: revert;
+        color: var(--full-table-color);
       }
     }
 
@@ -88,33 +119,6 @@
     .text-description {
       font-size: 0.9em;
       line-height: 1.4em;
-    }
-
-    .content table {
-      box-sizing: border-box;
-
-      width: 100%;
-      color: var(--table-color);
-      border: var(--border-width) solid var(--table-color);
-      border-collapse: collapse;
-      user-select: none;
-      td {
-        border: none;
-        padding: 0 0.5em;
-        vertical-align: middle;
-        height: var(--row-height);
-      }
-      tr:not(:last-child) td {
-        border-bottom: var(--border-width) solid var(--table-color);
-      }
-    }
-
-    .viewport {
-      box-sizing: border-box;
-      border-radius: calc(var(--wide-border-width) * 2);
-
-      height: var(--viewport-height);
-      border: var(--wide-border-width) solid var(--viewport-color);
     }
 
     .background-element {

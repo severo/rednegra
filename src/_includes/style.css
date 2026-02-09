@@ -13,6 +13,7 @@
   --light-color: var(--color-4);
   --table-color: var(--color-2);
   --viewport-color: var(--color-3);
+  --full-table-color: var(--color-5);
 }
 
 html,
@@ -124,6 +125,9 @@ span {
   &.table {
     border-bottom: 2px solid var(--table-color);
   }
+  &.full-table {
+    border-bottom: 2px solid var(--full-table-color);
+  }
 }
 
 /* don't affect code blocks inside pre (```) */
@@ -146,5 +150,10 @@ span {
   .table {
     border: revert;
     color: var(--table-color);
+  }
+  &.full-table,
+  .full-table {
+    border: revert;
+    color: var(--full-table-color);
   }
 }
