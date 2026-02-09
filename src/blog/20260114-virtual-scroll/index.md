@@ -52,15 +52,15 @@ Before diving into the techniques, let's describe how scrolling works using a st
 <scroll-native></scroll-native>
 {% endrenderTemplate %}
 
-The component is delimited by its fixed-size <em>viewport</em> (blue border). The table (golden border) is rendered inside the component. As its height is larger than the viewport height, only part of the table is visible, and a vertical scrollbar lets changing the visible part. When scrolling, the inner table element moves up and down within the viewport, creating the scrolling effect.
+The component is delimited by its fixed-size <span class="viewport"><em>viewport</em></span> (blue border). The <span class="table"><em>table</em></span> (golden border) is rendered inside the component. As its <span class="table">height</span> is larger than the <span class="viewport">viewport height</span>, only part of the table is visible, and a vertical scrollbar lets changing the visible part. When scrolling, the inner <span class="table">table</span> element moves up and down within the <span class="viewport">viewport</span>, creating the scrolling effect.
 
-On the right side, we mimic the scrolling effect, showing the position of the table relative to the viewport.
+On the right side, we mimic the scrolling effect, showing the position of the <span class="table">table</span> relative to the <span class="viewport">viewport</span>.
 
 Let's settle some definitions and formulas that will be useful later:
 
-1. in this post, we assume <code class="viewport">viewport.clientHeight</code>, the height of the visible area, is constant. In HighTable, it's measured and we react to resizing.
+1. in this post, we assume <code><span class="viewport">viewport</span>.clientHeight</code>, the height of the visible area, is constant. In HighTable, it's measured and we react to resizing.
 
-2. <code class="viewport">viewport.scrollHeight</code>, the total height of the scrollable content, is equal to <code class="table">table.clientHeight</code>. Both are equal to the number of rows multiplied by the row height:
+2. <code><span class="viewport">viewport</span>.scrollHeight</code>, the total height of the scrollable content, is equal to <code><span class="table">table</span>.clientHeight</code>. Both are equal to the number of rows multiplied by the row height:
 
     ```typescript
     const rowHeight = 33; // in pixels
@@ -70,9 +70,9 @@ Let's settle some definitions and formulas that will be useful later:
 
     In this post, we assume the row height and the number of rows are constant. In HighTable, we react to changes in the number of rows (for example when filtering), but the row height is fixed (see [issue #395](https://github.com/hyparam/hightable/issues/395) about variable row heights).
 
-3. <code class="viewport">viewport.scrollTop</code>, the vertical scroll position in pixels, indicates how many pixels the table has been scrolled upwards.
-    - its minimum value is <code class="viewport">0</code> (top of the table)
-    - its maximum value is <code class="viewport">viewport.scrollHeight - viewport.clientHeight</code> (bottom of the table).
+3. <code><span class="viewport">viewport</span>.scrollTop</code>, the vertical scroll position in pixels, indicates how many pixels the <span class="table">table</span> has been scrolled upwards:
+    - the top of the table is shown for the minimum value: <code>0</code>,
+    - the bottom of the table is reached for the maximum value: <code><span class="viewport">viewport</span>.scrollHeight - <span class="viewport">viewport</span>.clientHeight</code>.
 
 4. The visible pixels can be computed from the viewport scroll position:
 
