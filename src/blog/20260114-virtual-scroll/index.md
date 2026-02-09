@@ -41,6 +41,8 @@ The component also provides features for columns (sort, hide, resize), rows (sel
 
 The `<HighTable>` component is developed at [hyparam/hightable](https://github.com/hyparam/hightable/). It was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to its development for one year now. Try it in the [demo](https://hyparam.github.io/demos/hightable/#/large), or as part of the [Parquet viewer](https://hyparam.github.io/demos/hyparquet/).
 
+<a title="Try HighTable in Hyperparam, the workbench for LLM datasets" href="https://hyperparam.app"><img alt="HighTable embedded in hyperparam.app" src="./hightable.png"></a>
+
 ## Scrolling basics
 
 Before diving into the techniques, let's describe how scrolling works using a standard HTML table. In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect:
