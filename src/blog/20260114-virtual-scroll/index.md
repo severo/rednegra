@@ -7,6 +7,8 @@ date: 2026-02-02
 
 TL;DR: In this post, I present <strong>five techniques related to vertical scrolling</strong> used in HighTable, a React component that can display billions of rows in a table while keeping good performance and accessibility.
 
+<a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><img  alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="./scroll.jpg"></a>
+
 You can jump directly to the techniques if you want to skip the introduction.
 
 - [Technique 1: load the data lazily](#technique-1-load-the-data-lazily)
