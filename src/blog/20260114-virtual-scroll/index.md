@@ -63,9 +63,9 @@ Let's settle some definitions and formulas that will be useful later:
 2. <code><span class="viewport">viewport</span>.scrollHeight</code>, the total height of the scrollable content, is equal to <code><span class="table">table</span>.clientHeight</code>. Both are equal to the number of rows multiplied by the row height:
 
     ```typescript
-    const rowHeight = 33; // in pixels
-    const numRows = df.numRows; // total number of rows in the table
-    const height = numRows * rowHeight;
+    const rowHeight = 33 // in pixels
+    const numRows = df.numRows // total number of rows in the table
+    const height = numRows * rowHeight
     ```
 
     In this post, we assume the row height and the number of rows are constant. In HighTable, we react to changes in the number of rows (for example when filtering), but the row height is fixed (see [issue #395](https://github.com/hyparam/hightable/issues/395) about variable row heights).
@@ -78,8 +78,8 @@ Let's settle some definitions and formulas that will be useful later:
 
     ```typescript
     // firstVisiblePixel is inclusive, lastVisiblePixel is exclusive
-    const firstVisiblePixel = viewport.scrollTop;
-    const lastVisiblePixel = viewport.scrollTop + viewport.clientHeight;
+    const firstVisiblePixel = viewport.scrollTop
+    const lastVisiblePixel = viewport.scrollTop + viewport.clientHeight
     ```
 
 
@@ -100,10 +100,10 @@ To do so, we compute the visible rows, and only load them:
 
 ```typescript
 // rowStart is inclusive, rowEnd is exclusive
-const rowStart = Math.floor(viewport.scrollTop / rowHeight);
+const rowStart = Math.floor(viewport.scrollTop / rowHeight)
 const rowEnd = Math.ceil(
   (viewport.scrollTop + viewport.clientHeight) / rowHeight
-);
+)
 ```
 
 > This computation requires the row height to be constant. HighTable currently relies on fixed-height rows. See the ["Allow variable row height"](https://github.com/hyparam/hightable/issues/395) issue.
@@ -112,8 +112,8 @@ const rowEnd = Math.ceil(
 How you load the data is not part of HighTable. Instead, you pass the data as a [`DataFrame`](https://github.com/hyparam/hightable/blob/master/src/helpers/dataframe/types.ts#L38) object. The interface is designed for lazy-loading the cells on demand. Here is a simplified DataFrame implementation that generates random data for one column, with some delay, and persists the values in memory:
 
 ```typescript
-const cache = new Map<number, number>();
-const eventTarget = new EventTarget();
+const cache = new Map<number, number>()
+const eventTarget = new EventTarget()
 const df = {
   numRows: 1_000_000,
   columnDescriptors: [{name: 'Age'}],
@@ -307,7 +307,7 @@ Represented as code, the logic looks like this (simplified, pseudo-code):
 
 ```typescript
 const state = getState()
-const delta = viewport.scrollTop - state.globalAnchor;
+const delta = viewport.scrollTop - state.globalAnchor
 if (Math.abs(delta) > localThreshold) {
   // global scroll
   state.localOffset = 0;
@@ -321,7 +321,7 @@ if (Math.abs(delta) > localThreshold) {
   // Accumulate the local offset, leaving the global anchor unchanged
   state.localOffset += delta
 }
-setState(state);
+setState(state)
 ```
 
 With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.
