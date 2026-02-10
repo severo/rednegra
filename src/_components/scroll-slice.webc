@@ -1,0 +1,230 @@
+<div webc:root>
+  <scroll-common id="scroll-slice">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="canvas-legend">canvas</p>
+            <p class="table-legend">table</p>
+            <p class="full-table-legend">
+              full table<button type="button">Show</button>
+            </p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table></scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box, and see on the right how only a table slice
+              is rendered.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+            <div class="wrapper"></div>
+          </div>
+          <div class="canvas-wrapper">
+            <div class="canvas"></div>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">hidden pixels</span> above viewport</td>
+            <td class="hidden-pixels-above-viewport"></td>
+          </tr>
+        </table>
+      </section>
+    </div>
+  </scroll-common>
+</div>
+
+<style webc:scoped>
+  :host {
+    .content {
+      --slice-color: var(--table-color);
+      --legend-height: 150px;
+    }
+
+    .legend {
+      .full-table-legend {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: var(--full-table-color);
+
+        button {
+          font-size: 0.8em;
+          border: var(--border-width) solid var(--full-table-color);
+          border-bottom: none;
+          background-color: transparent;
+          color: var(--full-table-color);
+          cursor: pointer;
+        }
+      }
+      .table-legend {
+        color: var(--slice-color);
+      }
+      .canvas-legend {
+        color: var(--canvas-color);
+      }
+    }
+
+    .explanation {
+      --table-color: var(--full-table-color);
+
+      .full-table {
+        visibility: hidden;
+      }
+
+      .wrapper {
+        --table-color: var(--slice-color);
+        position: absolute;
+        width: 100%;
+        top: 0;
+      }
+    }
+  }
+</style>
+
+<script webc:keep>
+  function initSlice() {
+    const component = document.getElementById("scroll-slice");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const toggleButton = component.querySelector(".full-table-legend button");
+    const explanationFullTable =
+      explanationBackground.querySelector(".full-table");
+    const canvas = component.querySelector(".explanation .canvas");
+    const wrapper = component.querySelector(".wrapper");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const canvasClientHeight = component.querySelector(".canvas-client-height");
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const tableStyleTop = component.querySelector(".table-style-top");
+    const hiddenPixelsAboveViewport = component.querySelector(
+      ".hidden-pixels-above-viewport",
+    );
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.min(
+        Math.ceil((scrollTop + viewport.clientHeight) / rowHeight),
+        parseInt(getComputedStyle(component).getPropertyValue("--num_rows")),
+      );
+
+      const table = document.createElement("table");
+      for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.textContent = `row ${i}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = "";
+      wrapper.appendChild(table);
+      wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+
+      canvas.style.height = `${explanationFullTable.clientHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
+      canvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
+      tableStyleTop.textContent = `${wrapper.style.top}`;
+      hiddenPixelsAboveViewport.textContent = `${scrollTop - firstVisibleRow * rowHeight}px`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    toggleButton.onclick = function () {
+      const isHidden = toggleButton.textContent === "Show";
+      if (isHidden) {
+        explanationFullTable.style.visibility = "visible";
+        toggleButton.textContent = "Hide";
+      } else {
+        explanationFullTable.style.visibility = "hidden";
+        toggleButton.textContent = "Show";
+      }
+    };
+
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initSlice);
+</script>

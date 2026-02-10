@@ -1,0 +1,144 @@
+<div webc:root>
+  <scroll-common id="scroll-lazy-load">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table></scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box, to see on the right how the cells are loaded lazily.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table></scroll-full-table>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          </tr>
+            <td>first visible row (inclusive)</td>
+            <td class="first-visible-row"></td>
+          </tr>
+          <tr>
+            <td>last visible row (exclusive)</td>
+            <td class="last-visible-row"></td>
+          </tr>
+        </table>
+      </section>
+    </div>
+  </scroll-common>
+</div>
+
+<script webc:keep>
+  function initLazyLoad() {
+    const component = document.getElementById("scroll-lazy-load");
+    const content = component.querySelector(".content");
+    const tables = content.querySelectorAll("table");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const firstVisibleRowTd = component.querySelector(".first-visible-row");
+    const lastVisibleRowTd = component.querySelector(".last-visible-row");
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.ceil(
+        (scrollTop + viewport.clientHeight) / rowHeight,
+      );
+      for (const table of tables) {
+        const tableRows = table.querySelectorAll("tr");
+        tableRows.forEach((row, index) => {
+          if (index < firstVisibleRow || index >= lastVisibleRow) {
+            row.firstElementChild.textContent = "";
+          } else {
+            row.firstElementChild.textContent = `row ${index}`;
+          }
+        });
+      }
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
+      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initLazyLoad);
+</script>
