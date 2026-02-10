@@ -1,0 +1,1479 @@
+
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/prism.css">
+  <link rel="stylesheet" href="/bundle/ku9Ue7L66I.css">
+  <title>Virtual Scrolling for Billions of Rows — Techniques from HighTable</title>
+  <link href="https://huggingface.co/severo" rel="me">
+  <link href="https://observablehq.com/@severo" rel="me">
+  <link href="https://github.com/severo" rel="me">
+  <link href="https://mastodon.social/@severo" rel="me">
+  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
+  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
+  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
+  <link href="https://mamot.fr/@severo_bo" rel="me">
+  <link href="https://seenthis.net/people/severo" rel="me">
+</head>
+<body>
+  <main>
+    <header>
+      <h1 id="virtual-scrolling-for-billions-of-rows-techniques-from-hightable">Virtual Scrolling for Billions of Rows — Techniques from HighTable</h1>
+      <p class="date">Published on: 2026-02-02</p>
+      <p class="author">By <a href="/">Sylvain Lesage</a></p>
+    </header>
+    <div><p>TL;DR: In this post, I present <strong>five techniques related to vertical scrolling</strong> used in <code>&lt;HighTable&gt;</code>, a React component that can display billions of rows in a table while keeping good performance and accessibility.</p>
+<p><a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><picture><source type="image/webp" srcset="/blog/20260114-virtual-scroll/aW48cjwKPd-1440.webp 1440w"><img alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="/blog/20260114-virtual-scroll/aW48cjwKPd-1440.jpeg" width="1440" height="923"></picture></a></p>
+<p>It's a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.</p>
+<p>Table of contents:</p>
+<ul>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#demo">Demo</a></li>
+<li><a href="#scrolling-basics">Scrolling basics</a></li>
+<li><a href="#technique-1-load-the-data-lazily">Technique 1: load the data lazily</a></li>
+<li><a href="#technique-2-only-render-a-table-slice">Technique 2: only render a table slice</a></li>
+<li><a href="#technique-3-downscale-the-scrollbar-for-global-positioning">Technique 3: downscale the scrollbar for global positioning</a></li>
+<li><a href="#technique-4-add-a-local-scrolling-mode">Technique 4: add a local scrolling mode</a></li>
+<li><a href="#technique-5-decouple-vertical-and-horizontal-scrolling">Technique 5: decouple vertical and horizontal scrolling</a></li>
+<li><a href="#conclusion">Conclusion</a></li>
+</ul>
+<h2 id="introduction">Introduction</h2>
+<p>Showing data in a table is one of the first exercises you'll find in HTML 101 courses.</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>table</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>thead</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tr</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>th</span><span class="token punctuation">></span></span>Name<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>th</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>th</span><span class="token punctuation">></span></span>Age<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>th</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tr</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>thead</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tbody</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tr</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>td</span><span class="token punctuation">></span></span>Alice<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>td</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>td</span><span class="token punctuation">></span></span>64<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>td</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tr</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tr</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>td</span><span class="token punctuation">></span></span>Bob<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>td</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>td</span><span class="token punctuation">></span></span>37<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>td</span><span class="token punctuation">></span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tr</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tbody</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>table</span><span class="token punctuation">></span></span></code></pre>
+<p>But, as often in data science, what works for simple cases breaks when the size increases.</p>
+<p>In this post, I'll showcase five techniques we use to <strong>solve challenges related to vertical scrolling</strong> in the <code>&lt;HighTable&gt;</code> React component to handle billions of rows.</p>
+<p>The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.</p>
+<p>The <code>&lt;HighTable&gt;</code> component is developed at <a href="https://github.com/hyparam/hightable/">hyparam/hightable</a>. It was created by <a href="https://github.com/platypii">Kenny Daniel</a> for <a href="https://hyperparam.app/">Hyperparam</a>, and I've had the chance to contribute to its development for one year now.</p>
+<h2 id="demo">Demo</h2>
+<p>Try the <a href="https://hyparam.github.io/demos/hightable/#/large">hightable demo</a>:</p>
+<iframe src="https://hyparam.github.io/demos/hightable/#/large" title="HighTable demo with a large dataset" width="100%" height="400px"></iframe>
+<p>HighTable is also used in the <a href="https://hyparam.github.io/demos/hyparquet/">Parquet viewer</a>, on <a href="https://source.coop/jrc-lucas/jrc-lucas-ml/ml_data/classes_dataset.csv">source.coop</a> and in <a href="https://hyperparam.app">Hyperparam</a>:</p>
+<p><a title="Try HighTable in Hyperparam, the workbench for LLM datasets" href="https://hyperparam.app"><picture><source type="image/webp" srcset="/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.webp 1911w"><img alt="HighTable embedded in hyperparam.app" src="/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.jpeg" width="1911" height="1048"></picture></a></p>
+<h2 id="scrolling-basics">Scrolling basics</h2>
+<p>Before diving into the techniques, let's describe how scrolling works using a standard HTML table.</p>
+<p>The HTML structure is composed of a scrollable container, that we call the <span class="viewport"><em>viewport</em></span>, and a <span class="table">table</span> element inside it:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>viewport<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">overflow-y</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>table</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>table<span class="token punctuation">"</span></span><span class="token punctuation">></span></span>
+    ...
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>table</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span></code></pre>
+<p>In this structure, the <span class="viewport">viewport</span> is a div with a fixed height and the CSS property <code>overflow-y: auto</code> enables a vertical scrollbar when the <span class="table">table</span> is taller than the <span class="viewport">viewport</span>.</p>
+<p>In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect.</p>
+<blockquote>
+<p>If you use a keyboard, you can focus the left box with <kbd>Tab</kbd>, and scroll with the arrow keys <kbd>⏶</kbd> and <kbd>⏷</kbd>. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.</p>
+</blockquote>
+<scroll-native>
+  <scroll-common id="scroll-native" class="wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box to see how the right box mimics the scrolling
+              effect.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr>
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>first visible pixel (inclusive)</td>
+            <td class="first-visible-pixel"></td>
+          </tr>
+          <tr>
+            <td>last visible pixel (exclusive)</td>
+            <td class="last-visible-pixel"></td>
+          </tr>
+        </tbody></table>
+      </section>
+    </div>
+</scroll-common>
+<script>
+  function initNative() {
+    const component = document.getElementById("scroll-native");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const viewportScrollTop = component.querySelector(
+      ".variables .viewport-scroll-top",
+    );
+    const viewportClientHeight = component.querySelector(
+      ".variables .viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".variables .viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(
+      ".variables .table-client-height",
+    );
+    const firstVisiblePixel = component.querySelector(
+      ".variables .first-visible-pixel",
+    );
+    const lastVisiblePixel = component.querySelector(
+      ".variables .last-visible-pixel",
+    );
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisiblePixel.textContent = `${scrollTop}px`;
+      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
+    }
+
+    viewport.onscroll = update;
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initNative);
+</script>
+</scroll-native>
+<p>The component is delimited by its fixed-size <span class="viewport">viewport</span> (blue border). The <span class="table"><em>table</em></span> (golden border) is rendered inside the container. As its <span class="table">height</span> is larger than the <span class="viewport">viewport height</span>, only part of the table is visible, and a vertical scrollbar lets changing the visible part. <strong>The inner <span class="table">table</span> element moves up and down within the <span class="viewport">viewport</span></strong>, creating the scrolling effect.</p>
+<p>On the right side, we mimic the scrolling effect, showing the position of the <span class="table">table</span> relative to the <span class="viewport">viewport</span>.</p>
+<p>Let's settle some definitions and formulas that will be useful later:</p>
+<ol>
+<li>
+<p>in this post, we assume <code><span class="viewport">viewport</span>.clientHeight</code>, the height of the visible area, is constant. In hightable, we measure it and react to resizing.</p>
+</li>
+<li>
+<p><code><span class="viewport">viewport</span>.scrollHeight</code>, the total height of the scrollable content, is equal to <code><span class="table">table</span>.clientHeight</code>. Both are equal to the number of rows in the table multiplied by the row height:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> rowHeight <span class="token operator">=</span> <span class="token number">33</span> <span class="token comment">// in pixels</span>
+<span class="token keyword">const</span> numRows <span class="token operator">=</span> data<span class="token punctuation">.</span>numRows <span class="token comment">// total number of rows in the table</span>
+<span class="token keyword">const</span> height <span class="token operator">=</span> numRows <span class="token operator">*</span> rowHeight</code></pre>
+<p>In this post, we assume the row height and the number of rows are constant. In hightable, we react to changes in <code>data.numRows</code> (the number of rows in the <em>data frame</em>, the data structure holding the table data), for example when filtering; but we assume the row height is fixed (see <a href="https://github.com/hyparam/hightable/issues/395">issue #395</a> to support variable row heights).</p>
+</li>
+<li>
+<p><code><span class="viewport">viewport</span>.scrollTop</code> is the number of pixels between the top of the scrolled <span class="table">table</span> and the top of the <span class="viewport">viewport</span>. The minimum value <code>0px</code> shows the top of the table, while the bottom of the table is reached at the maximum value <code><span class="viewport">viewport</span>.scrollHeight - <span class="viewport">viewport</span>.clientHeight</code>.</p>
+</li>
+<li>
+<p>The visible pixels can be computed from the <span class="viewport">viewport</span> scroll top position:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> firstVisiblePixel <span class="token operator">=</span> viewport<span class="token punctuation">.</span>scrollTop
+<span class="token keyword">const</span> lastVisiblePixel <span class="token operator">=</span> viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">+</span> viewport<span class="token punctuation">.</span>clientHeight
+<span class="token comment">// firstVisiblePixel is inclusive, lastVisiblePixel is exclusive</span></code></pre>
+</li>
+</ol>
+<p>Now that we have the basics, let's see how to handle large datasets.</p>
+<h2 id="technique-1-load-the-data-lazily">Technique 1: load the data lazily</h2>
+<p>The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news: you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, we <strong>only load the visible cells</strong>.</p>
+<blockquote>
+<p>Note that lazy loading the data does not change the HTML structure of the table.</p>
+</blockquote>
+<p>The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:</p>
+<scroll-lazy-load>
+  <scroll-common id="scroll-lazy-load" class="wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box, to see on the right how the cells are loaded lazily.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+<p><tr><td>first visible row (inclusive)</td>
+<td class="first-visible-row"></td>
+</tr>
+<tr>
+<td>last visible row (exclusive)</td>
+<td class="last-visible-row"></td>
+</tr>
+</p></tbody></table>
+</section>
+</div><p></p>
+</scroll-common>
+<script>
+  function initLazyLoad() {
+    const component = document.getElementById("scroll-lazy-load");
+    const content = component.querySelector(".content");
+    const tables = content.querySelectorAll("table");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const firstVisibleRowTd = component.querySelector(".first-visible-row");
+    const lastVisibleRowTd = component.querySelector(".last-visible-row");
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.ceil(
+        (scrollTop + viewport.clientHeight) / rowHeight,
+      );
+      for (const table of tables) {
+        const tableRows = table.querySelectorAll("tr");
+        tableRows.forEach((row, index) => {
+          if (index < firstVisibleRow || index >= lastVisibleRow) {
+            row.firstElementChild.textContent = "";
+          } else {
+            row.firstElementChild.textContent = `row ${index}`;
+          }
+        });
+      }
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
+      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initLazyLoad);
+</script>
+</scroll-lazy-load>
+<p>In the <span class="table">table</span>, only the visible cells are loaded. When scrolling, newly visible cells are requested and loaded in the background, and rendered when available.</p>
+<p>To do so, we compute the visible rows, and only load them:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> rowStart <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">floor</span><span class="token punctuation">(</span>firstVisiblePixel <span class="token operator">/</span> rowHeight<span class="token punctuation">)</span>
+<span class="token keyword">const</span> rowEnd <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">ceil</span><span class="token punctuation">(</span>lastVisiblePixel <span class="token operator">/</span> rowHeight<span class="token punctuation">)</span>
+<span class="token comment">// rowStart is inclusive, rowEnd is exclusive</span></code></pre>
+<p>In hightable, the data loading logic is handled in a <em>data frame</em>, passed to the React component as the <code>data</code> prop:</p>
+<pre class="language-jsx"><code class="language-jsx"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span><span class="token class-name">HighTable</span></span> <span class="token attr-name">data</span><span class="token script language-javascript"><span class="token script-punctuation punctuation">=</span><span class="token punctuation">{</span>data<span class="token punctuation">}</span></span> <span class="token punctuation">/></span></span></code></pre>
+<p>The data frame is an object that defines how to load (i.e. fetch and cache) the data on demand, and how to get the loaded data for rendering. See the <code>DataFrame</code> TypeScript definition in <a href="https://github.com/hyparam/hightable/blob/b171cd35a61253cb2b090f60c83c9aa660bf27fb/src/helpers/dataframe/types.ts#L50">types.ts</a>.</p>
+<p>Here is a simplified DataFrame implementation that generates random data for one column, applying some delay to simulate fetching data over the network, and persists the values in memory:</p>
+<pre class="language-javascript"><code class="language-javascript"><span class="token keyword">const</span> cache <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">Map</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> eventTarget <span class="token operator">=</span> <span class="token keyword">new</span> <span class="token class-name">EventTarget</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> numRows <span class="token operator">=</span> <span class="token number">1_000_000</span>
+
+<span class="token keyword">const</span> data <span class="token operator">=</span> <span class="token punctuation">{</span>
+  numRows<span class="token punctuation">,</span>
+  eventTarget<span class="token punctuation">,</span>
+
+  <span class="token comment">// Synchronously return the cached value (if any)</span>
+  <span class="token function">getCell</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> row <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token keyword">return</span> cache<span class="token punctuation">.</span><span class="token function">get</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+
+  <span class="token comment">// Load missing values for the given rows, and cache them</span>
+  <span class="token keyword">async</span> <span class="token function">fetch</span><span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> rowStart<span class="token punctuation">,</span> rowEnd <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+    <span class="token comment">// Simulate network delay</span>
+    <span class="token keyword">await</span> <span class="token keyword">new</span> <span class="token class-name">Promise</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token parameter">resolve</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token function">setTimeout</span><span class="token punctuation">(</span>resolve<span class="token punctuation">,</span> <span class="token number">100</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token keyword">for</span> <span class="token punctuation">(</span><span class="token keyword">let</span> row <span class="token operator">=</span> rowStart<span class="token punctuation">;</span> row <span class="token operator">&lt;</span> rowEnd<span class="token punctuation">;</span> row<span class="token operator">++</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token comment">// Skip already cached rows</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>cache<span class="token punctuation">.</span><span class="token function">has</span><span class="token punctuation">(</span>row<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token keyword">continue</span><span class="token punctuation">;</span>
+      <span class="token comment">// Generate a random value for the cell, and cache it</span>
+      cache<span class="token punctuation">.</span><span class="token function">set</span><span class="token punctuation">(</span>row<span class="token punctuation">,</span> <span class="token punctuation">{</span><span class="token literal-property property">value</span><span class="token operator">:</span> Math<span class="token punctuation">.</span><span class="token function">random</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+    <span class="token comment">// Emit an event to tell &lt;HighTable> to re-render the visible cells</span>
+    eventTarget<span class="token punctuation">.</span><span class="token function">dispatchEvent</span><span class="token punctuation">(</span><span class="token keyword">new</span> <span class="token class-name">Event</span><span class="token punctuation">(</span><span class="token string">'resolve'</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">,</span>
+<span class="token punctuation">}</span></code></pre>
+<p>The data frame loads the data from the source using the asynchronous <code>data.fetch()</code> method. It must cache the results, and dispatch a <code>resolve</code> event when new data is available. The source can be anything. In our example, the data was randomly generated. It can also be obtained from a <a href="https://developer.mozilla.org/en-US/docs/Web/API/File">local file</a>, an in-memory array, a remote file (using HTTP range requests), or a REST API, to name a few examples.</p>
+<p>The data frame must also provide a synchronous <code>data.getCell()</code> method to get the cached data for a given cell, or <code>undefined</code> if the data is not loaded yet.</p>
+<p>On every scroll move, the table is rendered, calling <code>data.getCell()</code> for the visible rows, as well as <code>data.fetch()</code> to load them in the background if necessary (it's the responsibility of the data frame to return fast if the data is already cached). Every time new data is fetched and reported (on  <code>resolve</code> events), the table will be re-rendered.</p>
+<blockquote>
+<p>You can find a more complete example of a data frame that loads a remote Parquet file (using HTTP range requests) in the <a href="https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23">hyparquet demo</a>.</p>
+</blockquote>
+<p>The data frame structure is not oriented towards rows or columns, and allows loading and accessing the data by cell. Currently, in hightable, we load full rows, but we could improve by computing the visible columns and loading them lazily as well. Join the pending <a href="https://github.com/hyparam/hightable/issues/297">discussion</a> if you're interested in this feature.</p>
+<p>Lazy loading the data is the first step to handle large datasets. The next step is to avoid rendering too many HTML elements at once.</p>
+<h2 id="technique-2-only-render-a-table-slice">Technique 2: only render a table slice</h2>
+<p>In software engineering, when you try to optimize, the first step is to remove computing that does nothing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million <code>&lt;tr&gt;</code> HTML elements? As a reference, Chrome <a href="https://developer.chrome.com/docs/performance/insights/dom-size">recommends</a> creating or updating less than 300 HTML elements for optimal responsiveness.</p>
+<p>In the <code>&lt;HighTable&gt;</code> component, <strong>only the visible slice of the table is rendered</strong>. The other row elements simply don't exist.</p>
+<p>To achieve this, the HTML structure must be adapted, by adding an intermediate div element, that we call the <span class="canvas">canvas</span>, between the <span class="viewport">viewport</span> and the <span class="table">table</span>:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>viewport<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">overflow-y</span><span class="token punctuation">:</span> auto<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>canvas<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">position</span><span class="token punctuation">:</span> relative<span class="token punctuation">;</span> <span class="token property">height</span><span class="token punctuation">:</span> 30000px<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>table</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span>table<span class="token punctuation">"</span></span> <span class="token special-attr"><span class="token attr-name">style</span><span class="token attr-value"><span class="token punctuation attr-equals">=</span><span class="token punctuation">"</span><span class="token value css language-css"><span class="token property">position</span><span class="token punctuation">:</span> absolute<span class="token punctuation">;</span> <span class="token property">top</span><span class="token punctuation">:</span> 3000px<span class="token punctuation">;</span></span><span class="token punctuation">"</span></span></span><span class="token punctuation">></span></span>
+      <span class="token comment">&lt;!-- the table only renders the visible rows --></span>
+      ...
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>table</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">></span></span></code></pre>
+<p>The HTML structure will remain the same for the rest of the blog post, including techniques 3, 4 and 5.</p>
+<blockquote>
+<p>The <span class="canvas">canvas</span> div is not related at all with the <code>&lt;canvas&gt;</code> HTML element. I'm open to suggestions for better naming if it's confusing.</p>
+</blockquote>
+<p>The <span class="canvas">canvas</span> is sized so that it could contain all the rows:</p>
+<pre class="language-typescript"><code class="language-typescript">canvas<span class="token punctuation">.</span>style<span class="token punctuation">.</span>height <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>data<span class="token punctuation">.</span>numRows <span class="token operator">*</span> rowHeight<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">px</span><span class="token template-punctuation string">`</span></span></code></pre>
+<p>It sets the <span class="viewport">viewport</span> scrollbar to the expected size. As shown in the scrolling basics section, <code><span class="viewport">viewport</span>.scrollHeight</code> is equal to <code><span class="canvas">canvas</span>.clientHeight</code>.</p>
+<p>The <span class="canvas">canvas</span> serves as a reference for absolutely positioning the <span class="table">table</span> slice.</p>
+<p>The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the <span class="full-table">full table</span> button to see how the rendered rows fit in the full table:</p>
+<scroll-slice class="wazmcani3">
+  <scroll-common id="scroll-slice" class="wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="canvas-legend">canvas</p>
+            <p class="table-legend">table</p>
+            <p class="full-table-legend">
+              full table<button type="button">Show</button>
+            </p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box, and see on the right how only a table slice
+              is rendered.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+            <div class="wrapper"></div>
+          </div>
+          <div class="canvas-wrapper">
+            <div class="canvas"></div>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">hidden pixels</span> above viewport</td>
+            <td class="hidden-pixels-above-viewport"></td>
+          </tr>
+        </tbody></table>
+      </section>
+    </div>
+</scroll-common>
+<script>
+  function initSlice() {
+    const component = document.getElementById("scroll-slice");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const toggleButton = component.querySelector(".full-table-legend button");
+    const explanationFullTable =
+      explanationBackground.querySelector(".full-table");
+    const canvas = component.querySelector(".explanation .canvas");
+    const wrapper = component.querySelector(".wrapper");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const canvasClientHeight = component.querySelector(".canvas-client-height");
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const tableStyleTop = component.querySelector(".table-style-top");
+    const hiddenPixelsAboveViewport = component.querySelector(
+      ".hidden-pixels-above-viewport",
+    );
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.min(
+        Math.ceil((scrollTop + viewport.clientHeight) / rowHeight),
+        parseInt(getComputedStyle(component).getPropertyValue("--num_rows")),
+      );
+
+      const table = document.createElement("table");
+      for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        cell.textContent = `row ${i}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = "";
+      wrapper.appendChild(table);
+      wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+
+      canvas.style.height = `${explanationFullTable.clientHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
+      canvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
+      tableStyleTop.textContent = `${wrapper.style.top}`;
+      hiddenPixelsAboveViewport.textContent = `${scrollTop - firstVisibleRow * rowHeight}px`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    toggleButton.onclick = function () {
+      const isHidden = toggleButton.textContent === "Show";
+      if (isHidden) {
+        explanationFullTable.style.visibility = "visible";
+        toggleButton.textContent = "Hide";
+      } else {
+        explanationFullTable.style.visibility = "hidden";
+        toggleButton.textContent = "Show";
+      }
+    };
+
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initSlice);
+</script>
+</scroll-slice>
+<p>On the right side, you see that only the visible rows are rendered. The <span class="table">table</span> slice contains 6 rows instead of 10 (or 7, depending on the scroll position).</p>
+<p>The HTML structure inside the <span class="table">table</span> slice is:</p>
+<pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>table</span><span class="token punctuation">></span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tbody</span><span class="token punctuation">></span></span>
+    <span class="token comment">&lt;!-- Rows 0 to 99 are not rendered --></span>
+
+    <span class="token comment">&lt;!-- Visible rows --></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tr</span><span class="token punctuation">></span></span>...row 100...<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tr</span><span class="token punctuation">></span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tr</span><span class="token punctuation">></span></span>...row 101...<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tr</span><span class="token punctuation">></span></span>
+    ...
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>tr</span><span class="token punctuation">></span></span>...row 119...<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tr</span><span class="token punctuation">></span></span>
+
+    <span class="token comment">&lt;!-- Rows 120 to 999 are not rendered --></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>tbody</span><span class="token punctuation">></span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>table</span><span class="token punctuation">></span></span></code></pre>
+<p>Let's assume the <span class="full-table">data</span> has 1,000 rows, each row in the table is 30px height, and the <span class="viewport">viewport</span> height is 600px (so that about 20 rows are visible at once). If the user has scrolled down 3,000px, <code>&lt;HighTable&gt;</code> only renders rows 100 to 119 in the actual <code>&lt;table&gt;</code> <span class="table">element</span>.</p>
+<blockquote>
+<p>The HTML above is a simplification. In <a href="https://github.com/hyparam/hightable/blob/b171cd35a61253cb2b090f60c83c9aa660bf27fb/src/components/HighTable/Slice.tsx#L177">hightable</a>, we render a table header and add some padding rows before and after the visible rows to improve the scrolling experience.</p>
+</blockquote>
+<p>The <span class="table">table</span> top position is adjusted to fit in the <span class="full-table">full table</span> (toggle the <span class="full-table">Show</span> / <span class="full-table">Hide</span> button to render the full table). It's equals to the position of the first visible row inside the virtual <span class="full-table">full table</span>. It's nearly equal to <code><span class="viewport">viewport</span>.scrollTop</code>, but differs by the amount of hidden pixels at the top of the first visible row. So:</p>
+<pre class="language-typescript"><code class="language-typescript">table<span class="token punctuation">.</span>style<span class="token punctuation">.</span>top <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>
+  viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">-</span> <span class="token punctuation">(</span>viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">%</span> rowHeight<span class="token punctuation">)</span>
+<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">px</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span></code></pre>
+<p>These computations are done on every scroll event (and on every other change: when the <span class="viewport">viewport</span> height changes, or when the number of rows is updated). Once computed, the <span class="table">table slice</span> is re-rendered with the new visible rows, the <span class="table">table</span> position is updated with the new <code>top</code> value, and the data frame is queried to load the new visible cells if needed.</p>
+<blockquote>
+<p>A detail worth mentioning is the sticky header. In <code>&lt;HighTable&gt;</code>, the header with column names is rendered as part of the <span class="table">table</span> element, in <code>&lt;thead&gt;</code>, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to the CSS property <code>position: sticky</code> (see <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky">sticky</a> on MDN), the header row remains visible at the top of the <span class="viewport">viewport</span> when scrolling. We take it into account to compute the first visible row.</p>
+</blockquote>
+<p>Note that the table slicing technique is not specific to vertical scrolling. The same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending <a href="https://github.com/hyparam/hightable/issues/297">discussion on virtual columns</a> if you're interested in this feature.</p>
+<p>Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.</p>
+<h2 id="technique-3-downscale-the-scrollbar-for-global-positioning">Technique 3: downscale the scrollbar for global positioning</h2>
+<p>Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post <a href="https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/">Infinite Pixels</a>, HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="canvas">canvas</span> height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.</p>
+<p>Our approach to this issue in hightable is to <strong>set a maximum height for the <span class="canvas">canvas</span> and downscale the scrollbar above this limit.</strong> In hightable, the threshold is set to 8 million pixels.</p>
+<p>Concretely, above the threshold, the downscaling factor is the ratio between the theoretical height of the <span class="full-table">full table</span> and the maximum height of the <span class="canvas">canvas</span>. It is used to compute the visible rows so that if you scroll half the scrollbar, you reach the middle of the <span class="full-table">full table</span>.</p>
+<p>Below the threshold, the downscaling factor is 1, so everything works as before.</p>
+<p>The downscale factor is computed as:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> fullTableHeight <span class="token operator">=</span> data<span class="token punctuation">.</span>numRows <span class="token operator">*</span> rowHeight
+<span class="token keyword">const</span> maxCanvasHeight <span class="token operator">=</span> <span class="token number">8_000_000</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>fullTableHeight <span class="token operator">&lt;=</span> maxCanvasHeight<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  downscaleFactor <span class="token operator">=</span> <span class="token number">1</span>
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  downscaleFactor <span class="token operator">=</span> 
+    <span class="token punctuation">(</span>fullTableHeight <span class="token operator">-</span> viewport<span class="token punctuation">.</span>clientHeight<span class="token punctuation">)</span> <span class="token operator">/</span>
+    <span class="token punctuation">(</span>maxCanvasHeight <span class="token operator">-</span> viewport<span class="token punctuation">.</span>clientHeight<span class="token punctuation">)</span>
+<span class="token punctuation">}</span></code></pre>
+<!-- TODO: Diagram/widget with the height vs the number of rows -->
+<p>Now, the first visible row is computed with:</p>
+<pre class="language-typescript"><code class="language-typescript">firstVisibleRow <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">floor</span><span class="token punctuation">(</span>
+  <span class="token punctuation">(</span>viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">*</span> downscaleFactor<span class="token punctuation">)</span> <span class="token operator">/</span> rowHeight
+<span class="token punctuation">)</span></code></pre>
+<p>and the <span class="table">table</span> top position is set to align the first visible row with the top of the <span class="viewport">viewport</span>:</p>
+<pre class="language-typescript"><code class="language-typescript">table<span class="token punctuation">.</span>style<span class="token punctuation">.</span>top <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>viewport<span class="token punctuation">.</span>scrollTop<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">px</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span></code></pre>
+<p>This lets the user navigate through the whole table, even with billions of rows.</p>
+<p>The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.</p>
+<scroll-downscale class="w54cnlo5z">
+  <scroll-common id="scroll-downscale" class="scroll-common wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="canvas-legend">canvas</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="canvas">
+              <div class="table-wrapper"></div>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box: billions of rows can be scrolled. But
+              scrolling by 1px skips intermediate rows.
+            </p>
+            <button type="button" class="scrolltop-0">scrollTop: 0px</button>
+            <button type="button" class="scrolltop-1">scrollTop: 1px</button>
+            <button type="button" class="scrolltop-2">scrollTop: 2px</button>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <div class="wrapper"></div>
+          </div>
+          <div class="canvas-wrapper">
+            <div class="canvas"></div>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+          <tr>
+            <td>downscale factor</td>
+            <td class="downscale-factor"></td>
+          </tr>
+          <tr>
+            <td><span class="table">unreachable rows</span> in 1px scroll</td>
+            <td class="unreachable-rows-in-1px-scroll"></td>
+          </tr>
+        </tbody></table>
+      </section>
+    </div>
+</scroll-common>
+<script>
+  function initSlice() {
+    const component = document.getElementById("scroll-downscale");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const demoTableWrapper = component.querySelector(
+      ".demo .canvas .table-wrapper",
+    );
+    const explanationCanvas = component.querySelector(".explanation .canvas");
+    const wrapper = component.querySelector(".wrapper");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const canvasClientHeight = component.querySelector(".canvas-client-height");
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const tableStyleTop = component.querySelector(".table-style-top");
+    const downscaleFactorElement = component.querySelector(".downscale-factor");
+    const unreachableRowsIn1pxScroll = component.querySelector(
+      ".unreachable-rows-in-1px-scroll",
+    );
+
+    const numRows = parseInt(
+      getComputedStyle(component).getPropertyValue("--num_rows"),
+    );
+    const rowHeight = parseInt(
+      getComputedStyle(component).getPropertyValue("--row-height"),
+    );
+    const canvasHeight = parseInt(
+      getComputedStyle(component).getPropertyValue("--canvas-height"),
+    );
+    const fullTableHeight = numRows * rowHeight;
+    const downscaleFactor =
+      fullTableHeight <= canvasHeight
+        ? 1
+        : (fullTableHeight - viewport.clientHeight) /
+          (canvasHeight - viewport.clientHeight);
+
+    function update() {
+      const maxScrollTop = canvasHeight - viewport.clientHeight;
+      const scrollTop = Math.min(Math.max(viewport.scrollTop, 0), maxScrollTop);
+
+      const maxRows = Math.ceil(viewport.clientHeight / rowHeight);
+      const firstVisibleRow = Math.floor(
+        (scrollTop * downscaleFactor) / rowHeight,
+      );
+      const lastVisibleRow = Math.min(
+        Math.ceil(
+          (scrollTop * downscaleFactor + viewport.clientHeight) / rowHeight,
+        ),
+        numRows,
+        firstVisibleRow + maxRows,
+      );
+
+      const table = document.createElement("table");
+      for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        const explanationCell = document.createElement("td");
+        cell.textContent = `row ${i.toLocaleString("en-US")}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = "";
+      wrapper.appendChild(table);
+      demoTableWrapper.innerHTML = "";
+      const demoTable = table.cloneNode(true);
+      demoTableWrapper.appendChild(demoTable);
+      const top =
+        scrollTop === maxScrollTop
+          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
+          : `${Math.round((firstVisibleRow * rowHeight) / downscaleFactor)}px`;
+      wrapper.style.top = top;
+      demoTableWrapper.style.top = top;
+
+      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
+      explanationCanvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${canvasHeight}px`;
+      tableStyleTop.textContent = `${top}`;
+      downscaleFactorElement.textContent =
+        Math.round(downscaleFactor).toLocaleString("en-US");
+      unreachableRowsIn1pxScroll.textContent = `${(Math.round(downscaleFactor / rowHeight) - maxRows).toLocaleString("en-US")} rows`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    component.querySelector(".scrolltop-0").onclick = () => {
+      viewport.scrollTop = 0;
+    };
+    component.querySelector(".scrolltop-1").onclick = () => {
+      viewport.scrollTop = 1;
+    };
+    component.querySelector(".scrolltop-2").onclick = () => {
+      viewport.scrollTop = 2;
+    };
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Pause") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Pause";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    update();
+  }
+  document.addEventListener("DOMContentLoaded", initSlice);
+</script>
+</scroll-downscale>
+<p>But there is a drawback. The scroll bar precision is limited to 1 <em>physical</em> pixel. On &quot;high-resolution&quot; screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio">devicePixelRatio</a>). But let's keep one pixel for simplicity.</p>
+<p>So, when the downscale factor is big, like in the example above (2,189,781,021), the minimal scroll move (1px) corresponds to 2,189,781,021 pixels in the full table. With a row height of 30px, it means that the minimal scroll move corresponds to about 72,992,701 rows. It creates <em>gaps</em> in the reachable rows:</p>
+<ul>
+<li>if <code><span class="viewport">viewport</span>.scrollTop = 0</code>, the visible rows are 0 to 5</li>
+<li>if <code><span class="viewport">viewport</span>.scrollTop = 1</code>, the visible rows are 72,992,700 to 72,992,705</li>
+<li>if <code><span class="viewport">viewport</span>.scrollTop = 2</code>, the visible rows are 145,985,401 to 145,985,406</li>
+<li>and so on...</li>
+</ul>
+<p>There is no way to navigate to the rows 6 to 10, for example. Setting <code><span class="viewport">viewport</span>.scrollTop = 0.00000000274</code> to reach rows 6 to 10 is impossible, because the browser rounds the scroll position to the nearest integer pixel.</p>
+<blockquote>
+<p>As an anecdote, setting the scroll value programmatically is hard to predict anyway. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, <code>element.scrollTo({top: 100})</code> might result in <code>scrollTop = 100</code>, <code>scrollTop = 100.23</code>, or <code>scrollTop = 99.89</code>. You cannot know exactly, but within a margin of one pixel.</p>
+<p>The scrollTop value can even be outside of the expected range, for example negative or larger than the maximum value <code>scrollHeight - clientHeight</code>. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, hightable always clamps the <code>scrollTop</code> value within the expected range, and applies the CSS rule <code>overflow-y: clip</code>. <code>clip</code>, instead of <code>hidden</code>, shows the sticky header, even if I'm not sure why to be honest.</p>
+</blockquote>
+<p>The technique 3 that consists in downscaling the scroll bar thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.</p>
+<h2 id="technique-4-add-a-local-scrolling-mode">Technique 4: add a local scrolling mode</h2>
+<p>The previous technique allows to scroll globally through the file, but prevents users from scrolling locally because any scroll gesture will jump over gaps of unreachable rows.</p>
+<p>To fix that, we implement <strong>two scrolling modes: local and global scrolling</strong>. Local scrolling means moving row by row, while global scrolling means jumping to the position given by the scrollbar.</p>
+<p>The logic requires a state with three values: <code>{ scrollTop, globalAnchor, localOffset }</code></p>
+<ul>
+<li>the last <span class="viewport">viewport</span> scroll top value is stored in the state to compute the scroll move on every scroll event.</li>
+<li>the global anchor is the <span class="viewport">viewport</span> scroll top value corresponding to the last global scroll. It is updated on every global scroll, but not on local scrolls.</li>
+<li>the local offset is the offset applied to the global anchor to compute the current scroll position. It is updated on every local scroll, and reset to 0 on global scrolls.</li>
+</ul>
+<p>The first visible row is computed from the global anchor and the local offset:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> firstVisibleRow <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">floor</span><span class="token punctuation">(</span><span class="token punctuation">(</span>
+    state<span class="token punctuation">.</span>globalAnchor <span class="token operator">*</span> downscaleFactor <span class="token operator">+</span> state<span class="token punctuation">.</span>localOffset
+  <span class="token punctuation">)</span> <span class="token operator">/</span> rowHeight<span class="token punctuation">)</span>
+</code></pre>
+<p>The absolute positioning of the <span class="table">table</span> is now:</p>
+<pre class="language-typescript"><code class="language-typescript">table<span class="token punctuation">.</span>style<span class="token punctuation">.</span>top <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">+</span> state<span class="token punctuation">.</span>localOffset<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">px</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span></code></pre>
+<p>On every scroll event, we compute the magnitude of the scroll move (difference between the new <span class="viewport">viewport</span>'s scroll top and the previous one, stored in the state) and decide to apply:</p>
+<ul>
+<li>a <b>global scroll</b> if the scroll move is big, typically on scrollbar drag and drop, and we jump to the new global position (technique 3),</li>
+<li>or a <b>local scroll</b> if the scroll move is small, for example when using the mouse wheel. In that case, we keep the state's <code>globalAnchor</code> value unchanged (ie: not sync'ed anymore with the real <code>scrollTop</code> value) and adjust the <code>localOffset</code> so that the move appears local (for example, 3 rows downwards).</li>
+</ul>
+<p>Represented as code, the logic looks like this (simplified, pseudo-code):</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> state <span class="token operator">=</span> <span class="token function">getState</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">const</span> delta <span class="token operator">=</span> viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">-</span> state<span class="token punctuation">.</span>scrollTop
+<span class="token keyword">if</span> <span class="token punctuation">(</span>Math<span class="token punctuation">.</span><span class="token function">abs</span><span class="token punctuation">(</span>delta<span class="token punctuation">)</span> <span class="token operator">></span> localThreshold<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// global scroll</span>
+  state<span class="token punctuation">.</span>localOffset <span class="token operator">=</span> <span class="token number">0</span>
+  state<span class="token punctuation">.</span>globalAnchor <span class="token operator">=</span> viewport<span class="token punctuation">.</span>scrollTop
+<span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+  <span class="token comment">// local scroll</span>
+  state<span class="token punctuation">.</span>localOffset <span class="token operator">+=</span> delta
+<span class="token punctuation">}</span>
+<span class="token function">setState</span><span class="token punctuation">(</span>state<span class="token punctuation">)</span></code></pre>
+<p>Now, the user can navigate around the current row, but also jump to any part of the data.</p>
+<p>The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.</p>
+<scroll-dual class="w54cnlo5z">
+  <scroll-common id="scroll-dual" class="scroll-common wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="canvas-legend">canvas</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div data-scroll-top="0" data-global-anchor="0" data-local-offset="0" class="viewport">
+            <div class="canvas">
+              <div class="table-wrapper"></div>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box: small step for local scroll, large step for
+              global scroll.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <div class="wrapper"></div>
+          </div>
+          <div class="canvas-wrapper">
+            <div class="canvas"></div>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>global anchor</td>
+            <td class="global-anchor"></td>
+          </tr>
+          <tr>
+            <td>local offset</td>
+            <td class="local-offset"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+        </tbody></table>
+      </section>
+    </div>
+</scroll-common>
+<script>
+  function initSlice() {
+    const component = document.getElementById("scroll-dual");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const demoTableWrapper = component.querySelector(
+      ".demo .canvas .table-wrapper",
+    );
+    const explanationCanvas = component.querySelector(".explanation .canvas");
+    const wrapper = component.querySelector(".wrapper");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const canvasClientHeight = component.querySelector(".canvas-client-height");
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const tableStyleTop = component.querySelector(".table-style-top");
+    const globalAnchorElement = component.querySelector(".global-anchor");
+    const localOffsetElement = component.querySelector(".local-offset");
+
+    const numRows = parseInt(
+      getComputedStyle(component).getPropertyValue("--num_rows"),
+    );
+    const rowHeight = parseInt(
+      getComputedStyle(component).getPropertyValue("--row-height"),
+    );
+    const canvasHeight = parseInt(
+      getComputedStyle(component).getPropertyValue("--canvas-height"),
+    );
+    const fullTableHeight = numRows * rowHeight;
+    const downscaleFactor =
+      fullTableHeight <= canvasHeight
+        ? 1
+        : (fullTableHeight - viewport.clientHeight) /
+          (canvasHeight - viewport.clientHeight);
+
+    function update() {
+      const state = {
+        globalAnchor: parseFloat(viewport.dataset.globalAnchor),
+        localOffset: parseFloat(viewport.dataset.localOffset),
+        scrollTop: parseFloat(viewport.dataset.scrollTop),
+      };
+
+      const maxScrollTop = canvasHeight - viewport.clientHeight;
+      const scrollTop = Math.min(Math.max(viewport.scrollTop, 0), maxScrollTop);
+
+      const delta = scrollTop - state.scrollTop;
+      if (
+        Math.abs(delta) > 30 ||
+        scrollTop === 0 ||
+        scrollTop === maxScrollTop
+      ) {
+        // global scroll
+        state.globalAnchor = scrollTop;
+        state.localOffset = 0;
+      } else {
+        state.localOffset += delta;
+      }
+
+      const virtualScrollTop =
+        state.globalAnchor * downscaleFactor + state.localOffset;
+      const maxRows = Math.ceil(viewport.clientHeight / rowHeight);
+      const firstVisibleRow = Math.max(
+        0,
+        Math.min(numRows - 1, Math.floor(virtualScrollTop / rowHeight)),
+      );
+      const lastVisibleRow = Math.max(
+        firstVisibleRow + 1,
+        Math.min(
+          numRows,
+          firstVisibleRow + maxRows,
+          Math.ceil((virtualScrollTop + viewport.clientHeight) / rowHeight),
+        ),
+      );
+
+      // save state
+      state.scrollTop = scrollTop;
+      viewport.dataset.globalAnchor = state.globalAnchor;
+      viewport.dataset.localOffset = state.localOffset;
+      viewport.dataset.scrollTop = state.scrollTop;
+
+      const table = document.createElement("table");
+      for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        const explanationCell = document.createElement("td");
+        cell.textContent = `row ${i.toLocaleString("en-US")}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = "";
+      wrapper.appendChild(table);
+      demoTableWrapper.innerHTML = "";
+      const demoTable = table.cloneNode(true);
+      demoTableWrapper.appendChild(demoTable);
+
+      const hiddenPixelsBefore = virtualScrollTop - firstVisibleRow * rowHeight;
+      const top =
+        scrollTop === maxScrollTop
+          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
+          : `${Math.round(scrollTop - hiddenPixelsBefore)}px`;
+      wrapper.style.top = top;
+      demoTableWrapper.style.top = top;
+
+      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
+      explanationCanvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${canvasHeight}px`;
+      tableStyleTop.textContent = `${top}`;
+      globalAnchorElement.textContent = `${state.globalAnchor}px`;
+      localOffsetElement.textContent = `${state.localOffset}px`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      function reset() {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
+      if (playButton.textContent === "Stop") {
+        reset();
+        return;
+      }
+      playButton.textContent = "Stop";
+
+      // animation:
+      // 1. scroll smoothly during 2 seconds to 100px
+      // 2. jump to scrollTop 400px
+      // 3. scroll smoothly during 2 seconds as a wave between 400px, 300px and 500px
+      // 4. jump to the last scrollTop
+      const keyframes = [
+        { scrollTop: 0, duration: 0 },
+        { scrollTop: 20, duration: 2000 },
+        { scrollTop: 100, duration: 0 },
+        { scrollTop: 90, duration: 1500 },
+        { scrollTop: 110, duration: 3000 },
+        { scrollTop: 50, duration: 0 },
+        { scrollTop: 50, duration: 1000 },
+        { scrollTop: 90, duration: 0 },
+        { scrollTop: 90, duration: 1000 },
+        { scrollTop: 120, duration: 0 },
+        { scrollTop: 120, duration: 1000 },
+        { scrollTop: 0, duration: 0 },
+      ];
+      const lastScrollTop = viewport.scrollTop;
+      let currentKeyframe = 0;
+
+      function animate() {
+        const { scrollTop, duration } = keyframes[currentKeyframe];
+        if (duration === 0) {
+          viewport.scrollTop = scrollTop;
+          currentKeyframe++;
+          if (currentKeyframe < keyframes.length) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            viewport.scrollTop = 0;
+            reset();
+          }
+        } else {
+          const startTime = performance.now();
+          const startScrollTop = viewport.scrollTop;
+
+          function step() {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            viewport.scrollTop =
+              startScrollTop + (scrollTop - startScrollTop) * progress;
+            if (progress < 1) {
+              animationFrameId = requestAnimationFrame(step);
+            } else {
+              currentKeyframe++;
+              if (currentKeyframe < keyframes.length) {
+                animationFrameId = requestAnimationFrame(animate);
+              } else {
+                viewport.scrollTop = 0;
+                reset();
+              }
+            }
+          }
+
+          animationFrameId = requestAnimationFrame(step);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    update();
+  }
+  document.addEventListener("DOMContentLoaded", initSlice);
+</script>
+</scroll-dual>
+<p>With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.</p>
+<blockquote>
+<p>In hightable, we also resynchronize the global anchor with the scrollbar after accumulating many local scrolls, typically after scrolling more than 500 rows locally.</p>
+</blockquote>
+<p>The last challenge is to let the user move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires scrolling programmatic, decoupling vertical and horizontal scrolling. We explain it in the next section.</p>
+<h2 id="technique-5-decouple-vertical-and-horizontal-scrolling">Technique 5: decouple vertical and horizontal scrolling</h2>
+<p>One of the hightable requirements is to allow keyboard navigation (e.g. <kbd>↓</kbd> to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guidance through the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/grid/">Grid Pattern</a> and the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/">Data Grid Examples</a>. We use <a href="https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex">tabindex roving</a> to handle the focus, providing all the expected <a href="https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation">keyboard interactions</a>.</p>
+<blockquote>
+<p>The browser provides a useful default when calling <code>cell.focus()</code>: it automatically scrolls to the cell and focus it. But in hightable, we don't use the default behavior. Indeed, it positions the cell at the <em>center</em> of the viewport, which does not feel natural.</p>
+<p>To get the expected behavior, we first scroll by the minimal amount to show the next row and column, by calling <code>cell.scrollIntoView({block: 'nearest', inline: 'nearest'})</code>. Then we set the focus with no scroll action using <code>cell.focus({preventScroll: true})</code>.</p>
+</blockquote>
+<p>Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (global scrolling) and 4 (local scrolling), multiple steps are required.. In particular, to let the user move the active cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.</p>
+<p>When the user moves the active cell, the final position can be anywhere in the table: <kbd>↓</kbd> moves to the next row, while <kbd>Ctrl</kbd>+<kbd>↓</kbd> moves to the last row. If the move is big, we might have to scroll vertically to have the required cell in the DOM.</p>
+<p>The process is as follows:</p>
+<ol>
+<li>compute the next state (global anchor and local offset) that will make the row of the required cell visible,</li>
+<li>programmatically scroll to the new scrollTop position, if the global anchor has changed,</li>
+<li>once scrolled, render the table slice to have the required cell in the DOM,</li>
+<li>scroll horizontally if needed with <code>cell.scrollIntoView({inline: 'nearest'})</code>,</li>
+<li>set the focus to the new cell with <code>cell.focus({preventScroll: true})</code>.</li>
+</ol>
+<p>Note that, for point 1. (computing the next state), we respect the <code>block: nearest</code> behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.</p>
+<p>The pseudo-code for decoupling vertical and horizontal scrolling requires a flag to prevent horizontal scrolling and focus during the programmatic vertical scroll:</p>
+<pre class="language-typescript"><code class="language-typescript"><span class="token comment">/* in the cell navigation code */</span>
+<span class="token keyword">const</span> shouldScroll <span class="token operator">=</span> state<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token function">renderTableSlice</span><span class="token punctuation">(</span><span class="token punctuation">)</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span>shouldScroll<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// set a flag to prevent horizontal scrolling + focus</span>
+  <span class="token comment">// during programmatic scroll</span>
+  <span class="token function">setFlag</span><span class="token punctuation">(</span><span class="token string">'programmaticScroll'</span><span class="token punctuation">)</span>
+  viewport<span class="token punctuation">.</span><span class="token function">scrollTo</span><span class="token punctuation">(</span><span class="token punctuation">{</span>top<span class="token operator">:</span> state<span class="token punctuation">.</span>globalAnchor<span class="token punctuation">,</span> behavior<span class="token operator">:</span> <span class="token string">'instant'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span></code></pre>
+<pre class="language-typescript"><code class="language-typescript"><span class="token comment">/* in the scroll event handler */</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token function">isFlagSet</span><span class="token punctuation">(</span><span class="token string">'programmaticScroll'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// allow horizontal scrolling + focus,</span>
+  <span class="token comment">// once the programmatic scroll is done</span>
+  <span class="token function">clearFlag</span><span class="token punctuation">(</span><span class="token string">'programmaticScroll'</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span></code></pre>
+<pre class="language-typescript"><code class="language-typescript"><span class="token comment">/* in the cell rendering code */</span>
+<span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token function">isFlagSet</span><span class="token punctuation">(</span><span class="token string">'programmaticScroll'</span><span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token comment">// horizontal scrolling + focus allowed</span>
+  cell<span class="token punctuation">.</span><span class="token function">scrollIntoView</span><span class="token punctuation">(</span><span class="token punctuation">{</span>inline<span class="token operator">:</span> <span class="token string">'nearest'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+  cell<span class="token punctuation">.</span><span class="token function">focus</span><span class="token punctuation">(</span><span class="token punctuation">{</span>preventScroll<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
+<span class="token punctuation">}</span></code></pre>
+<blockquote>
+<p>We set <code>behavior: 'instant'</code> when scrolling programmatically to ensure we only receive one <code>scroll</code> event. The alternative, <code>behavior: 'smooth'</code>, would trigger multiple <code>scroll</code> events, clearing the flag too early, and generating conflicts with the internal state due to intermediate unexpected <code>scrollTop</code> positions (see the <a href="https://github.com/hyparam/hightable/issues/393">open issue</a>).</p>
+</blockquote>
+<h2 id="conclusion">Conclusion</h2>
+<p>No need for a <a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">fake scroll bar</a>. No need to render the table <a href="https://github.com/xwinstone/canvastable">as a <code>&lt;canvas&gt;</code></a>. Thanks to these five techniques that rely on native HTML elements, <a href="https://github.com/hyparam/hightable">hightable</a> lets you navigate through billions of rows of a remote data file, in the browser.</p>
+<p>Give a star ⭐ to the <a href="https://github.com/hyparam/hightable">GitHub repo</a> if you liked the article!</p>
+</div>
+  </main>
+</body>
+

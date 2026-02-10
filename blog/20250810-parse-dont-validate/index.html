@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/prism.css">
+  
   <title>Parse, don't validate</title>
   <link href="https://huggingface.co/severo" rel="me">
   <link href="https://observablehq.com/@severo" rel="me">
@@ -19,7 +20,7 @@
 <body>
   <main>
     <header>
-      <h1>Parse, don't validate</h1>
+      <h1 id="parse-dont-validate">Parse, don't validate</h1>
       <p class="date">Published on: 2025-08-10</p>
       <p class="author">By <a href="/">Sylvain Lesage</a></p>
     </header>
@@ -39,7 +40,7 @@
 </blockquote>
 <p>The second point is a direct consequence of the first.</p>
 <p>His example uses Haskell and treats the problem of an array that should not be empty. Instead of passing a regular array along all the code, he creates a &quot;non empty array&quot; type, and parses his array as soon as possible, returning a &quot;non empty array&quot;, or failing. It's known as <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html">&quot;type narrowing&quot;</a> (or type guarding) in TypeScript.</p>
-<h2>Translated in TypeScript</h2>
+<h2 id="translated-in-typescript">Translated in TypeScript</h2>
 <p>Let's reproduce the example in TypeScript. We want to parse a regular array and ensure it's not empty.</p>
 <p>We define type as:</p>
 <pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">NonEmptyArray<span class="token operator">&lt;</span><span class="token constant">T</span><span class="token operator">></span></span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token constant">T</span><span class="token punctuation">,</span> <span class="token operator">...</span><span class="token constant">T</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>

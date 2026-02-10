@@ -2,14 +2,28 @@
   /* From https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#some_common_font_families */
   --serif-font: Times, Times New Roman, Georgia, serif;
   --sans-font: Verdana, Arial, Helvetica, sans-serif;
-  --mono-font: Lucida Console, Courier, monospace;
+  --mono-font: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+
+  --color-1: hsl(0, 0%, 12.2%);
+  --color-2: hsl(40.7, 52.9%, 66.7%);
+  --color-3: hsl(207.2, 61%, 58.8%);
+  --color-4: hsl(0, 0%, 80%);
+  --color-5: hsl(334.7, 60.7%, 67.1%);
+  --color-6: hsl(111.3, 67.9%, 52.4%);
+  --dark-color: var(--color-1);
+  --light-color: var(--color-4);
+  --table-color: var(--color-2);
+  --viewport-color: var(--color-3);
+  --full-table-color: var(--color-4);
+  --canvas-color: var(--color-5);
 }
 
 html,
 body {
   margin: 0;
-  font-size: 1rem;
   font-family: var(--sans-font);
+  font-size: 1rem;
+  line-height: 1.75;
 }
 
 table {
@@ -99,8 +113,81 @@ header {
   }
 }
 
+blockquote {
+  border-left: solid 4px #ddd;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1rem;
+  color: #666;
+}
+
+kbd {
+  background-color: #eeeeee;
+  border-radius: 3px;
+  border: 1px solid #b4b4b4;
+  box-shadow:
+    0 1px 1px rgb(0 0 0 / 0.2),
+    0 2px 0 0 rgb(255 255 255 / 0.7) inset;
+  color: #333333;
+  display: inline-block;
+  font-size: 0.85em;
+  font-weight: bold;
+  line-height: 1;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
 @media print {
   a {
     text-decoration: none;
+  }
+}
+
+/* for blog post about virtual scrolling */
+span {
+  &.viewport {
+    border-bottom: 2px solid var(--viewport-color);
+  }
+  &.table {
+    border-bottom: 2px solid var(--table-color);
+  }
+  &.full-table {
+    border-bottom: 2px solid var(--full-table-color);
+  }
+  &.canvas {
+    border-bottom: 2px solid var(--canvas-color);
+  }
+}
+
+/* don't affect code blocks inside pre (```) */
+:not(pre) > code {
+  font-family: var(--mono-font);
+  background: var(--dark-color);
+  color: var(--light-color);
+  /* font-weight: bold; */
+  border-radius: 0.3em;
+  padding: 3px 5px 4px;
+  white-space: nowrap;
+
+  /* for blog post about virtual scrolling */
+  &.viewport,
+  .viewport {
+    border: revert;
+    color: var(--viewport-color);
+  }
+  &.table,
+  .table {
+    border: revert;
+    color: var(--table-color);
+  }
+  &.full-table,
+  .full-table {
+    border: revert;
+    color: var(--full-table-color);
+  }
+  &.canvas,
+  .canvas {
+    border: revert;
+    color: var(--canvas-color);
   }
 }

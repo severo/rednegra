@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/prism.css">
+  
   <title>Parquet with GEOMETRY type is not GeoParquet</title>
   <link href="https://huggingface.co/severo" rel="me">
   <link href="https://observablehq.com/@severo" rel="me">
@@ -19,7 +20,7 @@
 <body>
   <main>
     <header>
-      <h1>Parquet with GEOMETRY type is not GeoParquet</h1>
+      <h1 id="parquet-with-geometry-type-is-not-geoparquet">Parquet with GEOMETRY type is not GeoParquet</h1>
       <p class="date">Published on: 2025-09-25</p>
       <p class="author">By <a href="/">Sylvain Lesage</a></p>
     </header>
@@ -27,7 +28,7 @@
 <p><a href="https://geoparquet.org/">GeoParquet</a> is an extension of Parquet that defines how to store geospatial data.</p>
 <p>In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with its new <code>GEOMETRY</code> and <code>GEOGRAPHY</code>.</p>
 <p><em>edit (2025-10-03): I updated parts of this post, after Chris Holmes pointed out that I had misunderstood the chronology. GeoParquet's last version was actually 9 months before the new types, and the goal for GeoParquet is to &quot;go native&quot;.</em></p>
-<h2>TL;DR</h2>
+<h2 id="tl-dr">TL;DR</h2>
 <p>My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as <code>WKB</code>.</p>
 <p>The differences between the two standards are summarized in the table below.</p>
 <table>
@@ -116,36 +117,36 @@
 </tr>
 </tbody>
 </table>
-<h2>What is the GEOMETRY type?</h2>
+<h2 id="what-is-the-geometry-type">What is the GEOMETRY type?</h2>
 <p>The support for the GEOMETRY type in Parquet only brings <a href="https://github.com/apache/parquet-format/pull/240/files#diff-834c5a8d91719350b20995ad99d1cb6d8d68332b9ac35694f40e375bdb2d3e7c">two changes to the standard</a>.</p>
-<h3>Logical type</h3>
+<h3 id="logical-type">Logical type</h3>
 <p>Logical types in Parquet are a way to add semantic meaning to primitive types. They are defined in the Parquet &quot;schema&quot;, the part of the metadata that lists the columns and their characteristics. <code>GEOMETRY</code> is a new logical type for the primitive type <code>BYTE_ARRAY</code>, and has an optional parameter to define the CRS (Coordinate Reference System) of the column.</p>
 <p>The data in the GEOMETRY columns must be encoded in <a href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry#Well-known_binary">WKB</a> (Well-Known Binary), a binary format to represent geometric objects defined by the <a href="https://www.ogc.org/">OGC</a> (Open Geospatial Consortium). Note that the axis order is explicitly <code>(x,y)</code> and cannot be overridden by the CRS.</p>
-<h3>Statistics</h3>
+<h3 id="statistics">Statistics</h3>
 <p>Apart from the logical type in the schema, the new version also includes optional geospatial statistics in the column metadata at the row group level. The aim is to speed up geospatial queries by filtering out row groups that do not intersect with the query's bounding box.</p>
 <p>The geospatial statistics can include two optional fields.</p>
 <p>The first optional statistic is a bounding box that gives the minimum and maximum coordinates of all the geometries in the column chunk. Note that it includes x, y, but also z and m if present.</p>
 <p>The second optional statistics is the list of geospatial types present in the column chunk (e.g., <code>Point</code>, <code>Polygon</code>, <code>MultiLineString</code>, etc.) There is no way to define a specific geometry type for the column, unlike GeoParquet. It's done at the row group level.</p>
-<h2>What is the GEOGRAPHY type?</h2>
+<h2 id="what-is-the-geography-type">What is the GEOGRAPHY type?</h2>
 <p><code>GEOGRAPHY</code> can be seen as an extension of <code>GEOMETRY</code> for the sphere. The only difference in the standard is an additional optional parameter for the logical type, which gives the algorithm used for edge interpolation on the sphere.</p>
-<h2>When were GEOMETRY and GEOGRAPHY added to Parquet?</h2>
+<h2 id="when-were-geometry-and-geography-added-to-parquet">When were GEOMETRY and GEOGRAPHY added to Parquet?</h2>
 <p>Since May of 2024, the maintainers of both projects have discussed how to support geospatial data natively in Parquet. You can do archeology in <a href="https://github.com/apache/parquet-format/pull/240">PARQUET-2471</a>. Nice discussion, more than 400 comments, 40 revisions, 15 participants (nearly all men, btw).</p>
 <p>It culminated with the addition of the <code>GEOMETRY</code> and <code>GEOGRAPHY</code> logical types in the Parquet format, formally released in March of 2025 with version <a href="https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0">2.11.0</a> of the Parquet format.</p>
-<h2>Are GeoParquet and Parquet with GEOMETRY the same thing?</h2>
+<h2 id="are-geoparquet-and-parquet-with-geometry-the-same-thing">Are GeoParquet and Parquet with GEOMETRY the same thing?</h2>
 <p>No. Parquet with <code>GEOMETRY</code> and <code>GEOGRAPHY</code> is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.</p>
 <p><em>edit (2025-10-03): but the plan for GeoParquet 2.0 is to be Parquet with GEOMETRY/GEOGRAPHY. See these two blog posts by Chris Holmes: <a href="https://cloudnativegeo.org/blog/2025/02/geoparquet-2.0-going-native/">&quot;Geoparquet 2.0: Going Native&quot;</a>, <a href="https://cholmes.medium.com/geoparquet-parquet-geospatial-types-a-time-of-transition-a42e391cdab2">&quot;GeoParquet &amp; Parquet geospatial types: A time of transition&quot;</a>.</em></p>
-<h2>Is GeoParquet deprecated?</h2>
+<h2 id="is-geoparquet-deprecated">Is GeoParquet deprecated?</h2>
 <p>No. It's still an active standard<strike>, and a <a href="https://geoparquet.org/releases/v1.1.0/">version</a> was published three months after the introduction of <code>GEOMETRY</code> and <code>GEOGRAPHY</code> in Parquet</strike>.</p>
 <p><em>edit (2025-10-03): I misread the year! Version v1.1.0 was actually published 9 months before, and the plan for Geoparquet is to &quot;go native&quot;. Sorry about that, and thanks for Chris Holmes for noticing!</em></p>
-<h2>Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?</h2>
+<h2 id="does-geoparquet-use-the-geometry-and-geography-logical-types-in-parquet">Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?</h2>
 <p>No. The <a href="https://geoparquet.org/releases/v1.1.0/">GeoParquet 1.1.0 standard</a>, published <strike>three months after</strike> nine months before the introduction of <code>GEOMETRY</code> and <code>GEOGRAPHY</code> in Parquet, does not yet mention these logical types or the new geospatial statistics.</p>
 <p><em>edit (2025-10-03): see above!</em></p>
-<h2>What are the differences between GeoParquet and Parquet with GEOMETRY?</h2>
+<h2 id="what-are-the-differences-between-geoparquet-and-parquet-with-geometry">What are the differences between GeoParquet and Parquet with GEOMETRY?</h2>
 <p><strike>The two standards seem to have diverged, even if the GeoParquet maintainers participated in the creation of the <code>GEOMETRY</code> logical type in Parquet.</strike></p>
 <p><em>edit (2025-10-03): see above! The two standards have not diverged, I misunderstood, and the plan for GeoParquet is to &quot;go native&quot;.</em></p>
-<h3>No overlap</h3>
+<h3 id="no-overlap">No overlap</h3>
 <p>GeoParquet does not mention the new logical types and geospatial statistics. All GeoParquet features are included in a <code>geo</code> field in the file metadata, which is not part of the Parquet standard.</p>
-<h3>GeoParquet features</h3>
+<h3 id="geoparquet-features">GeoParquet features</h3>
 <p>GeoParquet has many features that are not in Parquet with <code>GEOMETRY</code>.</p>
 <p>A GeoParquet file must include a <code>geo</code> field, encoded as JSON, in the file metadata. This object contains the GeoParquet version and the name of the primary geospatial column. Parquet has no concept of such a &quot;primary&quot; geospatial column.</p>
 <p>The same <code>geo</code> metadata must also include a list of column metadata for each geospatial column in the file.</p>
@@ -157,17 +158,17 @@
 <p>It can include a bounding box for the entire column, which is very handy to get an immediate idea of the data extent. I created a small tool, called <a href="https://observablehq.com/@severo/hello-foursquare-places">&quot;Hello Foursquare places&quot;</a>, that uses that information to quickly find which of the 100 GeoParquet files published by Foursquare contains a specific area.</p>
 <p>You can also see a specialized field, called <code>epoch</code>, which gives the year of the CRS when it's a dynamic one. It surely helps in some edge cases.</p>
 <p>Finally, a recent addition to the column metadata is <code>covering</code>, which maps a geospatial column to a bounding box column, which can help to speed up queries. If I read correctly, it's limited to the x and y dimensions. I'm not yet sure what the tradeoffs are between using <code>covering</code> in GeoParquet and using geospatial statistics in Parquet with <code>GEOMETRY</code>.</p>
-<h2>Are they compatible?</h2>
+<h2 id="are-they-compatible">Are they compatible?</h2>
 <p>Yes! It's the good news. As the two standards are orthogonal, you can combine them, with only one caveat: the columns must be encoded as <code>WKB</code>.</p>
 <p>Otherwise, the files can be written with both the <code>geo</code> metadata (GeoParquet), and the <code>GEOMETRY</code>/<code>GEOGRAPHY</code> logical types + geospatial statistics (Parquet).</p>
-<h2>How to read them?</h2>
+<h2 id="how-to-read-them">How to read them?</h2>
 <p>As the two standards are orthogonal, their features can be read and interpreted independently of each other. The only caveat is that the columns must be encoded as <code>WKB</code> to be compatible with both standards, and I imagine that Parquet takes precedence over GeoParquet. So, if a GeoParquet file defines an Arrow native encoding, while the column is marked as a <code>GEOMETRY</code> logical type in the schema, a reader should raise an error.</p>
-<h2>What is the support in libraries?</h2>
+<h2 id="what-is-the-support-in-libraries">What is the support in libraries?</h2>
 <p>I have no clear idea of how the libraries write Parquet files that include geospatial data, and how they support reading both formats. If you want to investigate, you can consult the <a href="https://geoparquet.org/#implementations">list of GeoParquet implementations</a> and the <a href="https://parquet.apache.org/docs/file-format/implementationstatus/">Parquet implementations compliance table</a> (which unfortunately does not include <code>GEOMETRY</code>, <code>GEOGRAPHY </code>, and the geospatial statistics).</p>
-<h3>and in hyparquet?</h3>
+<h3 id="and-in-hyparquet">and in hyparquet?</h3>
 <p><a href="https://github.com/hyparam/hyparquet">hyparquet</a> does not yet support reading <code>GEOMETRY</code> and <code>GEOGRAPHY</code>, or the geospatial statistics. It has two companion projects: <a href="https://github.com/hyparam/geoparquet">geoparquet</a>, which reads GeoParquet, and <a href="https://github.com/hyparam/hyparquet-writer">hyparquet-writer</a>, which writes Parquet in JavaScript. The <a href="https://github.com/hyparam/hyparquet/issues/124">plan</a> is to improve the support for geospatial data in hyparquet. Time to start coding!</p>
 <p><em>edit (2025-10-03): hyparquet now supports reading <code>GEOMETRY</code> and <code>GEOGRAPHY</code>.</em></p>
-<h2>Conclusion</h2>
+<h2 id="conclusion">Conclusion</h2>
 <p>Parquet with <code>GEOMETRY</code> and <code>GEOGRAPHY</code> is not GeoParquet. The two standards are orthogonal and compatible, and can be combined, with the caveat that the columns must be encoded as <code>WKB</code>. GeoParquet has more features, while Parquet with <code>GEOMETRY</code> and <code>GEOGRAPHY</code> brings native support for geospatial data in the Parquet format. The new geospatial additions in Parquet seem too recent to have had widespread adoption.</p>
 <p>Do you have comments? Did I misunderstand something? Do you know if Parquet and GeoParquet will merge at some point? Please reach out on <a href="https://mastodon.social/@severo/">Mastodon</a> or <a href="https://www.linkedin.com/in/sylvain--lesage/">LinkedIn</a>.</p>
 </div>

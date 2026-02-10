@@ -4,12 +4,1468 @@
   <subtitle>Web development and data visualization.</subtitle>
   <link href="https://rednegra.net/feed.xml" rel="self" />
   <link href="https://rednegra.net/blog/" />
-  <updated>2025-09-25T00:00:00Z</updated>
+  <updated>2026-02-02T00:00:00Z</updated>
   <id>https://rednegra.net/blog/</id>
   <author>
     <name>Sylvain Lesage</name>
     <email>severo@rednegra.net</email>
   </author>
+  <entry>
+    <title>Virtual Scrolling for Billions of Rows — Techniques from HighTable</title>
+    <link href="https://rednegra.net/blog/20260114-virtual-scroll/" />
+    <updated>2026-02-02T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20260114-virtual-scroll/</id>
+    <content type="html">&lt;p&gt;TL;DR: In this post, I present &lt;strong&gt;five techniques related to vertical scrolling&lt;/strong&gt; used in &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt;, a React component that can display billions of rows in a table while keeping good performance and accessibility.&lt;/p&gt;
+&lt;p&gt;&lt;a title=&quot;Christies.com, Public domain, via Wikimedia Commons&quot; href=&quot;https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg&quot;&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20260114-virtual-scroll/aW48cjwKPd-1440.webp 1440w&quot;&gt;&lt;img alt=&quot;A Qur&amp;#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &amp;#039;Abdullah, eastern Anatolia, dated 1353-54&quot; src=&quot;https://rednegra.net/blog/20260114-virtual-scroll/aW48cjwKPd-1440.jpeg&quot; width=&quot;1440&quot; height=&quot;923&quot;&gt;&lt;/picture&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;It&#39;s a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.&lt;/p&gt;
+&lt;p&gt;Table of contents:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#introduction&quot;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#demo&quot;&gt;Demo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#scrolling-basics&quot;&gt;Scrolling basics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-1-load-the-data-lazily&quot;&gt;Technique 1: load the data lazily&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-2-only-render-a-table-slice&quot;&gt;Technique 2: only render a table slice&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-3-downscale-the-scrollbar-for-global-positioning&quot;&gt;Technique 3: downscale the scrollbar for global positioning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-4-add-a-local-scrolling-mode&quot;&gt;Technique 4: add a local scrolling mode&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-5-decouple-vertical-and-horizontal-scrolling&quot;&gt;Technique 5: decouple vertical and horizontal scrolling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;Showing data in a table is one of the first exercises you&#39;ll find in HTML 101 courses.&lt;/p&gt;
+&lt;pre class=&quot;language-html&quot;&gt;&lt;code class=&quot;language-html&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;table&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;thead&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;th&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;Name&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;th&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;th&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;Age&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;th&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;thead&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tbody&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;Alice&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;64&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;Bob&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;37&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;td&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tbody&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;table&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;But, as often in data science, what works for simple cases breaks when the size increases.&lt;/p&gt;
+&lt;p&gt;In this post, I&#39;ll showcase five techniques we use to &lt;strong&gt;solve challenges related to vertical scrolling&lt;/strong&gt; in the &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt; React component to handle billions of rows.&lt;/p&gt;
+&lt;p&gt;The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you&#39;re interested in knowing more.&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt; component is developed at &lt;a href=&quot;https://github.com/hyparam/hightable/&quot;&gt;hyparam/hightable&lt;/a&gt;. It was created by &lt;a href=&quot;https://github.com/platypii&quot;&gt;Kenny Daniel&lt;/a&gt; for &lt;a href=&quot;https://hyperparam.app/&quot;&gt;Hyperparam&lt;/a&gt;, and I&#39;ve had the chance to contribute to its development for one year now.&lt;/p&gt;
+&lt;h2 id=&quot;demo&quot;&gt;Demo&lt;/h2&gt;
+&lt;p&gt;Try the &lt;a href=&quot;https://hyparam.github.io/demos/hightable/#/large&quot;&gt;hightable demo&lt;/a&gt;:&lt;/p&gt;
+&lt;iframe src=&quot;https://hyparam.github.io/demos/hightable/#/large&quot; title=&quot;HighTable demo with a large dataset&quot; width=&quot;100%&quot; height=&quot;400px&quot;&gt;&lt;/iframe&gt;
+&lt;p&gt;HighTable is also used in the &lt;a href=&quot;https://hyparam.github.io/demos/hyparquet/&quot;&gt;Parquet viewer&lt;/a&gt;, on &lt;a href=&quot;https://source.coop/jrc-lucas/jrc-lucas-ml/ml_data/classes_dataset.csv&quot;&gt;source.coop&lt;/a&gt; and in &lt;a href=&quot;https://hyperparam.app&quot;&gt;Hyperparam&lt;/a&gt;:&lt;/p&gt;
+&lt;p&gt;&lt;a title=&quot;Try HighTable in Hyperparam, the workbench for LLM datasets&quot; href=&quot;https://hyperparam.app&quot;&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.webp 1911w&quot;&gt;&lt;img alt=&quot;HighTable embedded in hyperparam.app&quot; src=&quot;https://rednegra.net/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.jpeg&quot; width=&quot;1911&quot; height=&quot;1048&quot;&gt;&lt;/picture&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&quot;scrolling-basics&quot;&gt;Scrolling basics&lt;/h2&gt;
+&lt;p&gt;Before diving into the techniques, let&#39;s describe how scrolling works using a standard HTML table.&lt;/p&gt;
+&lt;p&gt;The HTML structure is composed of a scrollable container, that we call the &lt;span class=&quot;viewport&quot;&gt;&lt;em&gt;viewport&lt;/em&gt;&lt;/span&gt;, and a &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; element inside it:&lt;/p&gt;
+&lt;pre class=&quot;language-html&quot;&gt;&lt;code class=&quot;language-html&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;div&lt;/span&gt; &lt;span class=&quot;token attr-name&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token special-attr&quot;&gt;&lt;span class=&quot;token attr-name&quot;&gt;style&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;token value css language-css&quot;&gt;&lt;span class=&quot;token property&quot;&gt;overflow-y&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;:&lt;/span&gt; auto&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;table&lt;/span&gt; &lt;span class=&quot;token attr-name&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;table&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    ...
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;table&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;div&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In this structure, the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; is a div with a fixed height and the CSS property &lt;code&gt;overflow-y: auto&lt;/code&gt; enables a vertical scrollbar when the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; is taller than the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;If you use a keyboard, you can focus the left box with &lt;kbd&gt;Tab&lt;/kbd&gt;, and scroll with the arrow keys &lt;kbd&gt;⏶&lt;/kbd&gt; and &lt;kbd&gt;⏷&lt;/kbd&gt;. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;scroll-native&gt;
+  &lt;scroll-common id=&quot;scroll-native&quot; class=&quot;wir2b_bez&quot;&gt;
+    &lt;div class=&quot;main&quot;&gt;
+      &lt;section class=&quot;content&quot;&gt;
+        &lt;div class=&quot;demo&quot;&gt;
+          &lt;div class=&quot;legend&quot;&gt;
+            &lt;p class=&quot;viewport-legend&quot;&gt;viewport&lt;/p&gt;
+            &lt;p class=&quot;table-legend&quot;&gt;table&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;
+            &lt;div class=&quot;background-element&quot;&gt;
+              &lt;scroll-full-table&gt;
+  &lt;!-- ^ without this, an extra &lt;p&gt; element is appended below the table if the file has a blank last line --&gt;
+  &lt;table class=&quot;full-table&quot;&gt;
+    &lt;tbody&gt;&lt;tr&gt;
+      &lt;td&gt;row 0&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 6&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;&lt;/table&gt;
+&lt;/scroll-full-table&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;text-description&quot;&gt;
+            &lt;p&gt;
+              Scroll the left box to see how the right box mimics the scrolling
+              effect.
+            &lt;/p&gt;
+            &lt;button type=&quot;button&quot; class=&quot;play&quot;&gt;Play&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;explanation&quot;&gt;
+          &lt;div class=&quot;background-element&quot;&gt;
+            &lt;scroll-full-table&gt;
+  &lt;!-- ^ without this, an extra &lt;p&gt; element is appended below the table if the file has a blank last line --&gt;
+  &lt;table class=&quot;full-table&quot;&gt;
+    &lt;tbody&gt;&lt;tr&gt;
+      &lt;td&gt;row 0&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 6&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;&lt;/table&gt;
+&lt;/scroll-full-table&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;section class=&quot;variables&quot;&gt;
+        &lt;table&gt;
+          &lt;tbody&gt;&lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;table-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;first visible pixel (inclusive)&lt;/td&gt;
+            &lt;td class=&quot;first-visible-pixel&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;last visible pixel (exclusive)&lt;/td&gt;
+            &lt;td class=&quot;last-visible-pixel&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;&lt;/table&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+&lt;/scroll-common&gt;
+&lt;script&gt;
+  function initNative() {
+    const component = document.getElementById(&quot;scroll-native&quot;);
+    const viewport = component.querySelector(&quot;.demo .viewport&quot;);
+    const explanationBackground = component.querySelector(
+      &quot;.explanation .background-element&quot;,
+    );
+    const viewportScrollTop = component.querySelector(
+      &quot;.variables .viewport-scroll-top&quot;,
+    );
+    const viewportClientHeight = component.querySelector(
+      &quot;.variables .viewport-client-height&quot;,
+    );
+    const viewportScrollHeight = component.querySelector(
+      &quot;.variables .viewport-scroll-height&quot;,
+    );
+    const tableClientHeight = component.querySelector(
+      &quot;.variables .table-client-height&quot;,
+    );
+    const firstVisiblePixel = component.querySelector(
+      &quot;.variables .first-visible-pixel&quot;,
+    );
+    const lastVisiblePixel = component.querySelector(
+      &quot;.variables .last-visible-pixel&quot;,
+    );
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisiblePixel.textContent = `${scrollTop}px`;
+      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
+    }
+
+    viewport.onscroll = update;
+    update();
+
+    const playButton = component.querySelector(&quot;.play&quot;);
+    let animationFrameId = null;
+    playButton.onclick = () =&gt; {
+      if (playButton.textContent === &quot;Stop&quot;) {
+        playButton.textContent = &quot;Play&quot;;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = &quot;Stop&quot;;
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress &lt; 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener(&quot;DOMContentLoaded&quot;, initNative);
+&lt;/script&gt;
+&lt;/scroll-native&gt;
+&lt;p&gt;The component is delimited by its fixed-size &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; (blue border). The &lt;span class=&quot;table&quot;&gt;&lt;em&gt;table&lt;/em&gt;&lt;/span&gt; (golden border) is rendered inside the container. As its &lt;span class=&quot;table&quot;&gt;height&lt;/span&gt; is larger than the &lt;span class=&quot;viewport&quot;&gt;viewport height&lt;/span&gt;, only part of the table is visible, and a vertical scrollbar lets changing the visible part. &lt;strong&gt;The inner &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; element moves up and down within the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;&lt;/strong&gt;, creating the scrolling effect.&lt;/p&gt;
+&lt;p&gt;On the right side, we mimic the scrolling effect, showing the position of the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; relative to the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;Let&#39;s settle some definitions and formulas that will be useful later:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;in this post, we assume &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/code&gt;, the height of the visible area, is constant. In hightable, we measure it and react to resizing.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/code&gt;, the total height of the scrollable content, is equal to &lt;code&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.clientHeight&lt;/code&gt;. Both are equal to the number of rows in the table multiplied by the row height:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; rowHeight &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;33&lt;/span&gt; &lt;span class=&quot;token comment&quot;&gt;// in pixels&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; numRows &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; data&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;numRows &lt;span class=&quot;token comment&quot;&gt;// total number of rows in the table&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; height &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; numRows &lt;span class=&quot;token operator&quot;&gt;*&lt;/span&gt; rowHeight&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In this post, we assume the row height and the number of rows are constant. In hightable, we react to changes in &lt;code&gt;data.numRows&lt;/code&gt; (the number of rows in the &lt;em&gt;data frame&lt;/em&gt;, the data structure holding the table data), for example when filtering; but we assume the row height is fixed (see &lt;a href=&quot;https://github.com/hyparam/hightable/issues/395&quot;&gt;issue #395&lt;/a&gt; to support variable row heights).&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/code&gt; is the number of pixels between the top of the scrolled &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; and the top of the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;. The minimum value &lt;code&gt;0px&lt;/code&gt; shows the top of the table, while the bottom of the table is reached at the maximum value &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight - &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/code&gt;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;The visible pixels can be computed from the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; scroll top position:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; firstVisiblePixel &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; lastVisiblePixel &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop &lt;span class=&quot;token operator&quot;&gt;+&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;clientHeight
+&lt;span class=&quot;token comment&quot;&gt;// firstVisiblePixel is inclusive, lastVisiblePixel is exclusive&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Now that we have the basics, let&#39;s see how to handle large datasets.&lt;/p&gt;
+&lt;h2 id=&quot;technique-1-load-the-data-lazily&quot;&gt;Technique 1: load the data lazily&lt;/h2&gt;
+&lt;p&gt;The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news: you&#39;ll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, we &lt;strong&gt;only load the visible cells&lt;/strong&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Note that lazy loading the data does not change the HTML structure of the table.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:&lt;/p&gt;
+&lt;scroll-lazy-load&gt;
+  &lt;scroll-common id=&quot;scroll-lazy-load&quot; class=&quot;wir2b_bez&quot;&gt;
+    &lt;div class=&quot;main&quot;&gt;
+      &lt;section class=&quot;content&quot;&gt;
+        &lt;div class=&quot;demo&quot;&gt;
+          &lt;div class=&quot;legend&quot;&gt;
+            &lt;p class=&quot;viewport-legend&quot;&gt;viewport&lt;/p&gt;
+            &lt;p class=&quot;table-legend&quot;&gt;table&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;
+            &lt;div class=&quot;background-element&quot;&gt;
+              &lt;scroll-full-table&gt;
+  &lt;!-- ^ without this, an extra &lt;p&gt; element is appended below the table if the file has a blank last line --&gt;
+  &lt;table class=&quot;full-table&quot;&gt;
+    &lt;tbody&gt;&lt;tr&gt;
+      &lt;td&gt;row 0&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 6&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;&lt;/table&gt;
+&lt;/scroll-full-table&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;text-description&quot;&gt;
+            &lt;p&gt;
+              Scroll the left box, to see on the right how the cells are loaded lazily.
+            &lt;/p&gt;
+            &lt;button type=&quot;button&quot; class=&quot;play&quot;&gt;Play&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;explanation&quot;&gt;
+          &lt;div class=&quot;background-element&quot;&gt;
+            &lt;scroll-full-table&gt;
+  &lt;!-- ^ without this, an extra &lt;p&gt; element is appended below the table if the file has a blank last line --&gt;
+  &lt;table class=&quot;full-table&quot;&gt;
+    &lt;tbody&gt;&lt;tr&gt;
+      &lt;td&gt;row 0&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 6&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;&lt;/table&gt;
+&lt;/scroll-full-table&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;section class=&quot;variables&quot;&gt;
+        &lt;table&gt;
+          &lt;tbody&gt;&lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;table-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+&lt;p&gt;&lt;tr&gt;&lt;td&gt;first visible row (inclusive)&lt;/td&gt;
+&lt;td class=&quot;first-visible-row&quot;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;last visible row (exclusive)&lt;/td&gt;
+&lt;td class=&quot;last-visible-row&quot;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/p&gt;&lt;/tbody&gt;&lt;/table&gt;
+&lt;/section&gt;
+&lt;/div&gt;&lt;p&gt;&lt;/p&gt;
+&lt;/scroll-common&gt;
+&lt;script&gt;
+  function initLazyLoad() {
+    const component = document.getElementById(&quot;scroll-lazy-load&quot;);
+    const content = component.querySelector(&quot;.content&quot;);
+    const tables = content.querySelectorAll(&quot;table&quot;);
+    const viewport = component.querySelector(&quot;.demo .viewport&quot;);
+    const explanationBackground = component.querySelector(
+      &quot;.explanation .background-element&quot;,
+    );
+    const viewportScrollTop = component.querySelector(&quot;.viewport-scroll-top&quot;);
+    const viewportClientHeight = component.querySelector(
+      &quot;.viewport-client-height&quot;,
+    );
+    const viewportScrollHeight = component.querySelector(
+      &quot;.viewport-scroll-height&quot;,
+    );
+    const tableClientHeight = component.querySelector(&quot;.table-client-height&quot;);
+    const firstVisibleRowTd = component.querySelector(&quot;.first-visible-row&quot;);
+    const lastVisibleRowTd = component.querySelector(&quot;.last-visible-row&quot;);
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue(&quot;--row-height&quot;),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.ceil(
+        (scrollTop + viewport.clientHeight) / rowHeight,
+      );
+      for (const table of tables) {
+        const tableRows = table.querySelectorAll(&quot;tr&quot;);
+        tableRows.forEach((row, index) =&gt; {
+          if (index &lt; firstVisibleRow || index &gt;= lastVisibleRow) {
+            row.firstElementChild.textContent = &quot;&quot;;
+          } else {
+            row.firstElementChild.textContent = `row ${index}`;
+          }
+        });
+      }
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
+      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+    update();
+
+    const playButton = component.querySelector(&quot;.play&quot;);
+    let animationFrameId = null;
+    playButton.onclick = () =&gt; {
+      if (playButton.textContent === &quot;Stop&quot;) {
+        playButton.textContent = &quot;Play&quot;;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = &quot;Stop&quot;;
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress &lt; 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener(&quot;DOMContentLoaded&quot;, initLazyLoad);
+&lt;/script&gt;
+&lt;/scroll-lazy-load&gt;
+&lt;p&gt;In the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;, only the visible cells are loaded. When scrolling, newly visible cells are requested and loaded in the background, and rendered when available.&lt;/p&gt;
+&lt;p&gt;To do so, we compute the visible rows, and only load them:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; rowStart &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; Math&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;floor&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;firstVisiblePixel &lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt; rowHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; rowEnd &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; Math&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;ceil&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;lastVisiblePixel &lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt; rowHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token comment&quot;&gt;// rowStart is inclusive, rowEnd is exclusive&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In hightable, the data loading logic is handled in a &lt;em&gt;data frame&lt;/em&gt;, passed to the React component as the &lt;code&gt;data&lt;/code&gt; prop:&lt;/p&gt;
+&lt;pre class=&quot;language-jsx&quot;&gt;&lt;code class=&quot;language-jsx&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token class-name&quot;&gt;HighTable&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token attr-name&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;token script language-javascript&quot;&gt;&lt;span class=&quot;token script-punctuation punctuation&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;data&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;/&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The data frame is an object that defines how to load (i.e. fetch and cache) the data on demand, and how to get the loaded data for rendering. See the &lt;code&gt;DataFrame&lt;/code&gt; TypeScript definition in &lt;a href=&quot;https://github.com/hyparam/hightable/blob/b171cd35a61253cb2b090f60c83c9aa660bf27fb/src/helpers/dataframe/types.ts#L50&quot;&gt;types.ts&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here is a simplified DataFrame implementation that generates random data for one column, applying some delay to simulate fetching data over the network, and persists the values in memory:&lt;/p&gt;
+&lt;pre class=&quot;language-javascript&quot;&gt;&lt;code class=&quot;language-javascript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; cache &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Map&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; eventTarget &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;EventTarget&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; numRows &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;1_000_000&lt;/span&gt;
+
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; data &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  numRows&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+  eventTarget&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+
+  &lt;span class=&quot;token comment&quot;&gt;// Synchronously return the cached value (if any)&lt;/span&gt;
+  &lt;span class=&quot;token function&quot;&gt;getCell&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token parameter&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt; row &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;return&lt;/span&gt; cache&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;get&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;row&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+
+  &lt;span class=&quot;token comment&quot;&gt;// Load missing values for the given rows, and cache them&lt;/span&gt;
+  &lt;span class=&quot;token keyword&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;token function&quot;&gt;fetch&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token parameter&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt; rowStart&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; rowEnd &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;token comment&quot;&gt;// Simulate network delay&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Promise&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token parameter&quot;&gt;resolve&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&gt;&lt;/span&gt; &lt;span class=&quot;token function&quot;&gt;setTimeout&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;resolve&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;100&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;token keyword&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token keyword&quot;&gt;let&lt;/span&gt; row &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; rowStart&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt; row &lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt; rowEnd&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt; row&lt;span class=&quot;token operator&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;token comment&quot;&gt;// Skip already cached rows&lt;/span&gt;
+      &lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;cache&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;has&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;row&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;continue&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+      &lt;span class=&quot;token comment&quot;&gt;// Generate a random value for the cell, and cache it&lt;/span&gt;
+      cache&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;set&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;row&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;token literal-property property&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; Math&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;random&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;token comment&quot;&gt;// Emit an event to tell &amp;lt;HighTable&gt; to re-render the visible cells&lt;/span&gt;
+    eventTarget&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;dispatchEvent&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token keyword&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;Event&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&#39;resolve&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The data frame loads the data from the source using the asynchronous &lt;code&gt;data.fetch()&lt;/code&gt; method. It must cache the results, and dispatch a &lt;code&gt;resolve&lt;/code&gt; event when new data is available. The source can be anything. In our example, the data was randomly generated. It can also be obtained from a &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/File&quot;&gt;local file&lt;/a&gt;, an in-memory array, a remote file (using HTTP range requests), or a REST API, to name a few examples.&lt;/p&gt;
+&lt;p&gt;The data frame must also provide a synchronous &lt;code&gt;data.getCell()&lt;/code&gt; method to get the cached data for a given cell, or &lt;code&gt;undefined&lt;/code&gt; if the data is not loaded yet.&lt;/p&gt;
+&lt;p&gt;On every scroll move, the table is rendered, calling &lt;code&gt;data.getCell()&lt;/code&gt; for the visible rows, as well as &lt;code&gt;data.fetch()&lt;/code&gt; to load them in the background if necessary (it&#39;s the responsibility of the data frame to return fast if the data is already cached). Every time new data is fetched and reported (on  &lt;code&gt;resolve&lt;/code&gt; events), the table will be re-rendered.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;You can find a more complete example of a data frame that loads a remote Parquet file (using HTTP range requests) in the &lt;a href=&quot;https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23&quot;&gt;hyparquet demo&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The data frame structure is not oriented towards rows or columns, and allows loading and accessing the data by cell. Currently, in hightable, we load full rows, but we could improve by computing the visible columns and loading them lazily as well. Join the pending &lt;a href=&quot;https://github.com/hyparam/hightable/issues/297&quot;&gt;discussion&lt;/a&gt; if you&#39;re interested in this feature.&lt;/p&gt;
+&lt;p&gt;Lazy loading the data is the first step to handle large datasets. The next step is to avoid rendering too many HTML elements at once.&lt;/p&gt;
+&lt;h2 id=&quot;technique-2-only-render-a-table-slice&quot;&gt;Technique 2: only render a table slice&lt;/h2&gt;
+&lt;p&gt;In software engineering, when you try to optimize, the first step is to remove computing that does nothing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million &lt;code&gt;&amp;lt;tr&amp;gt;&lt;/code&gt; HTML elements? As a reference, Chrome &lt;a href=&quot;https://developer.chrome.com/docs/performance/insights/dom-size&quot;&gt;recommends&lt;/a&gt; creating or updating less than 300 HTML elements for optimal responsiveness.&lt;/p&gt;
+&lt;p&gt;In the &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt; component, &lt;strong&gt;only the visible slice of the table is rendered&lt;/strong&gt;. The other row elements simply don&#39;t exist.&lt;/p&gt;
+&lt;p&gt;To achieve this, the HTML structure must be adapted, by adding an intermediate div element, that we call the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;, between the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; and the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;:&lt;/p&gt;
+&lt;pre class=&quot;language-html&quot;&gt;&lt;code class=&quot;language-html&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;div&lt;/span&gt; &lt;span class=&quot;token attr-name&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token special-attr&quot;&gt;&lt;span class=&quot;token attr-name&quot;&gt;style&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;token value css language-css&quot;&gt;&lt;span class=&quot;token property&quot;&gt;overflow-y&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;:&lt;/span&gt; auto&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;div&lt;/span&gt; &lt;span class=&quot;token attr-name&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;canvas&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token special-attr&quot;&gt;&lt;span class=&quot;token attr-name&quot;&gt;style&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;token value css language-css&quot;&gt;&lt;span class=&quot;token property&quot;&gt;position&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;:&lt;/span&gt; relative&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;token property&quot;&gt;height&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;:&lt;/span&gt; 30000px&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;table&lt;/span&gt; &lt;span class=&quot;token attr-name&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;table&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token special-attr&quot;&gt;&lt;span class=&quot;token attr-name&quot;&gt;style&lt;/span&gt;&lt;span class=&quot;token attr-value&quot;&gt;&lt;span class=&quot;token punctuation attr-equals&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;token value css language-css&quot;&gt;&lt;span class=&quot;token property&quot;&gt;position&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;:&lt;/span&gt; absolute&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;token property&quot;&gt;top&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;:&lt;/span&gt; 3000px&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+      &lt;span class=&quot;token comment&quot;&gt;&amp;lt;!-- the table only renders the visible rows --&gt;&lt;/span&gt;
+      ...
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;table&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;div&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;div&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The HTML structure will remain the same for the rest of the blog post, including techniques 3, 4 and 5.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; div is not related at all with the &lt;code&gt;&amp;lt;canvas&amp;gt;&lt;/code&gt; HTML element. I&#39;m open to suggestions for better naming if it&#39;s confusing.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; is sized so that it could contain all the rows:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;canvas&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;style&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;height &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token interpolation&quot;&gt;&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;${&lt;/span&gt;data&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;numRows &lt;span class=&quot;token operator&quot;&gt;*&lt;/span&gt; rowHeight&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;px&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It sets the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; scrollbar to the expected size. As shown in the scrolling basics section, &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/code&gt; is equal to &lt;code&gt;&lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;.clientHeight&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; serves as a reference for absolutely positioning the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; slice.&lt;/p&gt;
+&lt;p&gt;The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt; button to see how the rendered rows fit in the full table:&lt;/p&gt;
+&lt;scroll-slice class=&quot;wazmcani3&quot;&gt;
+  &lt;scroll-common id=&quot;scroll-slice&quot; class=&quot;wir2b_bez&quot;&gt;
+    &lt;div class=&quot;main&quot;&gt;
+      &lt;section class=&quot;content&quot;&gt;
+        &lt;div class=&quot;demo&quot;&gt;
+          &lt;div class=&quot;legend&quot;&gt;
+            &lt;p class=&quot;viewport-legend&quot;&gt;viewport&lt;/p&gt;
+            &lt;p class=&quot;canvas-legend&quot;&gt;canvas&lt;/p&gt;
+            &lt;p class=&quot;table-legend&quot;&gt;table&lt;/p&gt;
+            &lt;p class=&quot;full-table-legend&quot;&gt;
+              full table&lt;button type=&quot;button&quot;&gt;Show&lt;/button&gt;
+            &lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;
+            &lt;div class=&quot;background-element&quot;&gt;
+              &lt;scroll-full-table&gt;
+  &lt;!-- ^ without this, an extra &lt;p&gt; element is appended below the table if the file has a blank last line --&gt;
+  &lt;table class=&quot;full-table&quot;&gt;
+    &lt;tbody&gt;&lt;tr&gt;
+      &lt;td&gt;row 0&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 6&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;&lt;/table&gt;
+&lt;/scroll-full-table&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;text-description&quot;&gt;
+            &lt;p&gt;
+              Scroll the left box, and see on the right how only a table slice
+              is rendered.
+            &lt;/p&gt;
+            &lt;button type=&quot;button&quot; class=&quot;play&quot;&gt;Play&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;explanation&quot;&gt;
+          &lt;div class=&quot;background-element&quot;&gt;
+            &lt;scroll-full-table&gt;
+  &lt;!-- ^ without this, an extra &lt;p&gt; element is appended below the table if the file has a blank last line --&gt;
+  &lt;table class=&quot;full-table&quot;&gt;
+    &lt;tbody&gt;&lt;tr&gt;
+      &lt;td&gt;row 0&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 1&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 2&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 3&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 4&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 5&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 6&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 7&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 8&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;row 9&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;&lt;/table&gt;
+&lt;/scroll-full-table&gt;
+            &lt;div class=&quot;wrapper&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;canvas-wrapper&quot;&gt;
+            &lt;div class=&quot;canvas&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;section class=&quot;variables&quot;&gt;
+        &lt;table&gt;
+          &lt;tbody&gt;&lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;canvas-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;table-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.style.top&lt;/td&gt;
+            &lt;td class=&quot;table-style-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;hidden pixels&lt;/span&gt; above viewport&lt;/td&gt;
+            &lt;td class=&quot;hidden-pixels-above-viewport&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;&lt;/table&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+&lt;/scroll-common&gt;
+&lt;script&gt;
+  function initSlice() {
+    const component = document.getElementById(&quot;scroll-slice&quot;);
+    const viewport = component.querySelector(&quot;.demo .viewport&quot;);
+    const explanationBackground = component.querySelector(
+      &quot;.explanation .background-element&quot;,
+    );
+    const toggleButton = component.querySelector(&quot;.full-table-legend button&quot;);
+    const explanationFullTable =
+      explanationBackground.querySelector(&quot;.full-table&quot;);
+    const canvas = component.querySelector(&quot;.explanation .canvas&quot;);
+    const wrapper = component.querySelector(&quot;.wrapper&quot;);
+    const viewportClientHeight = component.querySelector(
+      &quot;.viewport-client-height&quot;,
+    );
+    const viewportScrollHeight = component.querySelector(
+      &quot;.viewport-scroll-height&quot;,
+    );
+    const tableClientHeight = component.querySelector(&quot;.table-client-height&quot;);
+    const canvasClientHeight = component.querySelector(&quot;.canvas-client-height&quot;);
+    const viewportScrollTop = component.querySelector(&quot;.viewport-scroll-top&quot;);
+    const tableStyleTop = component.querySelector(&quot;.table-style-top&quot;);
+    const hiddenPixelsAboveViewport = component.querySelector(
+      &quot;.hidden-pixels-above-viewport&quot;,
+    );
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue(&quot;--row-height&quot;),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.min(
+        Math.ceil((scrollTop + viewport.clientHeight) / rowHeight),
+        parseInt(getComputedStyle(component).getPropertyValue(&quot;--num_rows&quot;)),
+      );
+
+      const table = document.createElement(&quot;table&quot;);
+      for (let i = firstVisibleRow; i &lt; lastVisibleRow; i++) {
+        const row = document.createElement(&quot;tr&quot;);
+        const cell = document.createElement(&quot;td&quot;);
+        cell.textContent = `row ${i}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = &quot;&quot;;
+      wrapper.appendChild(table);
+      wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+
+      canvas.style.height = `${explanationFullTable.clientHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue(&quot;--wide-border-width&quot;))}px`;
+      canvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
+      tableStyleTop.textContent = `${wrapper.style.top}`;
+      hiddenPixelsAboveViewport.textContent = `${scrollTop - firstVisibleRow * rowHeight}px`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    toggleButton.onclick = function () {
+      const isHidden = toggleButton.textContent === &quot;Show&quot;;
+      if (isHidden) {
+        explanationFullTable.style.visibility = &quot;visible&quot;;
+        toggleButton.textContent = &quot;Hide&quot;;
+      } else {
+        explanationFullTable.style.visibility = &quot;hidden&quot;;
+        toggleButton.textContent = &quot;Show&quot;;
+      }
+    };
+
+    update();
+
+    const playButton = component.querySelector(&quot;.play&quot;);
+    let animationFrameId = null;
+    playButton.onclick = () =&gt; {
+      if (playButton.textContent === &quot;Stop&quot;) {
+        playButton.textContent = &quot;Play&quot;;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = &quot;Stop&quot;;
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress &lt; 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener(&quot;DOMContentLoaded&quot;, initSlice);
+&lt;/script&gt;
+&lt;/scroll-slice&gt;
+&lt;p&gt;On the right side, you see that only the visible rows are rendered. The &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; slice contains 6 rows instead of 10 (or 7, depending on the scroll position).&lt;/p&gt;
+&lt;p&gt;The HTML structure inside the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; slice is:&lt;/p&gt;
+&lt;pre class=&quot;language-html&quot;&gt;&lt;code class=&quot;language-html&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;table&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tbody&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&quot;token comment&quot;&gt;&amp;lt;!-- Rows 0 to 99 are not rendered --&gt;&lt;/span&gt;
+
+    &lt;span class=&quot;token comment&quot;&gt;&amp;lt;!-- Visible rows --&gt;&lt;/span&gt;
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;...row 100...&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;...row 101...&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+    ...
+    &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;...row 119...&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tr&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+
+    &lt;span class=&quot;token comment&quot;&gt;&amp;lt;!-- Rows 120 to 999 are not rendered --&gt;&lt;/span&gt;
+  &lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;tbody&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;
+&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token tag&quot;&gt;&lt;span class=&quot;token punctuation&quot;&gt;&amp;lt;/&lt;/span&gt;table&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let&#39;s assume the &lt;span class=&quot;full-table&quot;&gt;data&lt;/span&gt; has 1,000 rows, each row in the table is 30px height, and the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; height is 600px (so that about 20 rows are visible at once). If the user has scrolled down 3,000px, &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt; only renders rows 100 to 119 in the actual &lt;code&gt;&amp;lt;table&amp;gt;&lt;/code&gt; &lt;span class=&quot;table&quot;&gt;element&lt;/span&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The HTML above is a simplification. In &lt;a href=&quot;https://github.com/hyparam/hightable/blob/b171cd35a61253cb2b090f60c83c9aa660bf27fb/src/components/HighTable/Slice.tsx#L177&quot;&gt;hightable&lt;/a&gt;, we render a table header and add some padding rows before and after the visible rows to improve the scrolling experience.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; top position is adjusted to fit in the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt; (toggle the &lt;span class=&quot;full-table&quot;&gt;Show&lt;/span&gt; / &lt;span class=&quot;full-table&quot;&gt;Hide&lt;/span&gt; button to render the full table). It&#39;s equals to the position of the first visible row inside the virtual &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt;. It&#39;s nearly equal to &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/code&gt;, but differs by the amount of hidden pixels at the top of the first visible row. So:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;table&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;style&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;top &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token interpolation&quot;&gt;&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;${&lt;/span&gt;
+  viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop &lt;span class=&quot;token operator&quot;&gt;-&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop &lt;span class=&quot;token operator&quot;&gt;%&lt;/span&gt; rowHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;px&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;These computations are done on every scroll event (and on every other change: when the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; height changes, or when the number of rows is updated). Once computed, the &lt;span class=&quot;table&quot;&gt;table slice&lt;/span&gt; is re-rendered with the new visible rows, the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; position is updated with the new &lt;code&gt;top&lt;/code&gt; value, and the data frame is queried to load the new visible cells if needed.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A detail worth mentioning is the sticky header. In &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt;, the header with column names is rendered as part of the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; element, in &lt;code&gt;&amp;lt;thead&amp;gt;&lt;/code&gt;, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to the CSS property &lt;code&gt;position: sticky&lt;/code&gt; (see &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky&quot;&gt;sticky&lt;/a&gt; on MDN), the header row remains visible at the top of the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; when scrolling. We take it into account to compute the first visible row.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Note that the table slicing technique is not specific to vertical scrolling. The same approach can be used for horizontal scrolling (rendering only the visible columns). It&#39;s less critical, as tables generally have less columns than rows. Join the pending &lt;a href=&quot;https://github.com/hyparam/hightable/issues/297&quot;&gt;discussion on virtual columns&lt;/a&gt; if you&#39;re interested in this feature.&lt;/p&gt;
+&lt;p&gt;Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.&lt;/p&gt;
+&lt;h2 id=&quot;technique-3-downscale-the-scrollbar-for-global-positioning&quot;&gt;Technique 3: downscale the scrollbar for global positioning&lt;/h2&gt;
+&lt;p&gt;Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post &lt;a href=&quot;https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/&quot;&gt;Infinite Pixels&lt;/a&gt;, HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.&lt;/p&gt;
+&lt;p&gt;Our approach to this issue in hightable is to &lt;strong&gt;set a maximum height for the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; and downscale the scrollbar above this limit.&lt;/strong&gt; In hightable, the threshold is set to 8 million pixels.&lt;/p&gt;
+&lt;p&gt;Concretely, above the threshold, the downscaling factor is the ratio between the theoretical height of the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt; and the maximum height of the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;. It is used to compute the visible rows so that if you scroll half the scrollbar, you reach the middle of the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt;.&lt;/p&gt;
+&lt;p&gt;Below the threshold, the downscaling factor is 1, so everything works as before.&lt;/p&gt;
+&lt;p&gt;The downscale factor is computed as:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; fullTableHeight &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; data&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;numRows &lt;span class=&quot;token operator&quot;&gt;*&lt;/span&gt; rowHeight
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; maxCanvasHeight &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;8_000_000&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;fullTableHeight &lt;span class=&quot;token operator&quot;&gt;&amp;lt;=&lt;/span&gt; maxCanvasHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  downscaleFactor &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  downscaleFactor &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; 
+    &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;fullTableHeight &lt;span class=&quot;token operator&quot;&gt;-&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;clientHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt;
+    &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;maxCanvasHeight &lt;span class=&quot;token operator&quot;&gt;-&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;clientHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;!-- TODO: Diagram/widget with the height vs the number of rows --&gt;
+&lt;p&gt;Now, the first visible row is computed with:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;firstVisibleRow &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; Math&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;floor&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;
+  &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop &lt;span class=&quot;token operator&quot;&gt;*&lt;/span&gt; downscaleFactor&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt; rowHeight
+&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;and the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; top position is set to align the first visible row with the top of the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;table&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;style&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;top &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token interpolation&quot;&gt;&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;${&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;px&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This lets the user navigate through the whole table, even with billions of rows.&lt;/p&gt;
+&lt;p&gt;The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.&lt;/p&gt;
+&lt;scroll-downscale class=&quot;w54cnlo5z&quot;&gt;
+  &lt;scroll-common id=&quot;scroll-downscale&quot; class=&quot;scroll-common wir2b_bez&quot;&gt;
+    &lt;div class=&quot;main&quot;&gt;
+      &lt;section class=&quot;content&quot;&gt;
+        &lt;div class=&quot;demo&quot;&gt;
+          &lt;div class=&quot;legend&quot;&gt;
+            &lt;p class=&quot;viewport-legend&quot;&gt;viewport&lt;/p&gt;
+            &lt;p class=&quot;canvas-legend&quot;&gt;canvas&lt;/p&gt;
+            &lt;p class=&quot;table-legend&quot;&gt;table&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;
+            &lt;div class=&quot;canvas&quot;&gt;
+              &lt;div class=&quot;table-wrapper&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;text-description&quot;&gt;
+            &lt;p&gt;
+              Scroll the left box: billions of rows can be scrolled. But
+              scrolling by 1px skips intermediate rows.
+            &lt;/p&gt;
+            &lt;button type=&quot;button&quot; class=&quot;scrolltop-0&quot;&gt;scrollTop: 0px&lt;/button&gt;
+            &lt;button type=&quot;button&quot; class=&quot;scrolltop-1&quot;&gt;scrollTop: 1px&lt;/button&gt;
+            &lt;button type=&quot;button&quot; class=&quot;scrolltop-2&quot;&gt;scrollTop: 2px&lt;/button&gt;
+            &lt;button type=&quot;button&quot; class=&quot;play&quot;&gt;Play&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;explanation&quot;&gt;
+          &lt;div class=&quot;background-element&quot;&gt;
+            &lt;div class=&quot;wrapper&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;canvas-wrapper&quot;&gt;
+            &lt;div class=&quot;canvas&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;section class=&quot;variables&quot;&gt;
+        &lt;table&gt;
+          &lt;tbody&gt;&lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;canvas-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;table-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.style.top&lt;/td&gt;
+            &lt;td class=&quot;table-style-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;downscale factor&lt;/td&gt;
+            &lt;td class=&quot;downscale-factor&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;unreachable rows&lt;/span&gt; in 1px scroll&lt;/td&gt;
+            &lt;td class=&quot;unreachable-rows-in-1px-scroll&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;&lt;/table&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+&lt;/scroll-common&gt;
+&lt;script&gt;
+  function initSlice() {
+    const component = document.getElementById(&quot;scroll-downscale&quot;);
+    const viewport = component.querySelector(&quot;.demo .viewport&quot;);
+    const explanationBackground = component.querySelector(
+      &quot;.explanation .background-element&quot;,
+    );
+    const demoTableWrapper = component.querySelector(
+      &quot;.demo .canvas .table-wrapper&quot;,
+    );
+    const explanationCanvas = component.querySelector(&quot;.explanation .canvas&quot;);
+    const wrapper = component.querySelector(&quot;.wrapper&quot;);
+    const viewportClientHeight = component.querySelector(
+      &quot;.viewport-client-height&quot;,
+    );
+    const viewportScrollHeight = component.querySelector(
+      &quot;.viewport-scroll-height&quot;,
+    );
+    const tableClientHeight = component.querySelector(&quot;.table-client-height&quot;);
+    const canvasClientHeight = component.querySelector(&quot;.canvas-client-height&quot;);
+    const viewportScrollTop = component.querySelector(&quot;.viewport-scroll-top&quot;);
+    const tableStyleTop = component.querySelector(&quot;.table-style-top&quot;);
+    const downscaleFactorElement = component.querySelector(&quot;.downscale-factor&quot;);
+    const unreachableRowsIn1pxScroll = component.querySelector(
+      &quot;.unreachable-rows-in-1px-scroll&quot;,
+    );
+
+    const numRows = parseInt(
+      getComputedStyle(component).getPropertyValue(&quot;--num_rows&quot;),
+    );
+    const rowHeight = parseInt(
+      getComputedStyle(component).getPropertyValue(&quot;--row-height&quot;),
+    );
+    const canvasHeight = parseInt(
+      getComputedStyle(component).getPropertyValue(&quot;--canvas-height&quot;),
+    );
+    const fullTableHeight = numRows * rowHeight;
+    const downscaleFactor =
+      fullTableHeight &lt;= canvasHeight
+        ? 1
+        : (fullTableHeight - viewport.clientHeight) /
+          (canvasHeight - viewport.clientHeight);
+
+    function update() {
+      const maxScrollTop = canvasHeight - viewport.clientHeight;
+      const scrollTop = Math.min(Math.max(viewport.scrollTop, 0), maxScrollTop);
+
+      const maxRows = Math.ceil(viewport.clientHeight / rowHeight);
+      const firstVisibleRow = Math.floor(
+        (scrollTop * downscaleFactor) / rowHeight,
+      );
+      const lastVisibleRow = Math.min(
+        Math.ceil(
+          (scrollTop * downscaleFactor + viewport.clientHeight) / rowHeight,
+        ),
+        numRows,
+        firstVisibleRow + maxRows,
+      );
+
+      const table = document.createElement(&quot;table&quot;);
+      for (let i = firstVisibleRow; i &lt; lastVisibleRow; i++) {
+        const row = document.createElement(&quot;tr&quot;);
+        const cell = document.createElement(&quot;td&quot;);
+        const explanationCell = document.createElement(&quot;td&quot;);
+        cell.textContent = `row ${i.toLocaleString(&quot;en-US&quot;)}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = &quot;&quot;;
+      wrapper.appendChild(table);
+      demoTableWrapper.innerHTML = &quot;&quot;;
+      const demoTable = table.cloneNode(true);
+      demoTableWrapper.appendChild(demoTable);
+      const top =
+        scrollTop === maxScrollTop
+          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
+          : `${Math.round((firstVisibleRow * rowHeight) / downscaleFactor)}px`;
+      wrapper.style.top = top;
+      demoTableWrapper.style.top = top;
+
+      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue(&quot;--wide-border-width&quot;))}px`;
+      explanationCanvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${canvasHeight}px`;
+      tableStyleTop.textContent = `${top}`;
+      downscaleFactorElement.textContent =
+        Math.round(downscaleFactor).toLocaleString(&quot;en-US&quot;);
+      unreachableRowsIn1pxScroll.textContent = `${(Math.round(downscaleFactor / rowHeight) - maxRows).toLocaleString(&quot;en-US&quot;)} rows`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    component.querySelector(&quot;.scrolltop-0&quot;).onclick = () =&gt; {
+      viewport.scrollTop = 0;
+    };
+    component.querySelector(&quot;.scrolltop-1&quot;).onclick = () =&gt; {
+      viewport.scrollTop = 1;
+    };
+    component.querySelector(&quot;.scrolltop-2&quot;).onclick = () =&gt; {
+      viewport.scrollTop = 2;
+    };
+
+    const playButton = component.querySelector(&quot;.play&quot;);
+    let animationFrameId = null;
+    playButton.onclick = () =&gt; {
+      if (playButton.textContent === &quot;Pause&quot;) {
+        playButton.textContent = &quot;Play&quot;;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = &quot;Pause&quot;;
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress &lt; 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    update();
+  }
+  document.addEventListener(&quot;DOMContentLoaded&quot;, initSlice);
+&lt;/script&gt;
+&lt;/scroll-downscale&gt;
+&lt;p&gt;But there is a drawback. The scroll bar precision is limited to 1 &lt;em&gt;physical&lt;/em&gt; pixel. On &amp;quot;high-resolution&amp;quot; screens, the apparent precision is a fraction of a &lt;em&gt;CSS&lt;/em&gt; pixel (1 / &lt;a href=&quot;https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio&quot;&gt;devicePixelRatio&lt;/a&gt;). But let&#39;s keep one pixel for simplicity.&lt;/p&gt;
+&lt;p&gt;So, when the downscale factor is big, like in the example above (2,189,781,021), the minimal scroll move (1px) corresponds to 2,189,781,021 pixels in the full table. With a row height of 30px, it means that the minimal scroll move corresponds to about 72,992,701 rows. It creates &lt;em&gt;gaps&lt;/em&gt; in the reachable rows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;if &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop = 0&lt;/code&gt;, the visible rows are 0 to 5&lt;/li&gt;
+&lt;li&gt;if &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop = 1&lt;/code&gt;, the visible rows are 72,992,700 to 72,992,705&lt;/li&gt;
+&lt;li&gt;if &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop = 2&lt;/code&gt;, the visible rows are 145,985,401 to 145,985,406&lt;/li&gt;
+&lt;li&gt;and so on...&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;There is no way to navigate to the rows 6 to 10, for example. Setting &lt;code&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop = 0.00000000274&lt;/code&gt; to reach rows 6 to 10 is impossible, because the browser rounds the scroll position to the nearest integer pixel.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;As an anecdote, setting the scroll value programmatically is hard to predict anyway. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, &lt;code&gt;element.scrollTo({top: 100})&lt;/code&gt; might result in &lt;code&gt;scrollTop = 100&lt;/code&gt;, &lt;code&gt;scrollTop = 100.23&lt;/code&gt;, or &lt;code&gt;scrollTop = 99.89&lt;/code&gt;. You cannot know exactly, but within a margin of one pixel.&lt;/p&gt;
+&lt;p&gt;The scrollTop value can even be outside of the expected range, for example negative or larger than the maximum value &lt;code&gt;scrollHeight - clientHeight&lt;/code&gt;. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, hightable always clamps the &lt;code&gt;scrollTop&lt;/code&gt; value within the expected range, and applies the CSS rule &lt;code&gt;overflow-y: clip&lt;/code&gt;. &lt;code&gt;clip&lt;/code&gt;, instead of &lt;code&gt;hidden&lt;/code&gt;, shows the sticky header, even if I&#39;m not sure why to be honest.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The technique 3 that consists in downscaling the scroll bar thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.&lt;/p&gt;
+&lt;h2 id=&quot;technique-4-add-a-local-scrolling-mode&quot;&gt;Technique 4: add a local scrolling mode&lt;/h2&gt;
+&lt;p&gt;The previous technique allows to scroll globally through the file, but prevents users from scrolling locally because any scroll gesture will jump over gaps of unreachable rows.&lt;/p&gt;
+&lt;p&gt;To fix that, we implement &lt;strong&gt;two scrolling modes: local and global scrolling&lt;/strong&gt;. Local scrolling means moving row by row, while global scrolling means jumping to the position given by the scrollbar.&lt;/p&gt;
+&lt;p&gt;The logic requires a state with three values: &lt;code&gt;{ scrollTop, globalAnchor, localOffset }&lt;/code&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the last &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; scroll top value is stored in the state to compute the scroll move on every scroll event.&lt;/li&gt;
+&lt;li&gt;the global anchor is the &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt; scroll top value corresponding to the last global scroll. It is updated on every global scroll, but not on local scrolls.&lt;/li&gt;
+&lt;li&gt;the local offset is the offset applied to the global anchor to compute the current scroll position. It is updated on every local scroll, and reset to 0 on global scrolls.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The first visible row is computed from the global anchor and the local offset:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; firstVisibleRow &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; Math&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;floor&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;
+    state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;globalAnchor &lt;span class=&quot;token operator&quot;&gt;*&lt;/span&gt; downscaleFactor &lt;span class=&quot;token operator&quot;&gt;+&lt;/span&gt; state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;localOffset
+  &lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;/&lt;/span&gt; rowHeight&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The absolute positioning of the &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; is now:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;table&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;style&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;top &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token interpolation&quot;&gt;&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;${&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop &lt;span class=&quot;token operator&quot;&gt;+&lt;/span&gt; state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;localOffset&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;px&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;On every scroll event, we compute the magnitude of the scroll move (difference between the new &lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;&#39;s scroll top and the previous one, stored in the state) and decide to apply:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a &lt;b&gt;global scroll&lt;/b&gt; if the scroll move is big, typically on scrollbar drag and drop, and we jump to the new global position (technique 3),&lt;/li&gt;
+&lt;li&gt;or a &lt;b&gt;local scroll&lt;/b&gt; if the scroll move is small, for example when using the mouse wheel. In that case, we keep the state&#39;s &lt;code&gt;globalAnchor&lt;/code&gt; value unchanged (ie: not sync&#39;ed anymore with the real &lt;code&gt;scrollTop&lt;/code&gt; value) and adjust the &lt;code&gt;localOffset&lt;/code&gt; so that the move appears local (for example, 3 rows downwards).&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Represented as code, the logic looks like this (simplified, pseudo-code):&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; state &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token function&quot;&gt;getState&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; delta &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop &lt;span class=&quot;token operator&quot;&gt;-&lt;/span&gt; state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop
+&lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;Math&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;abs&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;delta&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt; localThreshold&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// global scroll&lt;/span&gt;
+  state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;localOffset &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token number&quot;&gt;0&lt;/span&gt;
+  state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;globalAnchor &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;token keyword&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// local scroll&lt;/span&gt;
+  state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;localOffset &lt;span class=&quot;token operator&quot;&gt;+=&lt;/span&gt; delta
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;token function&quot;&gt;setState&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;state&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, the user can navigate around the current row, but also jump to any part of the data.&lt;/p&gt;
+&lt;p&gt;The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.&lt;/p&gt;
+&lt;scroll-dual class=&quot;w54cnlo5z&quot;&gt;
+  &lt;scroll-common id=&quot;scroll-dual&quot; class=&quot;scroll-common wir2b_bez&quot;&gt;
+    &lt;div class=&quot;main&quot;&gt;
+      &lt;section class=&quot;content&quot;&gt;
+        &lt;div class=&quot;demo&quot;&gt;
+          &lt;div class=&quot;legend&quot;&gt;
+            &lt;p class=&quot;viewport-legend&quot;&gt;viewport&lt;/p&gt;
+            &lt;p class=&quot;canvas-legend&quot;&gt;canvas&lt;/p&gt;
+            &lt;p class=&quot;table-legend&quot;&gt;table&lt;/p&gt;
+          &lt;/div&gt;
+          &lt;div data-scroll-top=&quot;0&quot; data-global-anchor=&quot;0&quot; data-local-offset=&quot;0&quot; class=&quot;viewport&quot;&gt;
+            &lt;div class=&quot;canvas&quot;&gt;
+              &lt;div class=&quot;table-wrapper&quot;&gt;&lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;text-description&quot;&gt;
+            &lt;p&gt;
+              Scroll the left box: small step for local scroll, large step for
+              global scroll.
+            &lt;/p&gt;
+            &lt;button type=&quot;button&quot; class=&quot;play&quot;&gt;Play&lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;explanation&quot;&gt;
+          &lt;div class=&quot;background-element&quot;&gt;
+            &lt;div class=&quot;wrapper&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;canvas-wrapper&quot;&gt;
+            &lt;div class=&quot;canvas&quot;&gt;&lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div class=&quot;viewport&quot;&gt;&lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/section&gt;
+      &lt;section class=&quot;variables&quot;&gt;
+        &lt;table&gt;
+          &lt;tbody&gt;&lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr style=&quot;display: none&quot;&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollHeight&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;canvas-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.clientHeight&lt;/td&gt;
+            &lt;td class=&quot;table-client-height&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;viewport&quot;&gt;viewport&lt;/span&gt;.scrollTop&lt;/td&gt;
+            &lt;td class=&quot;viewport-scroll-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;global anchor&lt;/td&gt;
+            &lt;td class=&quot;global-anchor&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;local offset&lt;/td&gt;
+            &lt;td class=&quot;local-offset&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;&lt;span class=&quot;table&quot;&gt;table&lt;/span&gt;.style.top&lt;/td&gt;
+            &lt;td class=&quot;table-style-top&quot;&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/tbody&gt;&lt;/table&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+&lt;/scroll-common&gt;
+&lt;script&gt;
+  function initSlice() {
+    const component = document.getElementById(&quot;scroll-dual&quot;);
+    const viewport = component.querySelector(&quot;.demo .viewport&quot;);
+    const explanationBackground = component.querySelector(
+      &quot;.explanation .background-element&quot;,
+    );
+    const demoTableWrapper = component.querySelector(
+      &quot;.demo .canvas .table-wrapper&quot;,
+    );
+    const explanationCanvas = component.querySelector(&quot;.explanation .canvas&quot;);
+    const wrapper = component.querySelector(&quot;.wrapper&quot;);
+    const viewportClientHeight = component.querySelector(
+      &quot;.viewport-client-height&quot;,
+    );
+    const viewportScrollHeight = component.querySelector(
+      &quot;.viewport-scroll-height&quot;,
+    );
+    const tableClientHeight = component.querySelector(&quot;.table-client-height&quot;);
+    const canvasClientHeight = component.querySelector(&quot;.canvas-client-height&quot;);
+    const viewportScrollTop = component.querySelector(&quot;.viewport-scroll-top&quot;);
+    const tableStyleTop = component.querySelector(&quot;.table-style-top&quot;);
+    const globalAnchorElement = component.querySelector(&quot;.global-anchor&quot;);
+    const localOffsetElement = component.querySelector(&quot;.local-offset&quot;);
+
+    const numRows = parseInt(
+      getComputedStyle(component).getPropertyValue(&quot;--num_rows&quot;),
+    );
+    const rowHeight = parseInt(
+      getComputedStyle(component).getPropertyValue(&quot;--row-height&quot;),
+    );
+    const canvasHeight = parseInt(
+      getComputedStyle(component).getPropertyValue(&quot;--canvas-height&quot;),
+    );
+    const fullTableHeight = numRows * rowHeight;
+    const downscaleFactor =
+      fullTableHeight &lt;= canvasHeight
+        ? 1
+        : (fullTableHeight - viewport.clientHeight) /
+          (canvasHeight - viewport.clientHeight);
+
+    function update() {
+      const state = {
+        globalAnchor: parseFloat(viewport.dataset.globalAnchor),
+        localOffset: parseFloat(viewport.dataset.localOffset),
+        scrollTop: parseFloat(viewport.dataset.scrollTop),
+      };
+
+      const maxScrollTop = canvasHeight - viewport.clientHeight;
+      const scrollTop = Math.min(Math.max(viewport.scrollTop, 0), maxScrollTop);
+
+      const delta = scrollTop - state.scrollTop;
+      if (
+        Math.abs(delta) &gt; 30 ||
+        scrollTop === 0 ||
+        scrollTop === maxScrollTop
+      ) {
+        // global scroll
+        state.globalAnchor = scrollTop;
+        state.localOffset = 0;
+      } else {
+        state.localOffset += delta;
+      }
+
+      const virtualScrollTop =
+        state.globalAnchor * downscaleFactor + state.localOffset;
+      const maxRows = Math.ceil(viewport.clientHeight / rowHeight);
+      const firstVisibleRow = Math.max(
+        0,
+        Math.min(numRows - 1, Math.floor(virtualScrollTop / rowHeight)),
+      );
+      const lastVisibleRow = Math.max(
+        firstVisibleRow + 1,
+        Math.min(
+          numRows,
+          firstVisibleRow + maxRows,
+          Math.ceil((virtualScrollTop + viewport.clientHeight) / rowHeight),
+        ),
+      );
+
+      // save state
+      state.scrollTop = scrollTop;
+      viewport.dataset.globalAnchor = state.globalAnchor;
+      viewport.dataset.localOffset = state.localOffset;
+      viewport.dataset.scrollTop = state.scrollTop;
+
+      const table = document.createElement(&quot;table&quot;);
+      for (let i = firstVisibleRow; i &lt; lastVisibleRow; i++) {
+        const row = document.createElement(&quot;tr&quot;);
+        const cell = document.createElement(&quot;td&quot;);
+        const explanationCell = document.createElement(&quot;td&quot;);
+        cell.textContent = `row ${i.toLocaleString(&quot;en-US&quot;)}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = &quot;&quot;;
+      wrapper.appendChild(table);
+      demoTableWrapper.innerHTML = &quot;&quot;;
+      const demoTable = table.cloneNode(true);
+      demoTableWrapper.appendChild(demoTable);
+
+      const hiddenPixelsBefore = virtualScrollTop - firstVisibleRow * rowHeight;
+      const top =
+        scrollTop === maxScrollTop
+          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
+          : `${Math.round(scrollTop - hiddenPixelsBefore)}px`;
+      wrapper.style.top = top;
+      demoTableWrapper.style.top = top;
+
+      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue(&quot;--wide-border-width&quot;))}px`;
+      explanationCanvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${canvasHeight}px`;
+      tableStyleTop.textContent = `${top}`;
+      globalAnchorElement.textContent = `${state.globalAnchor}px`;
+      localOffsetElement.textContent = `${state.localOffset}px`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    const playButton = component.querySelector(&quot;.play&quot;);
+    let animationFrameId = null;
+    playButton.onclick = () =&gt; {
+      function reset() {
+        playButton.textContent = &quot;Play&quot;;
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
+      if (playButton.textContent === &quot;Stop&quot;) {
+        reset();
+        return;
+      }
+      playButton.textContent = &quot;Stop&quot;;
+
+      // animation:
+      // 1. scroll smoothly during 2 seconds to 100px
+      // 2. jump to scrollTop 400px
+      // 3. scroll smoothly during 2 seconds as a wave between 400px, 300px and 500px
+      // 4. jump to the last scrollTop
+      const keyframes = [
+        { scrollTop: 0, duration: 0 },
+        { scrollTop: 20, duration: 2000 },
+        { scrollTop: 100, duration: 0 },
+        { scrollTop: 90, duration: 1500 },
+        { scrollTop: 110, duration: 3000 },
+        { scrollTop: 50, duration: 0 },
+        { scrollTop: 50, duration: 1000 },
+        { scrollTop: 90, duration: 0 },
+        { scrollTop: 90, duration: 1000 },
+        { scrollTop: 120, duration: 0 },
+        { scrollTop: 120, duration: 1000 },
+        { scrollTop: 0, duration: 0 },
+      ];
+      const lastScrollTop = viewport.scrollTop;
+      let currentKeyframe = 0;
+
+      function animate() {
+        const { scrollTop, duration } = keyframes[currentKeyframe];
+        if (duration === 0) {
+          viewport.scrollTop = scrollTop;
+          currentKeyframe++;
+          if (currentKeyframe &lt; keyframes.length) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            viewport.scrollTop = 0;
+            reset();
+          }
+        } else {
+          const startTime = performance.now();
+          const startScrollTop = viewport.scrollTop;
+
+          function step() {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            viewport.scrollTop =
+              startScrollTop + (scrollTop - startScrollTop) * progress;
+            if (progress &lt; 1) {
+              animationFrameId = requestAnimationFrame(step);
+            } else {
+              currentKeyframe++;
+              if (currentKeyframe &lt; keyframes.length) {
+                animationFrameId = requestAnimationFrame(animate);
+              } else {
+                viewport.scrollTop = 0;
+                reset();
+              }
+            }
+          }
+
+          animationFrameId = requestAnimationFrame(step);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    update();
+  }
+  document.addEventListener(&quot;DOMContentLoaded&quot;, initSlice);
+&lt;/script&gt;
+&lt;/scroll-dual&gt;
+&lt;p&gt;With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;In hightable, we also resynchronize the global anchor with the scrollbar after accumulating many local scrolls, typically after scrolling more than 500 rows locally.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;The last challenge is to let the user move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires scrolling programmatic, decoupling vertical and horizontal scrolling. We explain it in the next section.&lt;/p&gt;
+&lt;h2 id=&quot;technique-5-decouple-vertical-and-horizontal-scrolling&quot;&gt;Technique 5: decouple vertical and horizontal scrolling&lt;/h2&gt;
+&lt;p&gt;One of the hightable requirements is to allow keyboard navigation (e.g. &lt;kbd&gt;↓&lt;/kbd&gt; to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guidance through the &lt;a href=&quot;https://www.w3.org/WAI/ARIA/apg/patterns/grid/&quot;&gt;Grid Pattern&lt;/a&gt; and the &lt;a href=&quot;https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/&quot;&gt;Data Grid Examples&lt;/a&gt;. We use &lt;a href=&quot;https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex&quot;&gt;tabindex roving&lt;/a&gt; to handle the focus, providing all the expected &lt;a href=&quot;https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation&quot;&gt;keyboard interactions&lt;/a&gt;.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The browser provides a useful default when calling &lt;code&gt;cell.focus()&lt;/code&gt;: it automatically scrolls to the cell and focus it. But in hightable, we don&#39;t use the default behavior. Indeed, it positions the cell at the &lt;em&gt;center&lt;/em&gt; of the viewport, which does not feel natural.&lt;/p&gt;
+&lt;p&gt;To get the expected behavior, we first scroll by the minimal amount to show the next row and column, by calling &lt;code&gt;cell.scrollIntoView({block: &#39;nearest&#39;, inline: &#39;nearest&#39;})&lt;/code&gt;. Then we set the focus with no scroll action using &lt;code&gt;cell.focus({preventScroll: true})&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (global scrolling) and 4 (local scrolling), multiple steps are required.. In particular, to let the user move the active cell with the keyboard, we &lt;strong&gt;separate the vertical scrolling logic from the horizontal one&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;When the user moves the active cell, the final position can be anywhere in the table: &lt;kbd&gt;↓&lt;/kbd&gt; moves to the next row, while &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;↓&lt;/kbd&gt; moves to the last row. If the move is big, we might have to scroll vertically to have the required cell in the DOM.&lt;/p&gt;
+&lt;p&gt;The process is as follows:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;compute the next state (global anchor and local offset) that will make the row of the required cell visible,&lt;/li&gt;
+&lt;li&gt;programmatically scroll to the new scrollTop position, if the global anchor has changed,&lt;/li&gt;
+&lt;li&gt;once scrolled, render the table slice to have the required cell in the DOM,&lt;/li&gt;
+&lt;li&gt;scroll horizontally if needed with &lt;code&gt;cell.scrollIntoView({inline: &#39;nearest&#39;})&lt;/code&gt;,&lt;/li&gt;
+&lt;li&gt;set the focus to the new cell with &lt;code&gt;cell.focus({preventScroll: true})&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Note that, for point 1. (computing the next state), we respect the &lt;code&gt;block: nearest&lt;/code&gt; behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.&lt;/p&gt;
+&lt;p&gt;The pseudo-code for decoupling vertical and horizontal scrolling requires a flag to prevent horizontal scrolling and focus during the programmatic vertical scroll:&lt;/p&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;/* in the cell navigation code */&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;const&lt;/span&gt; shouldScroll &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;update&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token function&quot;&gt;renderTableSlice&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;shouldScroll&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// set a flag to prevent horizontal scrolling + focus&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// during programmatic scroll&lt;/span&gt;
+  &lt;span class=&quot;token function&quot;&gt;setFlag&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&#39;programmaticScroll&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+  viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;scrollTo&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;top&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; state&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;globalAnchor&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; behavior&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&#39;instant&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;/* in the scroll event handler */&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;isFlagSet&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&#39;programmaticScroll&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// allow horizontal scrolling + focus,&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// once the programmatic scroll is done&lt;/span&gt;
+  &lt;span class=&quot;token function&quot;&gt;clearFlag&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&#39;programmaticScroll&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;&lt;span class=&quot;token comment&quot;&gt;/* in the cell rendering code */&lt;/span&gt;
+&lt;span class=&quot;token keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;isFlagSet&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;&#39;programmaticScroll&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;token comment&quot;&gt;// horizontal scrolling + focus allowed&lt;/span&gt;
+  cell&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;scrollIntoView&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;inline&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token string&quot;&gt;&#39;nearest&#39;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+  cell&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;token function&quot;&gt;focus&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;{&lt;/span&gt;preventScroll&lt;span class=&quot;token operator&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;token boolean&quot;&gt;true&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;token punctuation&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
+&lt;blockquote&gt;
+&lt;p&gt;We set &lt;code&gt;behavior: &#39;instant&#39;&lt;/code&gt; when scrolling programmatically to ensure we only receive one &lt;code&gt;scroll&lt;/code&gt; event. The alternative, &lt;code&gt;behavior: &#39;smooth&#39;&lt;/code&gt;, would trigger multiple &lt;code&gt;scroll&lt;/code&gt; events, clearing the flag too early, and generating conflicts with the internal state due to intermediate unexpected &lt;code&gt;scrollTop&lt;/code&gt; positions (see the &lt;a href=&quot;https://github.com/hyparam/hightable/issues/393&quot;&gt;open issue&lt;/a&gt;).&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;No need for a &lt;a href=&quot;https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol&quot;&gt;fake scroll bar&lt;/a&gt;. No need to render the table &lt;a href=&quot;https://github.com/xwinstone/canvastable&quot;&gt;as a &lt;code&gt;&amp;lt;canvas&amp;gt;&lt;/code&gt;&lt;/a&gt;. Thanks to these five techniques that rely on native HTML elements, &lt;a href=&quot;https://github.com/hyparam/hightable&quot;&gt;hightable&lt;/a&gt; lets you navigate through billions of rows of a remote data file, in the browser.&lt;/p&gt;
+&lt;p&gt;Give a star ⭐ to the &lt;a href=&quot;https://github.com/hyparam/hightable&quot;&gt;GitHub repo&lt;/a&gt; if you liked the article!&lt;/p&gt;
+</content>
+  </entry>
   <entry>
     <title>Parquet with GEOMETRY type is not GeoParquet</title>
     <link href="https://rednegra.net/blog/20250925-parquet-with-geometry-type-is-not-geoparquet/" />
@@ -19,7 +1475,7 @@
 &lt;p&gt;&lt;a href=&quot;https://geoparquet.org/&quot;&gt;GeoParquet&lt;/a&gt; is an extension of Parquet that defines how to store geospatial data.&lt;/p&gt;
 &lt;p&gt;In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with its new &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;edit (2025-10-03): I updated parts of this post, after Chris Holmes pointed out that I had misunderstood the chronology. GeoParquet&#39;s last version was actually 9 months before the new types, and the goal for GeoParquet is to &amp;quot;go native&amp;quot;.&lt;/em&gt;&lt;/p&gt;
-&lt;h2&gt;TL;DR&lt;/h2&gt;
+&lt;h2 id=&quot;tl-dr&quot;&gt;TL;DR&lt;/h2&gt;
 &lt;p&gt;My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;The differences between the two standards are summarized in the table below.&lt;/p&gt;
 &lt;table&gt;
@@ -108,36 +1564,36 @@
 &lt;/tr&gt;
 &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;h2&gt;What is the GEOMETRY type?&lt;/h2&gt;
+&lt;h2 id=&quot;what-is-the-geometry-type&quot;&gt;What is the GEOMETRY type?&lt;/h2&gt;
 &lt;p&gt;The support for the GEOMETRY type in Parquet only brings &lt;a href=&quot;https://github.com/apache/parquet-format/pull/240/files#diff-834c5a8d91719350b20995ad99d1cb6d8d68332b9ac35694f40e375bdb2d3e7c&quot;&gt;two changes to the standard&lt;/a&gt;.&lt;/p&gt;
-&lt;h3&gt;Logical type&lt;/h3&gt;
+&lt;h3 id=&quot;logical-type&quot;&gt;Logical type&lt;/h3&gt;
 &lt;p&gt;Logical types in Parquet are a way to add semantic meaning to primitive types. They are defined in the Parquet &amp;quot;schema&amp;quot;, the part of the metadata that lists the columns and their characteristics. &lt;code&gt;GEOMETRY&lt;/code&gt; is a new logical type for the primitive type &lt;code&gt;BYTE_ARRAY&lt;/code&gt;, and has an optional parameter to define the CRS (Coordinate Reference System) of the column.&lt;/p&gt;
 &lt;p&gt;The data in the GEOMETRY columns must be encoded in &lt;a href=&quot;https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry#Well-known_binary&quot;&gt;WKB&lt;/a&gt; (Well-Known Binary), a binary format to represent geometric objects defined by the &lt;a href=&quot;https://www.ogc.org/&quot;&gt;OGC&lt;/a&gt; (Open Geospatial Consortium). Note that the axis order is explicitly &lt;code&gt;(x,y)&lt;/code&gt; and cannot be overridden by the CRS.&lt;/p&gt;
-&lt;h3&gt;Statistics&lt;/h3&gt;
+&lt;h3 id=&quot;statistics&quot;&gt;Statistics&lt;/h3&gt;
 &lt;p&gt;Apart from the logical type in the schema, the new version also includes optional geospatial statistics in the column metadata at the row group level. The aim is to speed up geospatial queries by filtering out row groups that do not intersect with the query&#39;s bounding box.&lt;/p&gt;
 &lt;p&gt;The geospatial statistics can include two optional fields.&lt;/p&gt;
 &lt;p&gt;The first optional statistic is a bounding box that gives the minimum and maximum coordinates of all the geometries in the column chunk. Note that it includes x, y, but also z and m if present.&lt;/p&gt;
 &lt;p&gt;The second optional statistics is the list of geospatial types present in the column chunk (e.g., &lt;code&gt;Point&lt;/code&gt;, &lt;code&gt;Polygon&lt;/code&gt;, &lt;code&gt;MultiLineString&lt;/code&gt;, etc.) There is no way to define a specific geometry type for the column, unlike GeoParquet. It&#39;s done at the row group level.&lt;/p&gt;
-&lt;h2&gt;What is the GEOGRAPHY type?&lt;/h2&gt;
+&lt;h2 id=&quot;what-is-the-geography-type&quot;&gt;What is the GEOGRAPHY type?&lt;/h2&gt;
 &lt;p&gt;&lt;code&gt;GEOGRAPHY&lt;/code&gt; can be seen as an extension of &lt;code&gt;GEOMETRY&lt;/code&gt; for the sphere. The only difference in the standard is an additional optional parameter for the logical type, which gives the algorithm used for edge interpolation on the sphere.&lt;/p&gt;
-&lt;h2&gt;When were GEOMETRY and GEOGRAPHY added to Parquet?&lt;/h2&gt;
+&lt;h2 id=&quot;when-were-geometry-and-geography-added-to-parquet&quot;&gt;When were GEOMETRY and GEOGRAPHY added to Parquet?&lt;/h2&gt;
 &lt;p&gt;Since May of 2024, the maintainers of both projects have discussed how to support geospatial data natively in Parquet. You can do archeology in &lt;a href=&quot;https://github.com/apache/parquet-format/pull/240&quot;&gt;PARQUET-2471&lt;/a&gt;. Nice discussion, more than 400 comments, 40 revisions, 15 participants (nearly all men, btw).&lt;/p&gt;
 &lt;p&gt;It culminated with the addition of the &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; logical types in the Parquet format, formally released in March of 2025 with version &lt;a href=&quot;https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0&quot;&gt;2.11.0&lt;/a&gt; of the Parquet format.&lt;/p&gt;
-&lt;h2&gt;Are GeoParquet and Parquet with GEOMETRY the same thing?&lt;/h2&gt;
+&lt;h2 id=&quot;are-geoparquet-and-parquet-with-geometry-the-same-thing&quot;&gt;Are GeoParquet and Parquet with GEOMETRY the same thing?&lt;/h2&gt;
 &lt;p&gt;No. Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;edit (2025-10-03): but the plan for GeoParquet 2.0 is to be Parquet with GEOMETRY/GEOGRAPHY. See these two blog posts by Chris Holmes: &lt;a href=&quot;https://cloudnativegeo.org/blog/2025/02/geoparquet-2.0-going-native/&quot;&gt;&amp;quot;Geoparquet 2.0: Going Native&amp;quot;&lt;/a&gt;, &lt;a href=&quot;https://cholmes.medium.com/geoparquet-parquet-geospatial-types-a-time-of-transition-a42e391cdab2&quot;&gt;&amp;quot;GeoParquet &amp;amp; Parquet geospatial types: A time of transition&amp;quot;&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
-&lt;h2&gt;Is GeoParquet deprecated?&lt;/h2&gt;
+&lt;h2 id=&quot;is-geoparquet-deprecated&quot;&gt;Is GeoParquet deprecated?&lt;/h2&gt;
 &lt;p&gt;No. It&#39;s still an active standard&lt;strike&gt;, and a &lt;a href=&quot;https://geoparquet.org/releases/v1.1.0/&quot;&gt;version&lt;/a&gt; was published three months after the introduction of &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; in Parquet&lt;/strike&gt;.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;edit (2025-10-03): I misread the year! Version v1.1.0 was actually published 9 months before, and the plan for Geoparquet is to &amp;quot;go native&amp;quot;. Sorry about that, and thanks for Chris Holmes for noticing!&lt;/em&gt;&lt;/p&gt;
-&lt;h2&gt;Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?&lt;/h2&gt;
+&lt;h2 id=&quot;does-geoparquet-use-the-geometry-and-geography-logical-types-in-parquet&quot;&gt;Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?&lt;/h2&gt;
 &lt;p&gt;No. The &lt;a href=&quot;https://geoparquet.org/releases/v1.1.0/&quot;&gt;GeoParquet 1.1.0 standard&lt;/a&gt;, published &lt;strike&gt;three months after&lt;/strike&gt; nine months before the introduction of &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; in Parquet, does not yet mention these logical types or the new geospatial statistics.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;edit (2025-10-03): see above!&lt;/em&gt;&lt;/p&gt;
-&lt;h2&gt;What are the differences between GeoParquet and Parquet with GEOMETRY?&lt;/h2&gt;
+&lt;h2 id=&quot;what-are-the-differences-between-geoparquet-and-parquet-with-geometry&quot;&gt;What are the differences between GeoParquet and Parquet with GEOMETRY?&lt;/h2&gt;
 &lt;p&gt;&lt;strike&gt;The two standards seem to have diverged, even if the GeoParquet maintainers participated in the creation of the &lt;code&gt;GEOMETRY&lt;/code&gt; logical type in Parquet.&lt;/strike&gt;&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;edit (2025-10-03): see above! The two standards have not diverged, I misunderstood, and the plan for GeoParquet is to &amp;quot;go native&amp;quot;.&lt;/em&gt;&lt;/p&gt;
-&lt;h3&gt;No overlap&lt;/h3&gt;
+&lt;h3 id=&quot;no-overlap&quot;&gt;No overlap&lt;/h3&gt;
 &lt;p&gt;GeoParquet does not mention the new logical types and geospatial statistics. All GeoParquet features are included in a &lt;code&gt;geo&lt;/code&gt; field in the file metadata, which is not part of the Parquet standard.&lt;/p&gt;
-&lt;h3&gt;GeoParquet features&lt;/h3&gt;
+&lt;h3 id=&quot;geoparquet-features&quot;&gt;GeoParquet features&lt;/h3&gt;
 &lt;p&gt;GeoParquet has many features that are not in Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;A GeoParquet file must include a &lt;code&gt;geo&lt;/code&gt; field, encoded as JSON, in the file metadata. This object contains the GeoParquet version and the name of the primary geospatial column. Parquet has no concept of such a &amp;quot;primary&amp;quot; geospatial column.&lt;/p&gt;
 &lt;p&gt;The same &lt;code&gt;geo&lt;/code&gt; metadata must also include a list of column metadata for each geospatial column in the file.&lt;/p&gt;
@@ -149,17 +1605,17 @@
 &lt;p&gt;It can include a bounding box for the entire column, which is very handy to get an immediate idea of the data extent. I created a small tool, called &lt;a href=&quot;https://observablehq.com/@severo/hello-foursquare-places&quot;&gt;&amp;quot;Hello Foursquare places&amp;quot;&lt;/a&gt;, that uses that information to quickly find which of the 100 GeoParquet files published by Foursquare contains a specific area.&lt;/p&gt;
 &lt;p&gt;You can also see a specialized field, called &lt;code&gt;epoch&lt;/code&gt;, which gives the year of the CRS when it&#39;s a dynamic one. It surely helps in some edge cases.&lt;/p&gt;
 &lt;p&gt;Finally, a recent addition to the column metadata is &lt;code&gt;covering&lt;/code&gt;, which maps a geospatial column to a bounding box column, which can help to speed up queries. If I read correctly, it&#39;s limited to the x and y dimensions. I&#39;m not yet sure what the tradeoffs are between using &lt;code&gt;covering&lt;/code&gt; in GeoParquet and using geospatial statistics in Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt;.&lt;/p&gt;
-&lt;h2&gt;Are they compatible?&lt;/h2&gt;
+&lt;h2 id=&quot;are-they-compatible&quot;&gt;Are they compatible?&lt;/h2&gt;
 &lt;p&gt;Yes! It&#39;s the good news. As the two standards are orthogonal, you can combine them, with only one caveat: the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;Otherwise, the files can be written with both the &lt;code&gt;geo&lt;/code&gt; metadata (GeoParquet), and the &lt;code&gt;GEOMETRY&lt;/code&gt;/&lt;code&gt;GEOGRAPHY&lt;/code&gt; logical types + geospatial statistics (Parquet).&lt;/p&gt;
-&lt;h2&gt;How to read them?&lt;/h2&gt;
+&lt;h2 id=&quot;how-to-read-them&quot;&gt;How to read them?&lt;/h2&gt;
 &lt;p&gt;As the two standards are orthogonal, their features can be read and interpreted independently of each other. The only caveat is that the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt; to be compatible with both standards, and I imagine that Parquet takes precedence over GeoParquet. So, if a GeoParquet file defines an Arrow native encoding, while the column is marked as a &lt;code&gt;GEOMETRY&lt;/code&gt; logical type in the schema, a reader should raise an error.&lt;/p&gt;
-&lt;h2&gt;What is the support in libraries?&lt;/h2&gt;
+&lt;h2 id=&quot;what-is-the-support-in-libraries&quot;&gt;What is the support in libraries?&lt;/h2&gt;
 &lt;p&gt;I have no clear idea of how the libraries write Parquet files that include geospatial data, and how they support reading both formats. If you want to investigate, you can consult the &lt;a href=&quot;https://geoparquet.org/#implementations&quot;&gt;list of GeoParquet implementations&lt;/a&gt; and the &lt;a href=&quot;https://parquet.apache.org/docs/file-format/implementationstatus/&quot;&gt;Parquet implementations compliance table&lt;/a&gt; (which unfortunately does not include &lt;code&gt;GEOMETRY&lt;/code&gt;, &lt;code&gt;GEOGRAPHY &lt;/code&gt;, and the geospatial statistics).&lt;/p&gt;
-&lt;h3&gt;and in hyparquet?&lt;/h3&gt;
+&lt;h3 id=&quot;and-in-hyparquet&quot;&gt;and in hyparquet?&lt;/h3&gt;
 &lt;p&gt;&lt;a href=&quot;https://github.com/hyparam/hyparquet&quot;&gt;hyparquet&lt;/a&gt; does not yet support reading &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt;, or the geospatial statistics. It has two companion projects: &lt;a href=&quot;https://github.com/hyparam/geoparquet&quot;&gt;geoparquet&lt;/a&gt;, which reads GeoParquet, and &lt;a href=&quot;https://github.com/hyparam/hyparquet-writer&quot;&gt;hyparquet-writer&lt;/a&gt;, which writes Parquet in JavaScript. The &lt;a href=&quot;https://github.com/hyparam/hyparquet/issues/124&quot;&gt;plan&lt;/a&gt; is to improve the support for geospatial data in hyparquet. Time to start coding!&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;edit (2025-10-03): hyparquet now supports reading &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt;.&lt;/em&gt;&lt;/p&gt;
-&lt;h2&gt;Conclusion&lt;/h2&gt;
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; is not GeoParquet. The two standards are orthogonal and compatible, and can be combined, with the caveat that the columns must be encoded as &lt;code&gt;WKB&lt;/code&gt;. GeoParquet has more features, while Parquet with &lt;code&gt;GEOMETRY&lt;/code&gt; and &lt;code&gt;GEOGRAPHY&lt;/code&gt; brings native support for geospatial data in the Parquet format. The new geospatial additions in Parquet seem too recent to have had widespread adoption.&lt;/p&gt;
 &lt;p&gt;Do you have comments? Did I misunderstand something? Do you know if Parquet and GeoParquet will merge at some point? Please reach out on &lt;a href=&quot;https://mastodon.social/@severo/&quot;&gt;Mastodon&lt;/a&gt; or &lt;a href=&quot;https://www.linkedin.com/in/sylvain--lesage/&quot;&gt;LinkedIn&lt;/a&gt;.&lt;/p&gt;
 </content>
@@ -185,7 +1641,7 @@
 &lt;/blockquote&gt;
 &lt;p&gt;The second point is a direct consequence of the first.&lt;/p&gt;
 &lt;p&gt;His example uses Haskell and treats the problem of an array that should not be empty. Instead of passing a regular array along all the code, he creates a &amp;quot;non empty array&amp;quot; type, and parses his array as soon as possible, returning a &amp;quot;non empty array&amp;quot;, or failing. It&#39;s known as &lt;a href=&quot;https://www.typescriptlang.org/docs/handbook/2/narrowing.html&quot;&gt;&amp;quot;type narrowing&amp;quot;&lt;/a&gt; (or type guarding) in TypeScript.&lt;/p&gt;
-&lt;h2&gt;Translated in TypeScript&lt;/h2&gt;
+&lt;h2 id=&quot;translated-in-typescript&quot;&gt;Translated in TypeScript&lt;/h2&gt;
 &lt;p&gt;Let&#39;s reproduce the example in TypeScript. We want to parse a regular array and ensure it&#39;s not empty.&lt;/p&gt;
 &lt;p&gt;We define type as:&lt;/p&gt;
 &lt;pre class=&quot;language-ts&quot;&gt;&lt;code class=&quot;language-ts&quot;&gt;&lt;span class=&quot;token keyword&quot;&gt;type&lt;/span&gt; &lt;span class=&quot;token class-name&quot;&gt;NonEmptyArray&lt;span class=&quot;token operator&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;token operator&quot;&gt;&gt;&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;token operator&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;token constant&quot;&gt;T&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
@@ -242,16 +1698,16 @@
 &lt;p&gt;Ante el conflicto generado por la publicación de resultados parciales (TREP, 20.10.2019), que abrían paso a una segunda vuelta y la posterior reversión de este resultado en el COMPUTO OFICIAL (25.10.2019), hemos analizado la distribución espacial de los votos que no estaban inicialmente tomados en cuenta. Para esto hemos realizado el siguiente análisis de datos : COMPUTO - TREP = VOTOS FALTANTES. Cada voto ha sido clasificado por municipio rural o urbano según datos de Instituto Nacional de Estadísticas (Censo 2012).&lt;/p&gt;
 &lt;p&gt;Encontramos, en los votos que finalmente le dieron la victoria en primera vuelta a Evo Morales, la Bolivia periférica, productiva y resiliente, tantas veces invisibilizada …&lt;/p&gt;
 &lt;p&gt;Conscientes que estos resultados deberán ser confirmados por la auditoría internacional en curso, libramos aquí un primer análisis cartográfico que ojalá sirva a tod@s para transformar el conflicto actual en un dialogo democrático informado.&lt;/p&gt;
-&lt;h2&gt;Votos emitidos&lt;/h2&gt;
+&lt;h2 id=&quot;votos-emitidos&quot;&gt;Votos emitidos&lt;/h2&gt;
 &lt;p&gt;Hemos clasificado los votos por municipio urbano o rural (&amp;gt;50% indicador INE 2012)&lt;/p&gt;
 &lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/hyt8CwLUpx-1908.webp 1908w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/hyt8CwLUpx-1908.jpeg&quot; alt=&quot;Tres mapas de Bolivia, mostrando todos los votos emitidos, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019.&quot; width=&quot;1908&quot; height=&quot;796&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
-&lt;h2&gt;Solamente los votos favorables al MAS-IPSP (Evo Morales)&lt;/h2&gt;
+&lt;h2 id=&quot;solamente-los-votos-favorables-al-mas-ipsp-evo-morales&quot;&gt;Solamente los votos favorables al MAS-IPSP (Evo Morales)&lt;/h2&gt;
 &lt;p&gt;Solamente los votos favorables al MAS-IPSP (Evo Morales)&lt;/p&gt;
 &lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/iTG9duwA1f-1908.webp 1908w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/iTG9duwA1f-1908.jpeg&quot; alt=&quot;Tres mapas de Bolivia, mostrando únicamente los votos por el MAS-IPSP, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019.&quot; width=&quot;1908&quot; height=&quot;796&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
-&lt;h2&gt;Solamente los votos favorables a CC (Carlos Mesa)&lt;/h2&gt;
+&lt;h2 id=&quot;solamente-los-votos-favorables-a-cc-carlos-mesa&quot;&gt;Solamente los votos favorables a CC (Carlos Mesa)&lt;/h2&gt;
 &lt;p&gt;Evidenciamos un voto mayoritariamente urbano en capitales departamentales y provinciales.&lt;/p&gt;
 &lt;p&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/7pU3RE4YDt-1908.webp 1908w&quot;&gt;&lt;img src=&quot;https://rednegra.net/blog/20191101-d%C3%B3nde-estaban-los-votos-que-faltaban-en-el-TREP/7pU3RE4YDt-1908.jpeg&quot; alt=&quot;Tres mapas de Bolivia mostrando únicamente los votos por Comunidad Ciudadana, con círculos proporcionales a los votos, un círculo por municipio. Los municipios rurales en verde, los municipios urbanos en rosado. Izquierda: votos contabilizados en el resultado final. Centro: votos tomado en cuenta en el TREP a 83%. Derecha: votos que faltaban contabilizar al 20 de octubre de 2019.&quot; width=&quot;1908&quot; height=&quot;796&quot;&gt;&lt;/picture&gt;&lt;/p&gt;
-&lt;h2&gt;Fuentes y metodología&lt;/h2&gt;
+&lt;h2 id=&quot;fuentes-y-metodologia&quot;&gt;Fuentes y metodología&lt;/h2&gt;
 &lt;p&gt;Los datos provienen de:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;TREP: &lt;a href=&quot;https://trep.oep.org.bo&quot;&gt;https://trep.oep.org.bo&lt;/a&gt; (domingo 20 de octubre)&lt;/li&gt;
