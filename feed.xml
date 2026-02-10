@@ -4,7 +4,7 @@
   <subtitle>Web development and data visualization.</subtitle>
   <link href="https://rednegra.net/feed.xml" rel="self" />
   <link href="https://rednegra.net/blog/" />
-  <updated>2026-02-02T00:00:00Z</updated>
+  <updated>2026-02-12T00:00:00Z</updated>
   <id>https://rednegra.net/blog/</id>
   <author>
     <name>Sylvain Lesage</name>
@@ -12,23 +12,23 @@
   </author>
   <entry>
     <title>Virtual Scrolling for Billions of Rows — Techniques from HighTable</title>
-    <link href="https://rednegra.net/blog/20260114-virtual-scroll/" />
-    <updated>2026-02-02T00:00:00Z</updated>
-    <id>https://rednegra.net/blog/20260114-virtual-scroll/</id>
+    <link href="https://rednegra.net/blog/20260212-virtual-scroll/" />
+    <updated>2026-02-12T00:00:00Z</updated>
+    <id>https://rednegra.net/blog/20260212-virtual-scroll/</id>
     <content type="html">&lt;p&gt;TL;DR: In this post, I present &lt;strong&gt;five techniques related to vertical scrolling&lt;/strong&gt; used in &lt;code&gt;&amp;lt;HighTable&amp;gt;&lt;/code&gt;, a React component that can display billions of rows in a table while keeping good performance and accessibility.&lt;/p&gt;
-&lt;p&gt;&lt;a title=&quot;Christies.com, Public domain, via Wikimedia Commons&quot; href=&quot;https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg&quot;&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20260114-virtual-scroll/aW48cjwKPd-1440.webp 1440w&quot;&gt;&lt;img alt=&quot;A Qur&amp;#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &amp;#039;Abdullah, eastern Anatolia, dated 1353-54&quot; src=&quot;https://rednegra.net/blog/20260114-virtual-scroll/aW48cjwKPd-1440.jpeg&quot; width=&quot;1440&quot; height=&quot;923&quot;&gt;&lt;/picture&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a title=&quot;Christies.com, Public domain, via Wikimedia Commons&quot; href=&quot;https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg&quot;&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20260212-virtual-scroll/aW48cjwKPd-1440.webp 1440w&quot;&gt;&lt;img alt=&quot;A Qur&amp;#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &amp;#039;Abdullah, eastern Anatolia, dated 1353-54&quot; src=&quot;https://rednegra.net/blog/20260212-virtual-scroll/aW48cjwKPd-1440.jpeg&quot; width=&quot;1440&quot; height=&quot;923&quot;&gt;&lt;/picture&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;It&#39;s a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.&lt;/p&gt;
 &lt;p&gt;Table of contents:&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#introduction&quot;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#demo&quot;&gt;Demo&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#scrolling-basics&quot;&gt;Scrolling basics&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-1-load-the-data-lazily&quot;&gt;Technique 1: load the data lazily&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-2-only-render-a-table-slice&quot;&gt;Technique 2: only render a table slice&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-3-downscale-the-scrollbar-for-global-positioning&quot;&gt;Technique 3: downscale the scrollbar for global positioning&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-4-add-a-local-scrolling-mode&quot;&gt;Technique 4: add a local scrolling mode&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#technique-5-decouple-vertical-and-horizontal-scrolling&quot;&gt;Technique 5: decouple vertical and horizontal scrolling&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260114-virtual-scroll/#conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#introduction&quot;&gt;Introduction&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#demo&quot;&gt;Demo&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#scrolling-basics&quot;&gt;Scrolling basics&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-1-load-the-data-lazily&quot;&gt;Technique 1: load the data lazily&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-2-only-render-a-table-slice&quot;&gt;Technique 2: only render a table slice&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-3-downscale-the-scrollbar-for-global-positioning&quot;&gt;Technique 3: downscale the scrollbar for global positioning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-4-add-a-local-scrolling-mode&quot;&gt;Technique 4: add a local scrolling mode&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-5-decouple-vertical-and-horizontal-scrolling&quot;&gt;Technique 5: decouple vertical and horizontal scrolling&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h2 id=&quot;introduction&quot;&gt;Introduction&lt;/h2&gt;
 &lt;p&gt;Showing data in a table is one of the first exercises you&#39;ll find in HTML 101 courses.&lt;/p&gt;
@@ -49,7 +49,7 @@
 &lt;p&gt;Try the &lt;a href=&quot;https://hyparam.github.io/demos/hightable/#/large&quot;&gt;hightable demo&lt;/a&gt;:&lt;/p&gt;
 &lt;iframe src=&quot;https://hyparam.github.io/demos/hightable/#/large&quot; title=&quot;HighTable demo with a large dataset&quot; width=&quot;100%&quot; height=&quot;400px&quot;&gt;&lt;/iframe&gt;
 &lt;p&gt;HighTable is also used in the &lt;a href=&quot;https://hyparam.github.io/demos/hyparquet/&quot;&gt;Parquet viewer&lt;/a&gt;, on &lt;a href=&quot;https://source.coop/jrc-lucas/jrc-lucas-ml/ml_data/classes_dataset.csv&quot;&gt;source.coop&lt;/a&gt; and in &lt;a href=&quot;https://hyperparam.app&quot;&gt;Hyperparam&lt;/a&gt;:&lt;/p&gt;
-&lt;p&gt;&lt;a title=&quot;Try HighTable in Hyperparam, the workbench for LLM datasets&quot; href=&quot;https://hyperparam.app&quot;&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.webp 1911w&quot;&gt;&lt;img alt=&quot;HighTable embedded in hyperparam.app&quot; src=&quot;https://rednegra.net/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.jpeg&quot; width=&quot;1911&quot; height=&quot;1048&quot;&gt;&lt;/picture&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a title=&quot;Try HighTable in Hyperparam, the workbench for LLM datasets&quot; href=&quot;https://hyperparam.app&quot;&gt;&lt;picture&gt;&lt;source type=&quot;image/webp&quot; srcset=&quot;https://rednegra.net/blog/20260212-virtual-scroll/9ZFXIAtLm3-1911.webp 1911w&quot;&gt;&lt;img alt=&quot;HighTable embedded in hyperparam.app&quot; src=&quot;https://rednegra.net/blog/20260212-virtual-scroll/9ZFXIAtLm3-1911.jpeg&quot; width=&quot;1911&quot; height=&quot;1048&quot;&gt;&lt;/picture&gt;&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&quot;scrolling-basics&quot;&gt;Scrolling basics&lt;/h2&gt;
 &lt;p&gt;Before diving into the techniques, let&#39;s describe how scrolling works using a standard HTML table.&lt;/p&gt;
 &lt;p&gt;The HTML structure is composed of a scrollable container, that we call the &lt;span class=&quot;viewport&quot;&gt;&lt;em&gt;viewport&lt;/em&gt;&lt;/span&gt;, and a &lt;span class=&quot;table&quot;&gt;table&lt;/span&gt; element inside it:&lt;/p&gt;

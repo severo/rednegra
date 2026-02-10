@@ -21,11 +21,11 @@
   <main>
     <header>
       <h1 id="virtual-scrolling-for-billions-of-rows-techniques-from-hightable">Virtual Scrolling for Billions of Rows — Techniques from HighTable</h1>
-      <p class="date">Published on: 2026-02-02</p>
+      <p class="date">Published on: 2026-02-12</p>
       <p class="author">By <a href="/">Sylvain Lesage</a></p>
     </header>
     <div><p>TL;DR: In this post, I present <strong>five techniques related to vertical scrolling</strong> used in <code>&lt;HighTable&gt;</code>, a React component that can display billions of rows in a table while keeping good performance and accessibility.</p>
-<p><a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><picture><source type="image/webp" srcset="/blog/20260114-virtual-scroll/aW48cjwKPd-1440.webp 1440w"><img alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="/blog/20260114-virtual-scroll/aW48cjwKPd-1440.jpeg" width="1440" height="923"></picture></a></p>
+<p><a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><picture><source type="image/webp" srcset="/blog/20260212-virtual-scroll/aW48cjwKPd-1440.webp 1440w"><img alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="/blog/20260212-virtual-scroll/aW48cjwKPd-1440.jpeg" width="1440" height="923"></picture></a></p>
 <p>It's a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.</p>
 <p>Table of contents:</p>
 <ul>
@@ -58,7 +58,7 @@
 <p>Try the <a href="https://hyparam.github.io/demos/hightable/#/large">hightable demo</a>:</p>
 <iframe src="https://hyparam.github.io/demos/hightable/#/large" title="HighTable demo with a large dataset" width="100%" height="400px"></iframe>
 <p>HighTable is also used in the <a href="https://hyparam.github.io/demos/hyparquet/">Parquet viewer</a>, on <a href="https://source.coop/jrc-lucas/jrc-lucas-ml/ml_data/classes_dataset.csv">source.coop</a> and in <a href="https://hyperparam.app">Hyperparam</a>:</p>
-<p><a title="Try HighTable in Hyperparam, the workbench for LLM datasets" href="https://hyperparam.app"><picture><source type="image/webp" srcset="/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.webp 1911w"><img alt="HighTable embedded in hyperparam.app" src="/blog/20260114-virtual-scroll/9ZFXIAtLm3-1911.jpeg" width="1911" height="1048"></picture></a></p>
+<p><a title="Try HighTable in Hyperparam, the workbench for LLM datasets" href="https://hyperparam.app"><picture><source type="image/webp" srcset="/blog/20260212-virtual-scroll/9ZFXIAtLm3-1911.webp 1911w"><img alt="HighTable embedded in hyperparam.app" src="/blog/20260212-virtual-scroll/9ZFXIAtLm3-1911.jpeg" width="1911" height="1048"></picture></a></p>
 <h2 id="scrolling-basics">Scrolling basics</h2>
 <p>Before diving into the techniques, let's describe how scrolling works using a standard HTML table.</p>
 <p>The HTML structure is composed of a scrollable container, that we call the <span class="viewport"><em>viewport</em></span>, and a <span class="table">table</span> element inside it:</p>
