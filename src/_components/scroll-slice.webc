@@ -5,8 +5,9 @@
         <div class="demo">
           <div class="legend">
             <p class="viewport-legend">viewport</p>
+            <p class="canvas-legend">canvas</p>
             <p class="table-legend">table</p>
-            <p class="wrapper-legend">
+            <p class="full-table-legend">
               full table<button type="button">Show</button>
             </p>
           </div>
@@ -27,6 +28,9 @@
             <scroll-full-table></scroll-full-table>
             <div class="wrapper"></div>
           </div>
+          <div class="canvas-wrapper">
+            <div class="canvas"></div>
+          </div>
           <div class="viewport"></div>
         </div>
       </section>
@@ -41,8 +45,8 @@
             <td class="viewport-scroll-height"></td>
           </tr>
           <tr>
-            <td><span class="full-table">full_table</span>.clientHeight</td>
-            <td class="full-table-client-height"></td>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
           </tr>
           <tr>
             <td><span class="table">table</span>.clientHeight</td>
@@ -69,11 +73,12 @@
 <style webc:scoped>
   :host {
     .content {
-      --slice-color: var(--color-2);
+      --slice-color: var(--table-color);
+      --legend-height: 150px;
     }
 
     .legend {
-      .wrapper-legend {
+      .full-table-legend {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -90,6 +95,9 @@
       }
       .table-legend {
         color: var(--slice-color);
+      }
+      .canvas-legend {
+        color: var(--canvas-color);
       }
     }
 
@@ -117,9 +125,10 @@
     const explanationBackground = component.querySelector(
       ".explanation .background-element",
     );
-    const toggleButton = component.querySelector(".wrapper-legend button");
+    const toggleButton = component.querySelector(".full-table-legend button");
     const explanationFullTable =
       explanationBackground.querySelector(".full-table");
+    const canvas = component.querySelector(".explanation .canvas");
     const wrapper = component.querySelector(".wrapper");
     const viewportClientHeight = component.querySelector(
       ".viewport-client-height",
@@ -128,9 +137,7 @@
       ".viewport-scroll-height",
     );
     const tableClientHeight = component.querySelector(".table-client-height");
-    const fullTableClientHeight = component.querySelector(
-      ".full-table-client-height",
-    );
+    const canvasClientHeight = component.querySelector(".canvas-client-height");
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
     const tableStyleTop = component.querySelector(".table-style-top");
     const hiddenPixelsAboveViewport = component.querySelector(
@@ -160,11 +167,14 @@
       wrapper.appendChild(table);
       wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
 
+      canvas.style.height = `${explanationFullTable.clientHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
+      canvas.style.top = `${-scrollTop}px`;
+
       viewportScrollTop.textContent = `${scrollTop}px`;
       viewportClientHeight.textContent = `${viewport.clientHeight}px`;
       viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
       tableClientHeight.textContent = `${table.clientHeight}px`;
-      fullTableClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
+      canvasClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
       tableStyleTop.textContent = `${wrapper.style.top}`;
       hiddenPixelsAboveViewport.textContent = `${scrollTop - firstVisibleRow * rowHeight}px`;
     }

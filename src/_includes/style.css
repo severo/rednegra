@@ -9,11 +9,13 @@
   --color-3: hsl(207.2, 61%, 58.8%);
   --color-4: hsl(0, 0%, 80%);
   --color-5: hsl(334.7, 60.7%, 67.1%);
+  --color-6: hsl(111.3, 67.9%, 52.4%);
   --dark-color: var(--color-1);
   --light-color: var(--color-4);
   --table-color: var(--color-2);
   --viewport-color: var(--color-3);
-  --full-table-color: var(--color-5);
+  --full-table-color: var(--color-4);
+  --canvas-color: var(--color-5);
 }
 
 html,
@@ -152,6 +154,9 @@ span {
   &.full-table {
     border-bottom: 2px solid var(--full-table-color);
   }
+  &.canvas {
+    border-bottom: 2px solid var(--canvas-color);
+  }
 }
 
 /* don't affect code blocks inside pre (```) */
@@ -179,5 +184,10 @@ span {
   .full-table {
     border: revert;
     color: var(--full-table-color);
+  }
+  &.canvas,
+  .canvas {
+    border: revert;
+    color: var(--canvas-color);
   }
 }

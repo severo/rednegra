@@ -12,10 +12,9 @@
     --num_rows: 10;
     --num_visible_rows: 5.7;
     --viewport-height: calc(var(--row-height) * var(--num_visible_rows));
-    --hidden-content: calc(
-      var(--row-height) * (var(--num_rows) - var(--num_visible_rows))
-    );
+    --legend-height: 120px;
     --gap: 16px;
+    --horizontal-margin: 16px;
 
     /* widget */
     font-size: 1rem;
@@ -68,6 +67,13 @@
         height: var(--viewport-height);
         border: var(--wide-border-width) solid var(--viewport-color);
       }
+
+      .canvas {
+        box-sizing: border-box;
+        /* border-radius: calc(var(--wide-border-width) * 2); */
+
+        border: var(--wide-border-width) solid var(--canvas-color);
+      }
     }
     .variables {
       border-top: 1px solid var(--light-color);
@@ -94,6 +100,10 @@
       .table {
         border: revert;
         color: var(--table-color);
+      }
+      .canvas {
+        border: revert;
+        color: var(--canvas-color);
       }
       .full-table {
         border: revert;
@@ -123,7 +133,7 @@
 
     .background-element {
       position: relative;
-      margin: 0 16px;
+      margin: 0 var(--horizontal-margin);
     }
 
     .demo {
@@ -132,7 +142,7 @@
       gap: var(--gap);
 
       .legend {
-        height: calc(var(--hidden-content) - var(--gap));
+        height: var(--legend-height);
       }
       .viewport {
         overflow-y: scroll;
@@ -145,15 +155,27 @@
 
       .background-element {
         position: absolute;
-        top: calc(var(--hidden-content) + var(--wide-border-width));
+        top: calc(var(--legend-height) + var(--gap) + var(--wide-border-width));
         left: 0;
-        width: calc(100% - 32px);
+        width: calc(100% - 2 * var(--horizontal-margin));
         pointer-events: none;
+      }
+
+      .canvas-wrapper {
+        position: relative;
+        margin: calc(var(--legend-height) + var(--gap)) var(--horizontal-margin);
+
+        .canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+        }
       }
 
       .viewport {
         position: relative;
-        margin: var(--hidden-content) 0;
+        margin: calc(var(--legend-height) + var(--gap)) 0;
       }
     }
   }

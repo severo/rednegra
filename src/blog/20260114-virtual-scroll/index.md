@@ -50,6 +50,18 @@ The `<HighTable>` component is developed at [hyparam/hightable](https://github.c
 
 Before diving into the techniques, let's describe how scrolling works using a standard HTML table.
 
+The HTML structure is composed of a scrollable container, that we call the <span class="viewport"><em>viewport</em></span>, and a <span class="table">table</span> element inside it:
+
+```html
+<div class="viewport" style="overflow-y: auto;">
+  <table class="table">
+    ...
+  </table>
+</div>
+```
+
+In this structure, the <span class="viewport">viewport</span> is a div with a fixed height and the CSS property `overflow-y: auto` enables a vertical scrollbar when the <span class="table">table</span> is taller than the <span class="viewport">viewport</span>.
+
 In the following widget, scroll the left box up and down to see how the right box mimics the scrolling effect.
 
 > If you use a keyboard, you can focus the left box with <kbd>Tab</kbd>, and scroll with the arrow keys <kbd>⏶</kbd> and <kbd>⏷</kbd>. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.
@@ -59,13 +71,13 @@ In the following widget, scroll the left box up and down to see how the right bo
 <scroll-native></scroll-native>
 {% endrenderTemplate %}
 
-The component is delimited by its fixed-size <span class="viewport"><em>viewport</em></span> (blue border). The <span class="table"><em>table</em></span> (golden border) is rendered inside the component. As its <span class="table">height</span> is larger than the <span class="viewport">viewport height</span>, only part of the table is visible, and a vertical scrollbar lets changing the visible part. <strong>The inner <span class="table">table</span> element moves up and down within the <span class="viewport">viewport</span></strong>, creating the scrolling effect.
+The component is delimited by its fixed-size <span class="viewport">viewport</span> (blue border). The <span class="table"><em>table</em></span> (golden border) is rendered inside the container. As its <span class="table">height</span> is larger than the <span class="viewport">viewport height</span>, only part of the table is visible, and a vertical scrollbar lets changing the visible part. <strong>The inner <span class="table">table</span> element moves up and down within the <span class="viewport">viewport</span></strong>, creating the scrolling effect.
 
 On the right side, we mimic the scrolling effect, showing the position of the <span class="table">table</span> relative to the <span class="viewport">viewport</span>.
 
 Let's settle some definitions and formulas that will be useful later:
 
-1. in this post, we assume <code><span class="viewport">viewport</span>.clientHeight</code>, the height of the visible area, is constant. In HighTable, we measure it and react to resizing.
+1. in this post, we assume <code><span class="viewport">viewport</span>.clientHeight</code>, the height of the visible area, is constant. In hightable, we measure it and react to resizing.
 
 2. <code><span class="viewport">viewport</span>.scrollHeight</code>, the total height of the scrollable content, is equal to <code><span class="table">table</span>.clientHeight</code>. Both are equal to the number of rows in the table multiplied by the row height:
 
@@ -75,7 +87,7 @@ Let's settle some definitions and formulas that will be useful later:
     const height = numRows * rowHeight
     ```
 
-    In this post, we assume the row height and the number of rows are constant. In HighTable, we react to changes in <code>data.numRows</code> (the number of rows in the <em>data frame</em>, the data structure holding the table data), for example when filtering; but we assume the row height is fixed (see [issue #395](https://github.com/hyparam/hightable/issues/395) to support variable row heights).
+    In this post, we assume the row height and the number of rows are constant. In hightable, we react to changes in <code>data.numRows</code> (the number of rows in the <em>data frame</em>, the data structure holding the table data), for example when filtering; but we assume the row height is fixed (see [issue #395](https://github.com/hyparam/hightable/issues/395) to support variable row heights).
 
 3. <code><span class="viewport">viewport</span>.scrollTop</code> is the number of pixels between the top of the scrolled <span class="table">table</span> and the top of the <span class="viewport">viewport</span>. The minimum value <code>0px</code> shows the top of the table, while the bottom of the table is reached at the maximum value <code><span class="viewport">viewport</span>.scrollHeight - <span class="viewport">viewport</span>.clientHeight</code>.
 
@@ -87,11 +99,13 @@ Let's settle some definitions and formulas that will be useful later:
     // firstVisiblePixel is inclusive, lastVisiblePixel is exclusive
     ```
 
-Now that we have the basics, let's see how to handle large datasets with HighTable.
+Now that we have the basics, let's see how to handle large datasets.
 
 ## Technique 1: load the data lazily
 
 The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news: you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, we <strong>only load the visible cells</strong>.
+
+> Note that lazy loading the data does not change the HTML structure of the table.
 
 The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:
 
@@ -110,7 +124,7 @@ const rowEnd = Math.ceil(lastVisiblePixel / rowHeight)
 // rowStart is inclusive, rowEnd is exclusive
 ```
 
-In [hightable](https://github.com/hyparam/hightable), the data loading logic is handled in a <em>data frame</em>, passed to the React component as the `data` prop:
+In hightable, the data loading logic is handled in a <em>data frame</em>, passed to the React component as the `data` prop:
 
 ```jsx
 <HighTable data={data} />
@@ -168,6 +182,31 @@ In software engineering, when you try to optimize, the first step is to remove c
 
 In the `<HighTable>` component, <strong>only the visible slice of the table is rendered</strong>. The other row elements simply don't exist.
 
+To achieve this, the HTML structure must be adapted, by adding an intermediate div element, that we call the <span class="canvas">canvas</span>, between the <span class="viewport">viewport</span> and the <span class="table">table</span>:
+
+```html
+<div class="viewport" style="overflow-y: auto;">
+  <div class="canvas" style="position: relative; height: 30000px;">
+    <table class="table" style="position: absolute; top: 3000px;">
+      <!-- the table only renders the visible rows -->
+      ...
+    </table>
+  </div>
+</div>
+```
+
+> The <span class="canvas">canvas</span> div is not related at all with the `<canvas>` HTML element. I'm open to suggestions for better naming if it's confusing.
+
+The <span class="canvas">canvas</span> is sized so that it could contain all the rows:
+
+```typescript
+canvas.style.height = `${data.numRows * rowHeight}px`
+```
+
+It sets the <span class="viewport">viewport</span> scrollbar to the expected size. As shown in the scrolling basics section, <code><span class="viewport">viewport</span>.scrollHeight</code> is equal to <code><span class="canvas">canvas</span>.clientHeight</code>.
+
+The <span class="canvas">canvas</span> serves as a reference for absolutely positioning the <span class="table">table</span> slice.
+
 The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the <span class="full-table">full table</span> button to see how the rendered rows fit in the full table:
 
 <!-- add a button to run the animation -->
@@ -175,9 +214,9 @@ The following widget shows how table slicing works. Scroll the left box up and d
 <scroll-slice></scroll-slice>
 {% endrenderTemplate %}
 
-On the right side, you see that only the visible rows are rendered. The rendered <span class="table">table</span> only contains 6 rows instead of 10 (or 7, depending on the scroll position). Its top position is adjusted to fit in the <span class="full-table">full table</span> (toggle the <span class="full-table">Show</span> / <span class="full-table">Hide</span> button to render the full table).
+On the right side, you see that only the visible rows are rendered. The <span class="table">table</span> slice contains 6 rows instead of 10 (or 7, depending on the scroll position).
 
-The corresponding HTML structure looks like this:
+The HTML structure inside the <span class="table">table</span> slice is:
 
 ```html
 <table>
@@ -199,33 +238,7 @@ Let's assume the <span class="full-table">data</span> has 1,000 rows, each row i
 
 > The HTML above is a simplification. In [hightable](https://github.com/hyparam/hightable/blob/b171cd35a61253cb2b090f60c83c9aa660bf27fb/src/components/HighTable/Slice.tsx#L177), we render a table header and add some padding rows before and after the visible rows to improve the scrolling experience.
 
-This HTML structure that handles the <span class="table">table</span> slice position looks like this:
-
-```html
-<!-- the scrollable viewport -->
-<div class="viewport" style="overflow-y: auto;">
-  <!-- the full table container -->
-  <div class="fulltable" style="position: relative; height: 30000px;">
-    <!-- the table slice, offset from the full table top -->
-    <table class="table" style="position: absolute; top: 3000px;">
-      <!-- the table slice renders rows from 100 to 119 -->
-      ...
-    </table>
-  </div>
-</div>
-```
-
-In this structure, the <span class="viewport">viewport</span> is a div with a fixed height and `overflow-y: auto` to show a vertical scrollbar.
-
-The <span class="full-table">full table</span> container is sized so that it could contain all the rows:
-
-```typescript
-fulltable.style.height = `${data.numRows * rowHeight}px`
-```
-
-It sets the <span class="viewport">viewport</span> scrollbar to the expected size. As shown in the scrolling basics sections, <code><span class="viewport">viewport</span>.scrollHeight</code> is equal to <code><span class="full-table">fulltable</span>.clientHeight</code>.
-
-The <span class="table">table</span> is absolutely positioned inside the <span class="full-table">full table</span> container. Its `top` position is set to the position of the first visible row inside the virtual <span class="full-table">full table</span>. It's nearly equal to <code><span class="viewport">viewport</span>.scrollTop</code>, but differs by the hidden pixels at the top of the first visible row. So:
+The <span class="table">table</span> top position is adjusted to fit in the <span class="full-table">full table</span> (toggle the <span class="full-table">Show</span> / <span class="full-table">Hide</span> button to render the full table). It's equals to the position of the first visible row inside the virtual <span class="full-table">full table</span>. It's nearly equal to <code><span class="viewport">viewport</span>.scrollTop</code>, but differs by the amount of hidden pixels at the top of the first visible row. So:
 
 ```typescript
 table.style.top = `${
@@ -235,8 +248,6 @@ table.style.top = `${
 
 These computations are done on every scroll event (and on every other change: when the <span class="viewport">viewport</span> height changes, or when the number of rows is updated). Once computed, the <span class="table">table slice</span> is re-rendered with the new visible rows, the <span class="table">table</span> position is updated with the new `top` value, and the data frame is queried to load the new visible cells if needed.
 
-<!-- TODO: add a diagram, or an interactive widget -->
-
 > A detail worth mentioning is the sticky header. In `<HighTable>`, the header with column names is rendered as part of the <span class="table">table</span> element, in `<thead>`, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to the CSS property `position: sticky` (see [sticky](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky) on MDN), the header row remains visible at the top of the <span class="viewport">viewport</span> when scrolling. We take it into account to compute the first visible row.
 
 Note that the table slicing technique is not specific to vertical scrolling. The same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending [discussion on virtual columns](https://github.com/hyparam/hightable/issues/297) if you're interested in this feature.
@@ -245,7 +256,7 @@ Until now, everything is pretty standard. The next techniques are more specific 
 
 ## Technique 3: downscale the scrollbar for global positioning
 
-Technique 2 works perfectly, until it breaks... As explained in Eric Meyer's blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the value depends on the browser. The worst case is Firefox: about 17 million pixels. As the background div height increases with the number of rows, if the row height is 33px (the default in HighTable), we cannot render more than 500K rows.
+Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="full-table">full table</span> container height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.
 
 Our approach to this issue in HighTable is to <strong>set a maximum height for the background div (8M pixels) and downscale the scrollbar above this limit.<strong>
 
