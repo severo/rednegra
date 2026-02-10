@@ -2,7 +2,7 @@
 title: Virtual Scrolling for Billions of Rows — Techniques from HighTable
 description: Techniques used in HighTable to efficiently render and navigate billions of rows in the browser using lazy loading, slicing, scrollbar downscaling, local scrolling, and vertical/horizontal scroll decoupling.
 tags: web, ui, javascript, performance, react, accessibility, virtualization
-date: 2026-02-02
+date: 2026-02-12
 ---
 
 TL;DR: In this post, I present <strong>five techniques related to vertical scrolling</strong> used in `<HighTable>`, a React component that can display billions of rows in a table while keeping good performance and accessibility.
