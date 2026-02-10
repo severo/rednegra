@@ -15,9 +15,13 @@
           </div>
           <div class="text-description">
             <p>
-              Scroll the left box to see how the right box mimics the scrolling
-              effect.
+              Scroll the left box: billions of rows can be scrolled. But
+              scrolling by 1px skips intermediate rows.
             </p>
+            <button type="button" class="scrolltop-0">scrollTop: 0px</button>
+            <button type="button" class="scrolltop-1">scrollTop: 1px</button>
+            <button type="button" class="scrolltop-2">scrollTop: 2px</button>
+            <button type="button" class="play">Play</button>
           </div>
         </div>
         <div class="explanation">
@@ -218,6 +222,44 @@
     viewport.onscroll = function () {
       explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
       update();
+    };
+
+    component.querySelector(".scrolltop-0").onclick = () => {
+      viewport.scrollTop = 0;
+    };
+    component.querySelector(".scrolltop-1").onclick = () => {
+      viewport.scrollTop = 1;
+    };
+    component.querySelector(".scrolltop-2").onclick = () => {
+      viewport.scrollTop = 2;
+    };
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Pause") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Pause";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
     };
 
     update();

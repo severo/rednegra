@@ -20,9 +20,10 @@
           </div>
           <div class="text-description">
             <p>
-              Scroll the left box to see how the right box mimics the scrolling
-              effect.
+              Scroll the left box: small step for local scroll, large step for
+              global scroll.
             </p>
+            <button type="button" class="play">Play</button>
           </div>
         </div>
         <div class="explanation">
@@ -251,6 +252,83 @@
     viewport.onscroll = function () {
       explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
       update();
+    };
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      function reset() {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
+      if (playButton.textContent === "Stop") {
+        reset();
+        return;
+      }
+      playButton.textContent = "Stop";
+
+      // animation:
+      // 1. scroll smoothly during 2 seconds to 100px
+      // 2. jump to scrollTop 400px
+      // 3. scroll smoothly during 2 seconds as a wave between 400px, 300px and 500px
+      // 4. jump to the last scrollTop
+      const keyframes = [
+        { scrollTop: 0, duration: 0 },
+        { scrollTop: 20, duration: 2000 },
+        { scrollTop: 100, duration: 0 },
+        { scrollTop: 90, duration: 1500 },
+        { scrollTop: 110, duration: 3000 },
+        { scrollTop: 50, duration: 0 },
+        { scrollTop: 50, duration: 1000 },
+        { scrollTop: 90, duration: 0 },
+        { scrollTop: 90, duration: 1000 },
+        { scrollTop: 120, duration: 0 },
+        { scrollTop: 120, duration: 1000 },
+        { scrollTop: 0, duration: 0 },
+      ];
+      const lastScrollTop = viewport.scrollTop;
+      let currentKeyframe = 0;
+
+      function animate() {
+        const { scrollTop, duration } = keyframes[currentKeyframe];
+        if (duration === 0) {
+          viewport.scrollTop = scrollTop;
+          currentKeyframe++;
+          if (currentKeyframe < keyframes.length) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            viewport.scrollTop = 0;
+            reset();
+          }
+        } else {
+          const startTime = performance.now();
+          const startScrollTop = viewport.scrollTop;
+
+          function step() {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            viewport.scrollTop =
+              startScrollTop + (scrollTop - startScrollTop) * progress;
+            if (progress < 1) {
+              animationFrameId = requestAnimationFrame(step);
+            } else {
+              currentKeyframe++;
+              if (currentKeyframe < keyframes.length) {
+                animationFrameId = requestAnimationFrame(animate);
+              } else {
+                viewport.scrollTop = 0;
+                reset();
+              }
+            }
+          }
+
+          animationFrameId = requestAnimationFrame(step);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
     };
 
     update();

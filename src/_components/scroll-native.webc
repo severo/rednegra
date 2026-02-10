@@ -13,8 +13,11 @@
             </div>
           </div>
           <div class="text-description">
-            Scroll the left box to see how the right box mimics the scrolling
-            effect.
+            <p>
+              Scroll the left box to see how the right box mimics the scrolling
+              effect.
+            </p>
+            <button type="button" class="play">Play</button>
           </div>
         </div>
         <div class="explanation">
@@ -95,6 +98,34 @@
 
     viewport.onscroll = update;
     update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
   }
   document.addEventListener("DOMContentLoaded", initNative);
 </script>

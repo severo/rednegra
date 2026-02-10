@@ -129,6 +129,9 @@
     .text-description {
       font-size: 0.9em;
       line-height: 1.4em;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .background-element {

@@ -309,8 +309,6 @@ The following widget shows how scrollbar downscaling works. Scroll the left box 
 <scroll-downscale></scroll-downscale>
 {% endrenderTemplate %}
 
-<!-- TODO: add buttons to scroll by one -->
-
 But there is a drawback. The scroll bar precision is limited to 1 <em>physical</em> pixel. On "high-resolution" screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio)). But let's keep one pixel for simplicity.
 
 So, when the downscale factor is big, like in the example above (2,189,781,021), the minimal scroll move (1px) corresponds to 2,189,781,021 pixels in the full table. With a row height of 30px, it means that the minimal scroll move corresponds to about 72,992,701 rows. It creates <em>gaps</em> in the reachable rows:
