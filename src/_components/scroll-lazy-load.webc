@@ -44,14 +44,6 @@
             <td><span class="viewport">viewport</span>.scrollTop</td>
             <td class="viewport-scroll-top"></td>
           </tr>
-          <tr>
-            <td>first visible pixel (inclusive)</td>
-            <td class="first-visible-pixel"></td>
-          </tr>
-          <tr>
-            <td>last visible pixel (exclusive)</td>
-            <td class="last-visible-pixel"></td>
-            <tr>
           </tr>
             <td>first visible row (inclusive)</td>
             <td class="first-visible-row"></td>
@@ -83,9 +75,7 @@
       ".viewport-scroll-height",
     );
     const tableClientHeight = component.querySelector(".table-client-height");
-    const firstVisiblePixel = component.querySelector(".first-visible-pixel");
     const firstVisibleRowTd = component.querySelector(".first-visible-row");
-    const lastVisiblePixel = component.querySelector(".last-visible-pixel");
     const lastVisibleRowTd = component.querySelector(".last-visible-row");
 
     function update() {
@@ -112,9 +102,7 @@
       viewportClientHeight.textContent = `${viewport.clientHeight}px`;
       viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
       tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
-      firstVisiblePixel.textContent = `${scrollTop}px`;
       firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
-      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
       lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
     }
 

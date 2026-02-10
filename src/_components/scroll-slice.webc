@@ -53,20 +53,12 @@
             <td class="viewport-scroll-top"></td>
           </tr>
           <tr>
-            <td>first visible pixel (inclusive)</td>
-            <td class="first-visible-pixel"></td>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
           </tr>
           <tr>
-            <td>last visible pixel (exclusive)</td>
-            <td class="last-visible-pixel"></td>
-          </tr>
-          <tr>
-            <td>first visible row (inclusive)</td>
-            <td class="first-visible-row"></td>
-          </tr>
-          <tr>
-            <td>last visible row (exclusive)</td>
-            <td class="last-visible-row"></td>
+            <td><span class="table">hidden pixels</span> above viewport</td>
+            <td class="hidden-pixels-above-viewport"></td>
           </tr>
         </table>
       </section>
@@ -140,10 +132,10 @@
       ".full-table-client-height",
     );
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
-    const firstVisiblePixel = component.querySelector(".first-visible-pixel");
-    const lastVisiblePixel = component.querySelector(".last-visible-pixel");
-    const firstVisibleRowTd = component.querySelector(".first-visible-row");
-    const lastVisibleRowTd = component.querySelector(".last-visible-row");
+    const tableStyleTop = component.querySelector(".table-style-top");
+    const hiddenPixelsAboveViewport = component.querySelector(
+      ".hidden-pixels-above-viewport",
+    );
 
     function update() {
       const scrollTop = viewport.scrollTop;
@@ -173,10 +165,8 @@
       viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
       tableClientHeight.textContent = `${table.clientHeight}px`;
       fullTableClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
-      firstVisiblePixel.textContent = `${scrollTop}px`;
-      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
-      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
-      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+      tableStyleTop.textContent = `${wrapper.style.top}`;
+      hiddenPixelsAboveViewport.textContent = `${scrollTop - firstVisibleRow * rowHeight}px`;
     }
 
     viewport.onscroll = function () {

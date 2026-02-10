@@ -111,6 +111,14 @@ header {
   }
 }
 
+blockquote {
+  border-left: solid 4px #ddd;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 1rem;
+  color: #666;
+}
+
 kbd {
   background-color: #eeeeee;
   border-radius: 3px;
