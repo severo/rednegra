@@ -28,15 +28,15 @@
       </section>
       <section class="variables">
         <table>
-          <tr>
+          <tr style="display: none">
             <td><span class="viewport">viewport</span>.clientHeight</td>
             <td class="viewport-client-height"></td>
           </tr>
-          <tr>
+          <tr style="display: none">
             <td><span class="viewport">viewport</span>.scrollHeight</td>
             <td class="viewport-scroll-height"></td>
           </tr>
-          <tr>
+          <tr style="display: none">
             <td><span class="table">table</span>.clientHeight</td>
             <td class="table-client-height"></td>
           </tr>

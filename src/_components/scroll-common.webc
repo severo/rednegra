@@ -152,6 +152,7 @@
 
     .explanation {
       position: relative;
+      overflow: hidden;
 
       .background-element {
         position: absolute;

@@ -9,16 +9,20 @@ TL;DR: In this post, I present <strong>five techniques related to vertical scrol
 
 <a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><img  alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="./scroll.jpg"></a>
 
-
 <!-- TODO: add a screencast of hightable on billions of rows -->
 
-You can jump directly to the techniques if you want to skip the introduction.
+It's a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.
 
+Table of contents:
+
+- [Introduction](#introduction)
+- [Scrolling basics](#scrolling-basics)
 - [Technique 1: load the data lazily](#technique-1-load-the-data-lazily)
 - [Technique 2: only render a table slice](#technique-2-only-render-a-table-slice)
 - [Technique 3: downscale the scrollbar for global positioning](#technique-3-downscale-the-scrollbar-for-global-positioning)
 - [Technique 4: add a local scrolling mode](#technique-4-add-a-local-scrolling-mode)
 - [Technique 5: decouple vertical and horizontal scrolling](#technique-5-decouple-vertical-and-horizontal-scrolling)
+- [Conclusion](#conclusion)
 
 ## Introduction
 
@@ -195,6 +199,8 @@ To achieve this, the HTML structure must be adapted, by adding an intermediate d
 </div>
 ```
 
+The HTML structure will remain the same for the rest of the blog post, including techniques 3, 4 and 5.
+
 > The <span class="canvas">canvas</span> div is not related at all with the `<canvas>` HTML element. I'm open to suggestions for better naming if it's confusing.
 
 The <span class="canvas">canvas</span> is sized so that it could contain all the rows:
@@ -252,34 +258,35 @@ These computations are done on every scroll event (and on every other change: wh
 
 Note that the table slicing technique is not specific to vertical scrolling. The same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending [discussion on virtual columns](https://github.com/hyparam/hightable/issues/297) if you're interested in this feature.
 
-Until now, everything is pretty standard. The next techniques are more specific to HighTable, and address challenges that arise when dealing with billions of rows.
+Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.
 
 ## Technique 3: downscale the scrollbar for global positioning
 
-Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="full-table">full table</span> container height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.
+Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="canvas">canvas</span> height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.
 
-Our approach to this issue in HighTable is to <strong>set a maximum height for the background div (8M pixels) and downscale the scrollbar above this limit.<strong>
+Our approach to this issue in hightable is to <strong>set a maximum height for the <span class="canvas">canvas</span> and downscale the scrollbar above this limit.</strong> In hightable, the threshold is set to 8 million pixels.
 
-Concretely, above the threshold, we compute a downscaling factor between the theoretical height of the full table and the maximum height of the background div, and use it to compute the visible rows from the scroll position, so that if you scroll to half the scrollbar, you reach the middle of the table.
+Concretely, above the threshold, the downscaling factor is the ratio between the theoretical height of the <span class="full-table">full table</span> and the maximum height of the <span class="canvas">canvas</span>. It is used to compute the visible rows so that if you scroll half the scrollbar, you reach the middle of the <span class="full-table">full table</span>.
 
 Below the threshold, the downscaling factor is 1, so everything works as before.
 
-The downscale factor is computed with:
+The downscale factor is computed as:
 
 ```typescript
-maxBackgroundHeight = 8_000_000 // in pixels
-rowHeight = 33 // in pixels
-numRows = data.numRows // total number of rows in the table
-if (numRows * rowHeight <= maxBackgroundHeight) {
+const fullTableHeight = data.numRows * rowHeight
+const maxCanvasHeight = 8_000_000
+if (fullTableHeight <= maxCanvasHeight) {
   downscaleFactor = 1
 } else {
-  downscaleFactor = (numRows * rowHeight) / maxBackgroundHeight
+  downscaleFactor = 
+    (fullTableHeight - viewport.clientHeight) /
+    (maxCanvasHeight - viewport.clientHeight)
 }
 ```
 
 <!-- Diagram/widget with the height vs the number of rows -->
 
-And the first visible row is computed with:
+Now, the first visible row is computed with:
 
 ```typescript
 firstVisibleRow = Math.floor(
@@ -287,77 +294,103 @@ firstVisibleRow = Math.floor(
 )
 ```
 
+and the <span class="table">table</span> top position is set to align the first visible row with the top of the <span class="viewport">viewport</span>:
+
+```typescript
+table.style.top = `${viewport.scrollTop}px`;
+```
+
 This lets the user navigate through the whole table, even with billions of rows.
 
-But there is a drawback, due to the limited precision of the scrollbar. The scroll bar precision is 1 <em>physical</em> pixel. Hence, on "high-resolution" screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio).
+The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.
 
-Let's keep one pixel for simplicity.
+<!-- add a button to run the animation -->
+{% renderTemplate "webc" %}
+<scroll-downscale></scroll-downscale>
+{% endrenderTemplate %}
 
-So, if the downscale factor is big, let's say 10,000, the minimal scroll move (1px) corresponds to 10,000 pixels in the full table. With a row height of 33px, it means that the minimal scroll move corresponds to about 300 rows. It creates <em>gaps</em> in the reachable rows:
+<!-- add buttons to scroll by one -->
 
-- if `scrollTop = 0`, the visible rows are `0-30`
-- if `scrollTop = 1`, the visible rows are `1000-1030`
-- if `scrollTop = 2`, the visible rows are `2000-2030`
+But there is a drawback. The scroll bar precision is limited to 1 <em>physical</em> pixel. On "high-resolution" screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio)). But let's keep one pixel for simplicity.
+
+So, when the downscale factor is big, like in the example above (2,189,781,021), the minimal scroll move (1px) corresponds to 2,189,781,021 pixels in the full table. With a row height of 30px, it means that the minimal scroll move corresponds to about 72,992,701 rows. It creates <em>gaps</em> in the reachable rows:
+
+- if <code><span class="viewport">viewport</span>.scrollTop = 0</code>, the visible rows are 0 to 5
+- if <code><span class="viewport">viewport</span>.scrollTop = 1</code>, the visible rows are 72,992,700 to 72,992,705
+- if <code><span class="viewport">viewport</span>.scrollTop = 2</code>, the visible rows are 145,985,401 to 145,985,406
 - and so on...
 
-There is no way to reach rows `31-60`, for example. Setting `scrollTop = 0.03` to reach rows `30-60` is impossible, because the browser rounds the scroll position to the nearest integer pixel.
+There is no way to navigate to the rows 6 to 10, for example. Setting <code><span class="viewport">viewport</span>.scrollTop = 0.00000000274</code> to reach rows 6 to 10 is impossible, because the browser rounds the scroll position to the nearest integer pixel.
 
-<!-- Diagram/widget showing the unreachable rows -->
-
-> As an anecdote, know that setting the scroll value programmatically is hard to predict anyway. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
+> As an anecdote, setting the scroll value programmatically is hard to predict anyway. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, `element.scrollTo({top: 100})` might result in `scrollTop = 100`, `scrollTop = 100.23`, or `scrollTop = 99.89`. You cannot know exactly, but within a margin of one pixel.
 >
-> The scrollTop value can even be outside of the expected range, for example negative or larger than the requested value. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, HighTable always clamps the `scrollTop` value within the expected range, and applies the CSS rule `overflow-y: clip` (`clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest).
+> The scrollTop value can even be outside of the expected range, for example negative or larger than the maximum value `scrollHeight - clientHeight`. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, hightable always clamps the `scrollTop` value within the expected range, and applies the CSS rule `overflow-y: clip`. `clip`, instead of `hidden`, shows the sticky header, even if I'm not sure why to be honest.
 
-Hence, if technique 3 provides global navigation through billions of rows, it does not allow fine scrolling, and some rows are unreachable. Technique 4 addresses this issue.
+The technique 3 that consists in downscaling the scroll bar thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.
 
 ## Technique 4: add a local scrolling mode
 
-The previous technique allows to scroll globally through the file, but prevent users to scroll locally because any scroll gesture will jump over gaps of unreachable rows.
+The previous technique allows to scroll globally through the file, but prevents users from scrolling locally because any scroll gesture will jump over gaps of unreachable rows.
 
 To fix that, we implement <strong>two scrolling modes: local and global scrolling</strong>. Local scrolling means moving row by row, while global scrolling means jumping to the position given by the scrollbar.
 
-The logic requires a state with:
-- the global anchor (`globalAnchor`) corresponding to a scrollbar position,
-- an offset (`localOffset`) to adjust the position for local scrolling.
+The logic requires a state with three values: `{ scrollTop, globalAnchor, localOffset }`
+- the last <span class="viewport">viewport</span> scroll top value is stored in the state to compute the scroll move on every scroll event.
+- the global anchor is the <span class="viewport">viewport</span> scroll top value corresponding to the last global scroll. It is updated on every global scroll, but not on local scrolls.
+- the local offset is the offset applied to the global anchor to compute the current scroll position. It is updated on every local scroll, and reset to 0 on global scrolls.
 
-The absolute positioning of the table wrapper is:
+The first visible row is computed from the global anchor and the local offset:
 
 ```typescript
-wrapper.style.top = `${viewport.scrollTop * downscaleFactor + state.localOffset}px`;
+const firstVisibleRow = Math.floor((
+    state.globalAnchor * downscaleFactor + state.localOffset
+  ) / rowHeight)
+
 ```
 
-On every scroll event, we compute the magnitude of the scroll move (difference between the viewport's scrollTop and the global anchor) and apply one of the three cases:
+The absolute positioning of the <span class="table">table</span> is now:
 
-- <b>global scroll</b>: if the scroll move is big, typically on scrollbar drag and drop, jump to the new global position (technique 3)
-- <b>resynchronization</b>: if many local scrolls have been accumulated, stop the local scroll mode, and jump to the global position corresponding to the scrollbar. In HighTable, we trigger resynchronization after scrolling 500 rows locally.
-- <b>local scroll</b>: if the scroll move is small, for example when using the mouse wheel, keep the state's `globalAnchor` value unchanged (ie: desynchronized from the real `scrollTop` value) and adjust the `localOffset`, so that the move appears local (for example, 3 rows downwards)
+```typescript
+table.style.top = `${viewport.scrollTop + state.localOffset}px`;
+```
+
+On every scroll event, we compute the magnitude of the scroll move (difference between the new <span class="viewport">viewport</span>'s scroll top and the previous one, stored in the state) and decide to apply:
+
+- a <b>global scroll</b> if the scroll move is big, typically on scrollbar drag and drop, and we jump to the new global position (technique 3),
+- or a <b>local scroll</b> if the scroll move is small, for example when using the mouse wheel. In that case, we keep the state's `globalAnchor` value unchanged (ie: not sync'ed anymore with the real `scrollTop` value) and adjust the `localOffset` so that the move appears local (for example, 3 rows downwards).
 
 Represented as code, the logic looks like this (simplified, pseudo-code):
 
 ```typescript
 const state = getState()
-const delta = viewport.scrollTop - state.globalAnchor
+const delta = viewport.scrollTop - state.scrollTop
 if (Math.abs(delta) > localThreshold) {
   // global scroll
-  state.localOffset = 0;
-  state.globalAnchor = viewport.scrollTop;
-} else if (Math.abs(state.localOffset + delta) > resyncThreshold) {
-  // resync to global scroll
-  state.localOffset = 0;
-  state.globalAnchor = viewport.scrollTop;
+  state.localOffset = 0
+  state.globalAnchor = viewport.scrollTop
 } else {
-  // local scroll.
-  // Accumulate the local offset, leaving the global anchor unchanged
+  // local scroll
   state.localOffset += delta
 }
 setState(state)
 ```
 
+Now, the user can navigate around the current row, but also jump to any part of the data.
+
+The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.
+
+<!-- add a button to run the animation -->
+{% renderTemplate "webc" %}
+<scroll-dual></scroll-dual>
+{% endrenderTemplate %}
+
 With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.
 
-<!-- video showing the three cases (with annotations on the video) -->
+> In hightable, we also resynchronize the global anchor with the scrollbar after accumulating many local scrolls, typically after scrolling more than 500 rows locally.
 
-But we also wanted to navigate the table with the keyboard by moving an active cell as in any Excel / Google Sheet. It requires programmatic scrolling, and is not trivial due to virtual scrolling. We explain it in the next section.
+<!-- screencast -->
+
+The last challenge, not the easiest one, is to keep the keyboard navigation working with this dual scrolling mode. We want the user to be able to move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires programmatic scrolling, and is not trivial due to the dual scrolling. We explain it in the next section.
 
 ## Technique 5: decouple vertical and horizontal scrolling
 
