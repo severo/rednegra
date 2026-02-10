@@ -9,13 +9,12 @@ TL;DR: In this post, I present <strong>five techniques related to vertical scrol
 
 <a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><img  alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="./scroll.jpg"></a>
 
-<!-- TODO: TODO: add a screencast of hightable on billions of rows -->
-
 It's a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.
 
 Table of contents:
 
 - [Introduction](#introduction)
+- [Demo](#demo)
 - [Scrolling basics](#scrolling-basics)
 - [Technique 1: load the data lazily](#technique-1-load-the-data-lazily)
 - [Technique 2: only render a table slice](#technique-2-only-render-a-table-slice)
@@ -46,7 +45,15 @@ In this post, I'll showcase five techniques we use to <strong>solve challenges r
 
 The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.
 
-The `<HighTable>` component is developed at [hyparam/hightable](https://github.com/hyparam/hightable/). It was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to its development for one year now. Try it in the [demo](https://hyparam.github.io/demos/hightable/#/large), or as part of the [Parquet viewer](https://hyparam.github.io/demos/hyparquet/).
+The `<HighTable>` component is developed at [hyparam/hightable](https://github.com/hyparam/hightable/). It was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to its development for one year now.
+
+## Demo
+
+Try the [hightable demo](https://hyparam.github.io/demos/hightable/#/large):
+
+<iframe src="https://hyparam.github.io/demos/hightable/#/large" title="HighTable demo with a large dataset" width="100%" height="400px"></iframe>
+
+HighTable is also used in the [Parquet viewer](https://hyparam.github.io/demos/hyparquet/), on [source.coop](https://source.coop/jrc-lucas/jrc-lucas-ml/ml_data/classes_dataset.csv) and in [Hyperparam](https://hyperparam.app):
 
 <a title="Try HighTable in Hyperparam, the workbench for LLM datasets" href="https://hyperparam.app"><img alt="HighTable embedded in hyperparam.app" src="./hightable.png"></a>
 
@@ -70,7 +77,6 @@ In the following widget, scroll the left box up and down to see how the right bo
 
 > If you use a keyboard, you can focus the left box with <kbd>Tab</kbd>, and scroll with the arrow keys <kbd>⏶</kbd> and <kbd>⏷</kbd>. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.
 
-<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-native></scroll-native>
 {% endrenderTemplate %}
@@ -113,7 +119,6 @@ The first challenge when working on a large dataset is that it will not fit in y
 
 The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:
 
-<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-lazy-load></scroll-lazy-load>
 {% endrenderTemplate %}
@@ -192,7 +197,7 @@ To achieve this, the HTML structure must be adapted, by adding an intermediate d
 <div class="viewport" style="overflow-y: auto;">
   <div class="canvas" style="position: relative; height: 30000px;">
     <table class="table" style="position: absolute; top: 3000px;">
-      <!-- TODO: the table only renders the visible rows -->
+      <!-- the table only renders the visible rows -->
       ...
     </table>
   </div>
@@ -215,7 +220,6 @@ The <span class="canvas">canvas</span> serves as a reference for absolutely posi
 
 The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the <span class="full-table">full table</span> button to see how the rendered rows fit in the full table:
 
-<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-slice></scroll-slice>
 {% endrenderTemplate %}
@@ -227,15 +231,15 @@ The HTML structure inside the <span class="table">table</span> slice is:
 ```html
 <table>
   <tbody>
-    <!-- TODO: Rows 0 to 99 are not rendered -->
+    <!-- Rows 0 to 99 are not rendered -->
 
-    <!-- TODO: Visible rows -->
+    <!-- Visible rows -->
     <tr>...row 100...</tr>
     <tr>...row 101...</tr>
     ...
     <tr>...row 119...</tr>
 
-    <!-- TODO: Rows 120 to 999 are not rendered -->
+    <!-- Rows 120 to 999 are not rendered -->
   </tbody>
 </table>
 ```
@@ -304,7 +308,6 @@ This lets the user navigate through the whole table, even with billions of rows.
 
 The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.
 
-<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-downscale></scroll-downscale>
 {% endrenderTemplate %}
@@ -377,7 +380,6 @@ Now, the user can navigate around the current row, but also jump to any part of 
 
 The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.
 
-<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-dual></scroll-dual>
 {% endrenderTemplate %}
@@ -385,8 +387,6 @@ The following widget shows the dual scrolling mode. Scroll the left box up and d
 With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.
 
 > In hightable, we also resynchronize the global anchor with the scrollbar after accumulating many local scrolls, typically after scrolling more than 500 rows locally.
-
-<!-- TODO: screencast -->
 
 The last challenge is to let the user move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires scrolling programmatic, decoupling vertical and horizontal scrolling. We explain it in the next section.
 
@@ -411,9 +411,6 @@ The process is as follows:
 5. set the focus to the new cell with `cell.focus({preventScroll: true})`.
 
 Note that, for point 1. (computing the next state), we respect the `block: nearest` behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.
-
-<!-- TODO: video -->
-
 
 The pseudo-code for decoupling vertical and horizontal scrolling requires a flag to prevent horizontal scrolling and focus during the programmatic vertical scroll:
 
