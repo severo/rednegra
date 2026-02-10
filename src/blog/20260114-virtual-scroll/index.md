@@ -9,7 +9,7 @@ TL;DR: In this post, I present <strong>five techniques related to vertical scrol
 
 <a title="Christies.com, Public domain, via Wikimedia Commons" href="https://commons.wikimedia.org/wiki/File:A_Qur%27an_scroll_(tumar)_commissioned_for_Ghiyath_al-Din_Sultan_Muhammad_ibn_Sultan_Eretna,_signed_Mubarakshah_ibn_%27Abdullah,_eastern_Anatolia,_dated_1353-54.jpg"><img  alt="A Qur&#039;an scroll (tumar) commissioned for Ghiyath al-Din Sultan Muhammad ibn Sultan Eretna, signed Mubarakshah ibn &#039;Abdullah, eastern Anatolia, dated 1353-54" src="./scroll.jpg"></a>
 
-<!-- TODO: add a screencast of hightable on billions of rows -->
+<!-- TODO: TODO: add a screencast of hightable on billions of rows -->
 
 It's a long post, which reflects the complexity of rendering billions of rows in a table, and the amount of work we put into building the React component.
 
@@ -70,7 +70,7 @@ In the following widget, scroll the left box up and down to see how the right bo
 
 > If you use a keyboard, you can focus the left box with <kbd>Tab</kbd>, and scroll with the arrow keys <kbd>⏶</kbd> and <kbd>⏷</kbd>. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.
 
-<!-- add a button to run the animation -->
+<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-native></scroll-native>
 {% endrenderTemplate %}
@@ -113,7 +113,7 @@ The first challenge when working on a large dataset is that it will not fit in y
 
 The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:
 
-<!-- add a button to run the animation -->
+<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-lazy-load></scroll-lazy-load>
 {% endrenderTemplate %}
@@ -192,7 +192,7 @@ To achieve this, the HTML structure must be adapted, by adding an intermediate d
 <div class="viewport" style="overflow-y: auto;">
   <div class="canvas" style="position: relative; height: 30000px;">
     <table class="table" style="position: absolute; top: 3000px;">
-      <!-- the table only renders the visible rows -->
+      <!-- TODO: the table only renders the visible rows -->
       ...
     </table>
   </div>
@@ -215,7 +215,7 @@ The <span class="canvas">canvas</span> serves as a reference for absolutely posi
 
 The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the <span class="full-table">full table</span> button to see how the rendered rows fit in the full table:
 
-<!-- add a button to run the animation -->
+<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-slice></scroll-slice>
 {% endrenderTemplate %}
@@ -227,15 +227,15 @@ The HTML structure inside the <span class="table">table</span> slice is:
 ```html
 <table>
   <tbody>
-    <!-- Rows 0 to 99 are not rendered -->
+    <!-- TODO: Rows 0 to 99 are not rendered -->
 
-    <!-- Visible rows -->
+    <!-- TODO: Visible rows -->
     <tr>...row 100...</tr>
     <tr>...row 101...</tr>
     ...
     <tr>...row 119...</tr>
 
-    <!-- Rows 120 to 999 are not rendered -->
+    <!-- TODO: Rows 120 to 999 are not rendered -->
   </tbody>
 </table>
 ```
@@ -284,7 +284,7 @@ if (fullTableHeight <= maxCanvasHeight) {
 }
 ```
 
-<!-- Diagram/widget with the height vs the number of rows -->
+<!-- TODO: Diagram/widget with the height vs the number of rows -->
 
 Now, the first visible row is computed with:
 
@@ -304,12 +304,12 @@ This lets the user navigate through the whole table, even with billions of rows.
 
 The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.
 
-<!-- add a button to run the animation -->
+<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-downscale></scroll-downscale>
 {% endrenderTemplate %}
 
-<!-- add buttons to scroll by one -->
+<!-- TODO: add buttons to scroll by one -->
 
 But there is a drawback. The scroll bar precision is limited to 1 <em>physical</em> pixel. On "high-resolution" screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / [devicePixelRatio](https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio)). But let's keep one pixel for simplicity.
 
@@ -379,7 +379,7 @@ Now, the user can navigate around the current row, but also jump to any part of 
 
 The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.
 
-<!-- add a button to run the animation -->
+<!-- TODO: add a button to run the animation -->
 {% renderTemplate "webc" %}
 <scroll-dual></scroll-dual>
 {% endrenderTemplate %}
@@ -388,73 +388,72 @@ With this approach, small scroll moves appear local, while large scroll moves ju
 
 > In hightable, we also resynchronize the global anchor with the scrollbar after accumulating many local scrolls, typically after scrolling more than 500 rows locally.
 
-<!-- screencast -->
+<!-- TODO: screencast -->
 
-The last challenge, not the easiest one, is to keep the keyboard navigation working with this dual scrolling mode. We want the user to be able to move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires programmatic scrolling, and is not trivial due to the dual scrolling. We explain it in the next section.
+The last challenge is to let the user move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires scrolling programmatic, decoupling vertical and horizontal scrolling. We explain it in the next section.
 
 ## Technique 5: decouple vertical and horizontal scrolling
 
-One of the HighTable requirements is to allow keyboard navigation (e.g. Down Arrow to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guides like the [Grid Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) and the [Data Grid Examples](https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/). We use [tabindex roving](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex) to handle the focus, providing all the expected [keyboard interactions](https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation).
+One of the hightable requirements is to allow keyboard navigation (e.g. <kbd>↓</kbd> to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guidance through the [Grid Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/grid/) and the [Data Grid Examples](https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/). We use [tabindex roving](https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex) to handle the focus, providing all the expected [keyboard interactions](https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation).
 
-> The simplest way to focus the current cell when navigating the keyboard is to call `cell.focus()`: it automatically scrolls to the focused cell. In HighTable, we don't use this default behavior, because it positions the cell at the <em>center</em> of the viewport, which does not feel natural.
+> The browser provides a useful default when calling `cell.focus()`: it automatically scrolls to the cell and focus it. But in hightable, we don't use the default behavior. Indeed, it positions the cell at the <em>center</em> of the viewport, which does not feel natural.
 >
-> Instead, we first call `cell.scrollIntoView({block: 'nearest', inline: 'nearest'})` to scroll by the minimal amount to show the next row and column.
->
-> We then only set the focus, with no scroll action, with `cell.focus({preventScroll: true})`.
+> To get the expected behavior, we first scroll by the minimal amount to show the next row and column, by calling `cell.scrollIntoView({block: 'nearest', inline: 'nearest'})`. Then we set the focus with no scroll action using `cell.focus({preventScroll: true})`.
 
-Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for fully rendered tables. Due to techniques 3 and 4, the vertical and horizontal scroll positions must be handled differently. In HighTable, to let the user navigate moving the current cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.
+Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (global scrolling) and 4 (local scrolling), multiple steps are required.. In particular, to let the user move the active cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.
 
-When the user moves the active cell, the next cell can be anywhere in the table, as all the expected keyboard interactions are supported. The next row can be near or far from the current row, which means that we might have to update the scrollbar position.
+When the user moves the active cell, the final position can be anywhere in the table: <kbd>↓</kbd> moves to the next row, while <kbd>Ctrl</kbd>+<kbd>↓</kbd> moves to the last row. If the move is big, we might have to scroll vertically to have the required cell in the DOM.
 
-To update the table view accordingly, we first ensure the row is visible by:
+The process is as follows:
 
-1. computing the next state (global position: scrollTop, and local position: localOffset),
-2. re-rendering the table slice,
-3. programmatically scrolling to the new scrollTop position, if the global position has changed.
+1. compute the next state (global anchor and local offset) that will make the row of the required cell visible,
+2. programmatically scroll to the new scrollTop position, if the global anchor has changed,
+3. once scrolled, render the table slice to have the required cell in the DOM,
+4. scroll horizontally if needed with `cell.scrollIntoView({inline: 'nearest'})`,
+5. set the focus to the new cell with `cell.focus({preventScroll: true})`.
 
-Once the row is visible, we ensure the column is visible by calling `cell.scrollIntoView({inline: 'nearest'})`, which only scrolls horizontally if needed.
+Note that, for point 1. (computing the next state), we respect the `block: nearest` behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.
 
-Then, we set the focus to the new cell with `cell.focus({preventScroll: true})`.
+<!-- TODO: video -->
 
-Note that, for point 1. (computing the next state), we follow the `block: nearest` behavior by minimizing the scroll move. If the next row is below the current viewport, it will be the last visible row in the next viewport. If it is above, it will be the first visible row. If it is already visible, no vertical scroll is applied.
 
-The pseudo-code for decoupling vertical and horizontal scrolling requires a semaphore to prevent horizontal scrolling and focus during the programmatic vertical scroll:
+The pseudo-code for decoupling vertical and horizontal scrolling requires a flag to prevent horizontal scrolling and focus during the programmatic vertical scroll:
 
 ```typescript
 /* in the cell navigation code */
-const shouldScroll = state.update() // technique 4
+const shouldScroll = state.update()
 renderTableSlice()
 if (shouldScroll) {
-  // set a semaphore to prevent horizontal scrolling + focus
+  // set a flag to prevent horizontal scrolling + focus
   // during programmatic scroll
-  setSemaphore('programmaticScroll')
+  setFlag('programmaticScroll')
   viewport.scrollTo({top: state.globalAnchor, behavior: 'instant'})
 }
 ```
 
 ```typescript
 /* in the scroll event handler */
-if (isSemaphoreSet('programmaticScroll')) {
+if (isFlagSet('programmaticScroll')) {
   // allow horizontal scrolling + focus,
   // once the programmatic scroll is done
-  clearSemaphore('programmaticScroll')
+  clearFlag('programmaticScroll')
 }
 ```
 
 ```typescript
 /* in the cell rendering code */
-if (!isSemaphoreSet('programmaticScroll')) {
+if (!isFlagSet('programmaticScroll')) {
   // horizontal scrolling + focus allowed
   cell.scrollIntoView({inline: 'nearest'})
   cell.focus({preventScroll: true})
 }
 ```
 
-> Note that we set `behavior: 'instant'` as a `scrollTo()` option, to ensure we only receive one `scroll` event. The alternative (`behavior: 'smooth'`) would trigger multiple `scroll` events, clearing the semaphore too early, and generating conflicts with the internal state due to intermediate unexpected `scrollTop` positions. An alternative would be to compare the `scrollTop` value in the scroll event handler with the expected value ([issue opened](https://github.com/hyparam/hightable/issues/393)).
+> We set `behavior: 'instant'` when scrolling programmatically to ensure we only receive one `scroll` event. The alternative, `behavior: 'smooth'`, would trigger multiple `scroll` events, clearing the flag too early, and generating conflicts with the internal state due to intermediate unexpected `scrollTop` positions (see the [open issue](https://github.com/hyparam/hightable/issues/393)).
 
 
 ## Conclusion
 
-No need for a [fake scroll bar](https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol). No need to render the table [as a `<canvas>`](https://github.com/xwinstone/canvastable). Thanks to these five techniques that rely on native HTML elements, [HighTable](https://github.com/hyparam/hightable) lets you navigate through billions of rows of a remote data file, in the browser.
+No need for a [fake scroll bar](https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol). No need to render the table [as a `<canvas>`](https://github.com/xwinstone/canvastable). Thanks to these five techniques that rely on native HTML elements, [hightable](https://github.com/hyparam/hightable) lets you navigate through billions of rows of a remote data file, in the browser.
 
 Give a star ⭐ to the [GitHub repo](https://github.com/hyparam/hightable) if you liked the article!
