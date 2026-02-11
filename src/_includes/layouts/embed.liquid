@@ -2,6 +2,11 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  {% comment %}
+    Let the Hyperparam blog control iframe's size
+    See https://stackoverflow.com/a/31513163/7351594
+  {% endcomment %}
+  <meta http-equiv="Access-Control-Allow-Origin" content="https://blog.hyperparam.app/">
   <link rel="stylesheet" href="/style.css"/>
   <link rel="stylesheet" href="/prism.css"/>
   <link rel="stylesheet" href="{% getBundleFileUrl "css" %}">
