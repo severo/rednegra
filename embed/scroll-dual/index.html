@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/prism.css">
+  <link rel="stylesheet" href="/bundle/0cMu0EqAfz.css">
+  <title></title>
+  <link href="https://huggingface.co/severo" rel="me">
+  <link href="https://observablehq.com/@severo" rel="me">
+  <link href="https://github.com/severo" rel="me">
+  <link href="https://mastodon.social/@severo" rel="me">
+  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
+  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
+  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
+  <link href="https://mamot.fr/@severo_bo" rel="me">
+  <link href="https://seenthis.net/people/severo" rel="me">
+</head>
+<body>
+  <scroll-dual class="w54cnlo5z">
+  <scroll-common id="scroll-dual" class="scroll-common wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="canvas-legend">canvas</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div data-scroll-top="0" data-global-anchor="0" data-local-offset="0" class="viewport">
+            <div class="canvas">
+              <div class="table-wrapper"></div>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box: small step for local scroll, large step for
+              global scroll.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <div class="wrapper"></div>
+          </div>
+          <div class="canvas-wrapper">
+            <div class="canvas"></div>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>global anchor</td>
+            <td class="global-anchor"></td>
+          </tr>
+          <tr>
+            <td>local offset</td>
+            <td class="local-offset"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+        </tbody></table>
+      </section>
+    </div>
+</scroll-common>
+<script>
+  function initSlice() {
+    const component = document.getElementById("scroll-dual");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const demoTableWrapper = component.querySelector(
+      ".demo .canvas .table-wrapper",
+    );
+    const explanationCanvas = component.querySelector(".explanation .canvas");
+    const wrapper = component.querySelector(".wrapper");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const canvasClientHeight = component.querySelector(".canvas-client-height");
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const tableStyleTop = component.querySelector(".table-style-top");
+    const globalAnchorElement = component.querySelector(".global-anchor");
+    const localOffsetElement = component.querySelector(".local-offset");
+
+    const numRows = parseInt(
+      getComputedStyle(component).getPropertyValue("--num_rows"),
+    );
+    const rowHeight = parseInt(
+      getComputedStyle(component).getPropertyValue("--row-height"),
+    );
+    const canvasHeight = parseInt(
+      getComputedStyle(component).getPropertyValue("--canvas-height"),
+    );
+    const fullTableHeight = numRows * rowHeight;
+    const downscaleFactor =
+      fullTableHeight <= canvasHeight
+        ? 1
+        : (fullTableHeight - viewport.clientHeight) /
+          (canvasHeight - viewport.clientHeight);
+
+    function update() {
+      const state = {
+        globalAnchor: parseFloat(viewport.dataset.globalAnchor),
+        localOffset: parseFloat(viewport.dataset.localOffset),
+        scrollTop: parseFloat(viewport.dataset.scrollTop),
+      };
+
+      const maxScrollTop = canvasHeight - viewport.clientHeight;
+      const scrollTop = Math.min(Math.max(viewport.scrollTop, 0), maxScrollTop);
+
+      const delta = scrollTop - state.scrollTop;
+      if (
+        Math.abs(delta) > 30 ||
+        scrollTop === 0 ||
+        scrollTop === maxScrollTop
+      ) {
+        // global scroll
+        state.globalAnchor = scrollTop;
+        state.localOffset = 0;
+      } else {
+        state.localOffset += delta;
+      }
+
+      const virtualScrollTop =
+        state.globalAnchor * downscaleFactor + state.localOffset;
+      const maxRows = Math.ceil(viewport.clientHeight / rowHeight);
+      const firstVisibleRow = Math.max(
+        0,
+        Math.min(numRows - 1, Math.floor(virtualScrollTop / rowHeight)),
+      );
+      const lastVisibleRow = Math.max(
+        firstVisibleRow + 1,
+        Math.min(
+          numRows,
+          firstVisibleRow + maxRows,
+          Math.ceil((virtualScrollTop + viewport.clientHeight) / rowHeight),
+        ),
+      );
+
+      // save state
+      state.scrollTop = scrollTop;
+      viewport.dataset.globalAnchor = state.globalAnchor;
+      viewport.dataset.localOffset = state.localOffset;
+      viewport.dataset.scrollTop = state.scrollTop;
+
+      const table = document.createElement("table");
+      for (let i = firstVisibleRow; i < lastVisibleRow; i++) {
+        const row = document.createElement("tr");
+        const cell = document.createElement("td");
+        const explanationCell = document.createElement("td");
+        cell.textContent = `row ${i.toLocaleString("en-US")}`;
+        row.appendChild(cell);
+        table.appendChild(row);
+      }
+      wrapper.innerHTML = "";
+      wrapper.appendChild(table);
+      demoTableWrapper.innerHTML = "";
+      const demoTable = table.cloneNode(true);
+      demoTableWrapper.appendChild(demoTable);
+
+      const hiddenPixelsBefore = virtualScrollTop - firstVisibleRow * rowHeight;
+      const top =
+        scrollTop === maxScrollTop
+          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
+          : `${Math.round(scrollTop - hiddenPixelsBefore)}px`;
+      wrapper.style.top = top;
+      demoTableWrapper.style.top = top;
+
+      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
+      explanationCanvas.style.top = `${-scrollTop}px`;
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${table.clientHeight}px`;
+      canvasClientHeight.textContent = `${canvasHeight}px`;
+      tableStyleTop.textContent = `${top}`;
+      globalAnchorElement.textContent = `${state.globalAnchor}px`;
+      localOffsetElement.textContent = `${state.localOffset}px`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      function reset() {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+      }
+      if (playButton.textContent === "Stop") {
+        reset();
+        return;
+      }
+      playButton.textContent = "Stop";
+
+      // animation:
+      // 1. scroll smoothly during 2 seconds to 100px
+      // 2. jump to scrollTop 400px
+      // 3. scroll smoothly during 2 seconds as a wave between 400px, 300px and 500px
+      // 4. jump to the last scrollTop
+      const keyframes = [
+        { scrollTop: 0, duration: 0 },
+        { scrollTop: 20, duration: 2000 },
+        { scrollTop: 100, duration: 0 },
+        { scrollTop: 90, duration: 1500 },
+        { scrollTop: 110, duration: 3000 },
+        { scrollTop: 50, duration: 0 },
+        { scrollTop: 50, duration: 1000 },
+        { scrollTop: 90, duration: 0 },
+        { scrollTop: 90, duration: 1000 },
+        { scrollTop: 120, duration: 0 },
+        { scrollTop: 120, duration: 1000 },
+        { scrollTop: 0, duration: 0 },
+      ];
+      const lastScrollTop = viewport.scrollTop;
+      let currentKeyframe = 0;
+
+      function animate() {
+        const { scrollTop, duration } = keyframes[currentKeyframe];
+        if (duration === 0) {
+          viewport.scrollTop = scrollTop;
+          currentKeyframe++;
+          if (currentKeyframe < keyframes.length) {
+            animationFrameId = requestAnimationFrame(animate);
+          } else {
+            viewport.scrollTop = 0;
+            reset();
+          }
+        } else {
+          const startTime = performance.now();
+          const startScrollTop = viewport.scrollTop;
+
+          function step() {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            viewport.scrollTop =
+              startScrollTop + (scrollTop - startScrollTop) * progress;
+            if (progress < 1) {
+              animationFrameId = requestAnimationFrame(step);
+            } else {
+              currentKeyframe++;
+              if (currentKeyframe < keyframes.length) {
+                animationFrameId = requestAnimationFrame(animate);
+              } else {
+                viewport.scrollTop = 0;
+                reset();
+              }
+            }
+          }
+
+          animationFrameId = requestAnimationFrame(step);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    update();
+  }
+  document.addEventListener("DOMContentLoaded", initSlice);
+</script>
+</scroll-dual>
+
+</body>
+

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/prism.css">
+  <link rel="stylesheet" href="/bundle/DASExrq5SI.css">
+  <title></title>
+  <link href="https://huggingface.co/severo" rel="me">
+  <link href="https://observablehq.com/@severo" rel="me">
+  <link href="https://github.com/severo" rel="me">
+  <link href="https://mastodon.social/@severo" rel="me">
+  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
+  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
+  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
+  <link href="https://mamot.fr/@severo_bo" rel="me">
+  <link href="https://seenthis.net/people/severo" rel="me">
+</head>
+<body>
+  <scroll-lazy-load>
+  <scroll-common id="scroll-lazy-load" class="wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box, to see on the right how the cells are loaded lazily.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr style="display: none">
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr style="display: none">
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+<p><tr><td>first visible row (inclusive)</td>
+<td class="first-visible-row"></td>
+</tr>
+<tr>
+<td>last visible row (exclusive)</td>
+<td class="last-visible-row"></td>
+</tr>
+</p></tbody></table>
+</section>
+</div><p></p>
+</scroll-common>
+<script>
+  function initLazyLoad() {
+    const component = document.getElementById("scroll-lazy-load");
+    const content = component.querySelector(".content");
+    const tables = content.querySelectorAll("table");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const viewportScrollTop = component.querySelector(".viewport-scroll-top");
+    const viewportClientHeight = component.querySelector(
+      ".viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(".table-client-height");
+    const firstVisibleRowTd = component.querySelector(".first-visible-row");
+    const lastVisibleRowTd = component.querySelector(".last-visible-row");
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      const rowHeight = parseInt(
+        getComputedStyle(component).getPropertyValue("--row-height"),
+      );
+      const firstVisibleRow = Math.floor(scrollTop / rowHeight);
+      const lastVisibleRow = Math.ceil(
+        (scrollTop + viewport.clientHeight) / rowHeight,
+      );
+      for (const table of tables) {
+        const tableRows = table.querySelectorAll("tr");
+        tableRows.forEach((row, index) => {
+          if (index < firstVisibleRow || index >= lastVisibleRow) {
+            row.firstElementChild.textContent = "";
+          } else {
+            row.firstElementChild.textContent = `row ${index}`;
+          }
+        });
+      }
+
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
+      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+    }
+
+    viewport.onscroll = function () {
+      explanationBackground.style.transform = `translateY(-${viewport.scrollTop}px)`;
+      update();
+    };
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initLazyLoad);
+</script>
+</scroll-lazy-load>
+
+</body>
+

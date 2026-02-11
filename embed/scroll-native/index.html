@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/prism.css">
+  <link rel="stylesheet" href="/bundle/DASExrq5SI.css">
+  <title></title>
+  <link href="https://huggingface.co/severo" rel="me">
+  <link href="https://observablehq.com/@severo" rel="me">
+  <link href="https://github.com/severo" rel="me">
+  <link href="https://mastodon.social/@severo" rel="me">
+  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
+  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
+  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
+  <link href="https://mamot.fr/@severo_bo" rel="me">
+  <link href="https://seenthis.net/people/severo" rel="me">
+</head>
+<body>
+  <scroll-native>
+  <scroll-common id="scroll-native" class="wir2b_bez">
+    <div class="main">
+      <section class="content">
+        <div class="demo">
+          <div class="legend">
+            <p class="viewport-legend">viewport</p>
+            <p class="table-legend">table</p>
+          </div>
+          <div class="viewport">
+            <div class="background-element">
+              <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+            </div>
+          </div>
+          <div class="text-description">
+            <p>
+              Scroll the left box to see how the right box mimics the scrolling
+              effect.
+            </p>
+            <button type="button" class="play">Play</button>
+          </div>
+        </div>
+        <div class="explanation">
+          <div class="background-element">
+            <scroll-full-table>
+  <!-- ^ without this, an extra <p> element is appended below the table if the file has a blank last line -->
+  <table class="full-table">
+    <tbody><tr>
+      <td>row 0</td>
+    </tr>
+    <tr>
+      <td>row 1</td>
+    </tr>
+    <tr>
+      <td>row 2</td>
+    </tr>
+    <tr>
+      <td>row 3</td>
+    </tr>
+    <tr>
+      <td>row 4</td>
+    </tr>
+    <tr>
+      <td>row 5</td>
+    </tr>
+    <tr>
+      <td>row 6</td>
+    </tr>
+    <tr>
+      <td>row 7</td>
+    </tr>
+    <tr>
+      <td>row 8</td>
+    </tr>
+    <tr>
+      <td>row 9</td>
+    </tr>
+  </tbody></table>
+</scroll-full-table>
+          </div>
+          <div class="viewport"></div>
+        </div>
+      </section>
+      <section class="variables">
+        <table>
+          <tbody><tr>
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>first visible pixel (inclusive)</td>
+            <td class="first-visible-pixel"></td>
+          </tr>
+          <tr>
+            <td>last visible pixel (exclusive)</td>
+            <td class="last-visible-pixel"></td>
+          </tr>
+        </tbody></table>
+      </section>
+    </div>
+</scroll-common>
+<script>
+  function initNative() {
+    const component = document.getElementById("scroll-native");
+    const viewport = component.querySelector(".demo .viewport");
+    const explanationBackground = component.querySelector(
+      ".explanation .background-element",
+    );
+    const viewportScrollTop = component.querySelector(
+      ".variables .viewport-scroll-top",
+    );
+    const viewportClientHeight = component.querySelector(
+      ".variables .viewport-client-height",
+    );
+    const viewportScrollHeight = component.querySelector(
+      ".variables .viewport-scroll-height",
+    );
+    const tableClientHeight = component.querySelector(
+      ".variables .table-client-height",
+    );
+    const firstVisiblePixel = component.querySelector(
+      ".variables .first-visible-pixel",
+    );
+    const lastVisiblePixel = component.querySelector(
+      ".variables .last-visible-pixel",
+    );
+
+    function update() {
+      const scrollTop = viewport.scrollTop;
+      explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
+      viewportScrollTop.textContent = `${scrollTop}px`;
+      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
+      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
+      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
+      firstVisiblePixel.textContent = `${scrollTop}px`;
+      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
+    }
+
+    viewport.onscroll = update;
+    update();
+
+    const playButton = component.querySelector(".play");
+    let animationFrameId = null;
+    playButton.onclick = () => {
+      if (playButton.textContent === "Stop") {
+        playButton.textContent = "Play";
+        if (animationFrameId) {
+          cancelAnimationFrame(animationFrameId);
+        }
+        return;
+      }
+      playButton.textContent = "Stop";
+      viewport.scrollTop = 0;
+      const duration = 5000;
+      const startTime = performance.now();
+
+      function animate() {
+        const elapsed = performance.now() - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        viewport.scrollTop =
+          progress * (viewport.scrollHeight - viewport.clientHeight);
+        if (progress < 1) {
+          animationFrameId = requestAnimationFrame(animate);
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+  }
+  document.addEventListener("DOMContentLoaded", initNative);
+</script>
+</scroll-native>
+
+</body>
+
