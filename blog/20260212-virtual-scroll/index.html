@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/prism.css">
-  <link rel="stylesheet" href="/bundle/ku9Ue7L66I.css">
+  <link rel="stylesheet" href="/bundle/7X4hBBXvZ0.css">
   <title>Virtual Scrolling for Billions of Rows — Techniques from HighTable</title>
   <link href="https://huggingface.co/severo" rel="me">
   <link href="https://observablehq.com/@severo" rel="me">
@@ -73,7 +73,7 @@
 <p>If you use a keyboard, you can focus the left box with <kbd>Tab</kbd>, and scroll with the arrow keys <kbd>⏶</kbd> and <kbd>⏷</kbd>. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.</p>
 </blockquote>
 <scroll-native>
-  <scroll-common id="scroll-native" class="wir2b_bez">
+  <scroll-common id="scroll-native" class="wymkabdaw">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -170,32 +170,20 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tbody><tr>
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-          <tr>
-            <td>first visible pixel (inclusive)</td>
-            <td class="first-visible-pixel"></td>
-          </tr>
-          <tr>
-            <td>last visible pixel (exclusive)</td>
-            <td class="last-visible-pixel"></td>
-          </tr>
-        </tbody></table>
+        <dl>
+          <dt><span class="viewport">viewport</span>.clientHeight</dt>
+          <dd class="viewport-client-height"></dd>
+          <dt><span class="viewport">viewport</span>.scrollHeight</dt>
+          <dd class="viewport-scroll-height"></dd>
+          <dt><span class="table">table</span>.clientHeight</dt>
+          <dd class="table-client-height"></dd>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt>first visible pixel (inclusive)</dt>
+          <dd class="first-visible-pixel"></dd>
+          <dt>last visible pixel (exclusive)</dt>
+          <dd class="last-visible-pixel"></dd>
+        </dl>
       </section>
     </div>
 </scroll-common>
@@ -225,15 +213,20 @@
       ".variables .last-visible-pixel",
     );
 
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
+
     function update() {
       const scrollTop = viewport.scrollTop;
       explanationBackground.style.transform = `translateY(-${scrollTop}px)`;
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
-      firstVisiblePixel.textContent = `${scrollTop}px`;
-      lastVisiblePixel.textContent = `${scrollTop + viewport.clientHeight}px`;
+      viewportScrollTop.textContent = px(scrollTop);
+      viewportClientHeight.textContent = px(viewport.clientHeight);
+      viewportScrollHeight.textContent = px(viewport.scrollHeight);
+      tableClientHeight.textContent = px(explanationBackground.clientHeight);
+      firstVisiblePixel.textContent = px(scrollTop);
+      lastVisiblePixel.textContent = px(scrollTop + viewport.clientHeight);
     }
 
     viewport.onscroll = update;
@@ -302,7 +295,7 @@
 </blockquote>
 <p>The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:</p>
 <scroll-lazy-load>
-  <scroll-common id="scroll-lazy-load" class="wir2b_bez">
+  <scroll-common id="scroll-lazy-load" class="wymkabdaw">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -351,7 +344,8 @@
           </div>
           <div class="text-description">
             <p>
-              Scroll the left box, to see on the right how the cells are loaded lazily.
+              Scroll the left box, to see on the right how the cells are loaded
+              lazily.
             </p>
             <button type="button" class="play">Play</button>
           </div>
@@ -398,33 +392,16 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tbody><tr style="display: none">
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-<p><tr><td>first visible row (inclusive)</td>
-<td class="first-visible-row"></td>
-</tr>
-<tr>
-<td>last visible row (exclusive)</td>
-<td class="last-visible-row"></td>
-</tr>
-</p></tbody></table>
-</section>
-</div><p></p>
+        <dl>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt>first visible row (inclusive)</dt>
+          <dd class="first-visible-row"></dd>
+          <dt>last visible row (exclusive)</dt>
+          <dd class="last-visible-row"></dd>
+        </dl>
+      </section>
+    </div>
 </scroll-common>
 <script>
   function initLazyLoad() {
@@ -436,15 +413,16 @@
       ".explanation .background-element",
     );
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
-    const viewportClientHeight = component.querySelector(
-      ".viewport-client-height",
-    );
-    const viewportScrollHeight = component.querySelector(
-      ".viewport-scroll-height",
-    );
-    const tableClientHeight = component.querySelector(".table-client-height");
     const firstVisibleRowTd = component.querySelector(".first-visible-row");
     const lastVisibleRowTd = component.querySelector(".last-visible-row");
+
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
+    function row(value) {
+      return `row ${value}`;
+    }
 
     function update() {
       const scrollTop = viewport.scrollTop;
@@ -466,12 +444,9 @@
         });
       }
 
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
-      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
-      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+      viewportScrollTop.textContent = px(viewport.scrollTop);
+      firstVisibleRowTd.textContent = row(firstVisibleRow);
+      lastVisibleRowTd.textContent = row(lastVisibleRow);
     }
 
     viewport.onscroll = function () {
@@ -577,7 +552,7 @@
 <p>The <span class="canvas">canvas</span> serves as a reference for absolutely positioning the <span class="table">table</span> slice.</p>
 <p>The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the <span class="full-table">full table</span> button to see how the rendered rows fit in the full table:</p>
 <scroll-slice class="wazmcani3">
-  <scroll-common id="scroll-slice" class="wir2b_bez">
+  <scroll-common id="scroll-slice" class="wymkabdaw">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -682,36 +657,18 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tbody><tr style="display: none">
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr>
-            <td><span class="canvas">canvas</span>.clientHeight</td>
-            <td class="canvas-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.style.top</td>
-            <td class="table-style-top"></td>
-          </tr>
-          <tr>
-            <td><span class="table">hidden pixels</span> above viewport</td>
-            <td class="hidden-pixels-above-viewport"></td>
-          </tr>
-        </tbody></table>
+        <dl>
+          <dt><span class="canvas">canvas</span>.clientHeight</dt>
+          <dd class="canvas-client-height"></dd>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt><span class="table">table</span>.clientHeight</dt>
+          <dd class="table-client-height"></dd>
+          <dt><span class="table">table</span>.style.top</dt>
+          <dd class="table-style-top"></dd>
+          <dt><span class="table">hidden pixels</span> above viewport</dt>
+          <dd class="hidden-pixels-above-viewport"></dd>
+        </dl>
       </section>
     </div>
 </scroll-common>
@@ -727,12 +684,6 @@
       explanationBackground.querySelector(".full-table");
     const canvas = component.querySelector(".explanation .canvas");
     const wrapper = component.querySelector(".wrapper");
-    const viewportClientHeight = component.querySelector(
-      ".viewport-client-height",
-    );
-    const viewportScrollHeight = component.querySelector(
-      ".viewport-scroll-height",
-    );
     const tableClientHeight = component.querySelector(".table-client-height");
     const canvasClientHeight = component.querySelector(".canvas-client-height");
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
@@ -740,6 +691,11 @@
     const hiddenPixelsAboveViewport = component.querySelector(
       ".hidden-pixels-above-viewport",
     );
+
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
 
     function update() {
       const scrollTop = viewport.scrollTop;
@@ -762,18 +718,26 @@
       }
       wrapper.innerHTML = "";
       wrapper.appendChild(table);
-      wrapper.style.top = `${firstVisibleRow * rowHeight}px`;
+      wrapper.style.top = px(firstVisibleRow * rowHeight);
 
-      canvas.style.height = `${explanationFullTable.clientHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
-      canvas.style.top = `${-scrollTop}px`;
+      canvas.style.height = px(
+        explanationFullTable.clientHeight +
+          2 *
+            parseInt(
+              getComputedStyle(component).getPropertyValue(
+                "--wide-border-width",
+              ),
+            ),
+      );
+      canvas.style.top = px(-scrollTop);
 
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${table.clientHeight}px`;
-      canvasClientHeight.textContent = `${explanationFullTable.clientHeight}px`;
-      tableStyleTop.textContent = `${wrapper.style.top}`;
-      hiddenPixelsAboveViewport.textContent = `${scrollTop - firstVisibleRow * rowHeight}px`;
+      viewportScrollTop.textContent = px(scrollTop);
+      tableClientHeight.textContent = px(table.clientHeight);
+      canvasClientHeight.textContent = px(explanationFullTable.clientHeight);
+      tableStyleTop.textContent = wrapper.style.top;
+      hiddenPixelsAboveViewport.textContent = px(
+        scrollTop - firstVisibleRow * rowHeight,
+      );
     }
 
     viewport.onscroll = function () {
@@ -879,7 +843,7 @@
 <p>This lets the user navigate through the whole table, even with billions of rows.</p>
 <p>The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.</p>
 <scroll-downscale class="w54cnlo5z">
-  <scroll-common id="scroll-downscale" class="scroll-common wir2b_bez">
+  <scroll-common id="scroll-downscale" class="scroll-common wymkabdaw">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -915,40 +879,20 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tbody><tr style="display: none">
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr>
-            <td><span class="canvas">canvas</span>.clientHeight</td>
-            <td class="canvas-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.style.top</td>
-            <td class="table-style-top"></td>
-          </tr>
-          <tr>
-            <td>downscale factor</td>
-            <td class="downscale-factor"></td>
-          </tr>
-          <tr>
-            <td><span class="table">unreachable rows</span> in 1px scroll</td>
-            <td class="unreachable-rows-in-1px-scroll"></td>
-          </tr>
-        </tbody></table>
+        <dl>
+          <dt><span class="canvas">canvas</span>.clientHeight</dt>
+          <dd class="canvas-client-height"></dd>
+          <dt><span class="table">table</span>.clientHeight</dt>
+          <dd class="table-client-height"></dd>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt><span class="table">table</span>.style.top</dt>
+          <dd class="table-style-top"></dd>
+          <dt>downscale factor</dt>
+          <dd class="downscale-factor"></dd>
+          <dt><span class="table">unreachable rows</span> in 1px scroll</dt>
+          <dd class="unreachable-rows-in-1px-scroll"></dd>
+        </dl>
       </section>
     </div>
 </scroll-common>
@@ -964,12 +908,6 @@
     );
     const explanationCanvas = component.querySelector(".explanation .canvas");
     const wrapper = component.querySelector(".wrapper");
-    const viewportClientHeight = component.querySelector(
-      ".viewport-client-height",
-    );
-    const viewportScrollHeight = component.querySelector(
-      ".viewport-scroll-height",
-    );
     const tableClientHeight = component.querySelector(".table-client-height");
     const canvasClientHeight = component.querySelector(".canvas-client-height");
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
@@ -994,6 +932,14 @@
         ? 1
         : (fullTableHeight - viewport.clientHeight) /
           (canvasHeight - viewport.clientHeight);
+
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
+    function rows(value) {
+      return `${value.toLocaleString("en-US")} rows`;
+    }
 
     function update() {
       const maxScrollTop = canvasHeight - viewport.clientHeight;
@@ -1032,18 +978,26 @@
       wrapper.style.top = top;
       demoTableWrapper.style.top = top;
 
-      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
-      explanationCanvas.style.top = `${-scrollTop}px`;
+      explanationCanvas.style.height = px(
+        canvasHeight +
+          2 *
+            parseInt(
+              getComputedStyle(component).getPropertyValue(
+                "--wide-border-width",
+              ),
+            ),
+      );
+      explanationCanvas.style.top = px(-scrollTop);
 
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${table.clientHeight}px`;
-      canvasClientHeight.textContent = `${canvasHeight}px`;
-      tableStyleTop.textContent = `${top}`;
+      viewportScrollTop.textContent = px(scrollTop);
+      tableClientHeight.textContent = px(table.clientHeight);
+      canvasClientHeight.textContent = px(canvasHeight);
+      tableStyleTop.textContent = top;
       downscaleFactorElement.textContent =
         Math.round(downscaleFactor).toLocaleString("en-US");
-      unreachableRowsIn1pxScroll.textContent = `${(Math.round(downscaleFactor / rowHeight) - maxRows).toLocaleString("en-US")} rows`;
+      unreachableRowsIn1pxScroll.textContent = rows(
+        Math.round(downscaleFactor / rowHeight) - maxRows,
+      );
     }
 
     viewport.onscroll = function () {
@@ -1144,7 +1098,7 @@
 <p>Now, the user can navigate around the current row, but also jump to any part of the data.</p>
 <p>The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.</p>
 <scroll-dual class="w54cnlo5z">
-  <scroll-common id="scroll-dual" class="scroll-common wir2b_bez">
+  <scroll-common id="scroll-dual" class="scroll-common wymkabdaw">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -1177,40 +1131,20 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tbody><tr style="display: none">
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr>
-            <td><span class="canvas">canvas</span>.clientHeight</td>
-            <td class="canvas-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-          <tr>
-            <td>global anchor</td>
-            <td class="global-anchor"></td>
-          </tr>
-          <tr>
-            <td>local offset</td>
-            <td class="local-offset"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.style.top</td>
-            <td class="table-style-top"></td>
-          </tr>
-        </tbody></table>
+        <dl>
+          <dt><span class="canvas">canvas</span>.clientHeight</dt>
+          <dd class="canvas-client-height"></dd>
+          <dt><span class="table">table</span>.clientHeight</dt>
+          <dd class="table-client-height"></dd>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt>global anchor</dt>
+          <dd class="global-anchor"></dd>
+          <dt>local offset</dt>
+          <dd class="local-offset"></dd>
+          <dt><span class="table">table</span>.style.top</dt>
+          <dd class="table-style-top"></dd>
+        </dl>
       </section>
     </div>
 </scroll-common>
@@ -1226,12 +1160,6 @@
     );
     const explanationCanvas = component.querySelector(".explanation .canvas");
     const wrapper = component.querySelector(".wrapper");
-    const viewportClientHeight = component.querySelector(
-      ".viewport-client-height",
-    );
-    const viewportScrollHeight = component.querySelector(
-      ".viewport-scroll-height",
-    );
     const tableClientHeight = component.querySelector(".table-client-height");
     const canvasClientHeight = component.querySelector(".canvas-client-height");
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
@@ -1254,6 +1182,11 @@
         ? 1
         : (fullTableHeight - viewport.clientHeight) /
           (canvasHeight - viewport.clientHeight);
+
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
 
     function update() {
       const state = {
@@ -1318,22 +1251,28 @@
       const hiddenPixelsBefore = virtualScrollTop - firstVisibleRow * rowHeight;
       const top =
         scrollTop === maxScrollTop
-          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
-          : `${Math.round(scrollTop - hiddenPixelsBefore)}px`;
+          ? px(Math.round(canvasHeight - maxRows * rowHeight))
+          : px(Math.round(scrollTop - hiddenPixelsBefore));
       wrapper.style.top = top;
       demoTableWrapper.style.top = top;
 
-      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
-      explanationCanvas.style.top = `${-scrollTop}px`;
+      explanationCanvas.style.height = px(
+        canvasHeight +
+          2 *
+            parseInt(
+              getComputedStyle(component).getPropertyValue(
+                "--wide-border-width",
+              ),
+            ),
+      );
+      explanationCanvas.style.top = px(-scrollTop);
 
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${table.clientHeight}px`;
-      canvasClientHeight.textContent = `${canvasHeight}px`;
-      tableStyleTop.textContent = `${top}`;
-      globalAnchorElement.textContent = `${state.globalAnchor}px`;
-      localOffsetElement.textContent = `${state.localOffset}px`;
+      viewportScrollTop.textContent = px(scrollTop);
+      tableClientHeight.textContent = px(table.clientHeight);
+      canvasClientHeight.textContent = px(canvasHeight);
+      tableStyleTop.textContent = top;
+      globalAnchorElement.textContent = px(state.globalAnchor);
+      localOffsetElement.textContent = px(state.localOffset);
     }
 
     viewport.onscroll = function () {

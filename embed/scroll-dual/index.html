@@ -4,7 +4,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/prism.css">
-  <link rel="stylesheet" href="/bundle/0cMu0EqAfz.css">
+  <link rel="stylesheet" href="/bundle/OJoi993uFQ.css">
   <title></title>
   <link href="https://huggingface.co/severo" rel="me">
   <link href="https://observablehq.com/@severo" rel="me">
@@ -18,7 +18,7 @@
 </head>
 <body>
   <scroll-dual class="w54cnlo5z">
-  <scroll-common id="scroll-dual" class="scroll-common wir2b_bez">
+  <scroll-common id="scroll-dual" class="scroll-common wymkabdaw">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -51,40 +51,20 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tbody><tr style="display: none">
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr>
-            <td><span class="canvas">canvas</span>.clientHeight</td>
-            <td class="canvas-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-          <tr>
-            <td>global anchor</td>
-            <td class="global-anchor"></td>
-          </tr>
-          <tr>
-            <td>local offset</td>
-            <td class="local-offset"></td>
-          </tr>
-          <tr>
-            <td><span class="table">table</span>.style.top</td>
-            <td class="table-style-top"></td>
-          </tr>
-        </tbody></table>
+        <dl>
+          <dt><span class="canvas">canvas</span>.clientHeight</dt>
+          <dd class="canvas-client-height"></dd>
+          <dt><span class="table">table</span>.clientHeight</dt>
+          <dd class="table-client-height"></dd>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt>global anchor</dt>
+          <dd class="global-anchor"></dd>
+          <dt>local offset</dt>
+          <dd class="local-offset"></dd>
+          <dt><span class="table">table</span>.style.top</dt>
+          <dd class="table-style-top"></dd>
+        </dl>
       </section>
     </div>
 </scroll-common>
@@ -100,12 +80,6 @@
     );
     const explanationCanvas = component.querySelector(".explanation .canvas");
     const wrapper = component.querySelector(".wrapper");
-    const viewportClientHeight = component.querySelector(
-      ".viewport-client-height",
-    );
-    const viewportScrollHeight = component.querySelector(
-      ".viewport-scroll-height",
-    );
     const tableClientHeight = component.querySelector(".table-client-height");
     const canvasClientHeight = component.querySelector(".canvas-client-height");
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
@@ -128,6 +102,11 @@
         ? 1
         : (fullTableHeight - viewport.clientHeight) /
           (canvasHeight - viewport.clientHeight);
+
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
 
     function update() {
       const state = {
@@ -192,22 +171,28 @@
       const hiddenPixelsBefore = virtualScrollTop - firstVisibleRow * rowHeight;
       const top =
         scrollTop === maxScrollTop
-          ? `${Math.round(canvasHeight - maxRows * rowHeight)}px`
-          : `${Math.round(scrollTop - hiddenPixelsBefore)}px`;
+          ? px(Math.round(canvasHeight - maxRows * rowHeight))
+          : px(Math.round(scrollTop - hiddenPixelsBefore));
       wrapper.style.top = top;
       demoTableWrapper.style.top = top;
 
-      explanationCanvas.style.height = `${canvasHeight + 2 * parseInt(getComputedStyle(component).getPropertyValue("--wide-border-width"))}px`;
-      explanationCanvas.style.top = `${-scrollTop}px`;
+      explanationCanvas.style.height = px(
+        canvasHeight +
+          2 *
+            parseInt(
+              getComputedStyle(component).getPropertyValue(
+                "--wide-border-width",
+              ),
+            ),
+      );
+      explanationCanvas.style.top = px(-scrollTop);
 
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${table.clientHeight}px`;
-      canvasClientHeight.textContent = `${canvasHeight}px`;
-      tableStyleTop.textContent = `${top}`;
-      globalAnchorElement.textContent = `${state.globalAnchor}px`;
-      localOffsetElement.textContent = `${state.localOffset}px`;
+      viewportScrollTop.textContent = px(scrollTop);
+      tableClientHeight.textContent = px(table.clientHeight);
+      canvasClientHeight.textContent = px(canvasHeight);
+      tableStyleTop.textContent = top;
+      globalAnchorElement.textContent = px(state.globalAnchor);
+      localOffsetElement.textContent = px(state.localOffset);
     }
 
     viewport.onscroll = function () {

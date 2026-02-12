@@ -1,4 +1,4 @@
-.wir2b_bez{* {
+.wymkabdaw{* {
       box-sizing: border-box;
     }
 
@@ -62,17 +62,9 @@
       font-family: var(--mono-font);
       color: var(--light-color);
 
-      table {
-        border: none;
-        width: 100%;
-        td {
-          border: none;
-          padding-right: 16px;
-          text-align: right;
-          &:first-child {
-            text-align: left;
-          }
-        }
+      dd {
+        font-size: 1em;
+        padding-bottom: 1em;
       }
       .viewport {
         border: revert;
@@ -161,48 +153,5 @@
       .viewport {
         position: relative;
         margin: calc(var(--legend-height) + var(--gap)) 0;
-      }
-    }}
-.wazmcani3{.content {
-      --slice-color: var(--table-color);
-      --legend-height: 150px;
-    }
-
-    .legend {
-      .full-table-legend {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: var(--full-table-color);
-
-        button {
-          font-size: 0.8em;
-          border: var(--border-width) solid var(--full-table-color);
-          border-bottom: none;
-          background-color: transparent;
-          color: var(--full-table-color);
-          cursor: pointer;
-        }
-      }
-      .table-legend {
-        color: var(--slice-color);
-      }
-      .canvas-legend {
-        color: var(--canvas-color);
-      }
-    }
-
-    .explanation {
-      --table-color: var(--full-table-color);
-
-      .full-table {
-        visibility: hidden;
-      }
-
-      .wrapper {
-        --table-color: var(--slice-color);
-        position: absolute;
-        width: 100%;
-        top: 0;
       }
     }}

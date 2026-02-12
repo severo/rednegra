@@ -1,4 +1,4 @@
-.wir2b_bez{* {
+.wymkabdaw{* {
       box-sizing: border-box;
     }
 
@@ -62,17 +62,9 @@
       font-family: var(--mono-font);
       color: var(--light-color);
 
-      table {
-        border: none;
-        width: 100%;
-        td {
-          border: none;
-          padding-right: 16px;
-          text-align: right;
-          &:first-child {
-            text-align: left;
-          }
-        }
+      dd {
+        font-size: 1em;
+        padding-bottom: 1em;
       }
       .viewport {
         border: revert;
