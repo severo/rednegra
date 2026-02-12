@@ -34,7 +34,7 @@
 <li><a href="#scrolling-basics">Scrolling basics</a></li>
 <li><a href="#technique-1-lazy-loading">Technique 1: lazy loading</a></li>
 <li><a href="#technique-2-table-slice">Technique 2: table slice</a></li>
-<li><a href="#technique-3-infinite-scroll-height">Technique 3: infinite scroll height</a></li>
+<li><a href="#technique-3-infinite-pixels">Technique 3: infinite pixels</a></li>
 <li><a href="#technique-4-pixel-precise-scroll">Technique 4: pixel-precise scroll</a></li>
 <li><a href="#technique-5-two-step-random-access">Technique 5: two-step random access</a></li>
 <li><a href="#conclusion">Conclusion</a></li>
@@ -854,7 +854,7 @@
 <p>If we assume 10 billions of rows, and 30 rows are visible at a time, <strong>we only render 30 HTML elements instead of 10 billion</strong>. It allows to keep good performance with any number of rows, as <strong>the number of rendered elements is constant</strong>.</p>
 </blockquote>
 <p>Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.</p>
-<h2 id="technique-3-infinite-scroll-height">Technique 3: infinite scroll height</h2>
+<h2 id="technique-3-infinite-pixels">Technique 3: infinite pixels</h2>
 <p>Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post <a href="https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/">Infinite Pixels</a>, HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="canvas">canvas</span> height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.</p>
 <p>Our approach to this issue in hightable is to <strong>set a maximum height for the <span class="canvas">canvas</span> and downscale the scrollbar resolution above this limit.</strong> In hightable, the threshold is set to 8 million pixels.</p>
 <p>Concretely, above the threshold, one scrolled pixel corresponds to multiple pixels in the <span class="full-table">full table</span>. The downscaling factor is the ratio between the theoretical height of the <span class="full-table">full table</span> and the maximum height of the <span class="canvas">canvas</span>. Thanks to that factor, if you scroll half the scrollbar, you reach the middle of the <span class="full-table">full table</span>, no matter how big it is.</p>

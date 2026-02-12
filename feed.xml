@@ -25,7 +25,7 @@
 &lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#scrolling-basics&quot;&gt;Scrolling basics&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-1-lazy-loading&quot;&gt;Technique 1: lazy loading&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-2-table-slice&quot;&gt;Technique 2: table slice&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-3-infinite-scroll-height&quot;&gt;Technique 3: infinite scroll height&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-3-infinite-pixels&quot;&gt;Technique 3: infinite pixels&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-4-pixel-precise-scroll&quot;&gt;Technique 4: pixel-precise scroll&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#technique-5-two-step-random-access&quot;&gt;Technique 5: two-step random access&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://rednegra.net/blog/20260212-virtual-scroll/#conclusion&quot;&gt;Conclusion&lt;/a&gt;&lt;/li&gt;
@@ -845,7 +845,7 @@
 &lt;p&gt;If we assume 10 billions of rows, and 30 rows are visible at a time, &lt;strong&gt;we only render 30 HTML elements instead of 10 billion&lt;/strong&gt;. It allows to keep good performance with any number of rows, as &lt;strong&gt;the number of rendered elements is constant&lt;/strong&gt;.&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.&lt;/p&gt;
-&lt;h2 id=&quot;technique-3-infinite-scroll-height&quot;&gt;Technique 3: infinite scroll height&lt;/h2&gt;
+&lt;h2 id=&quot;technique-3-infinite-pixels&quot;&gt;Technique 3: infinite pixels&lt;/h2&gt;
 &lt;p&gt;Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post &lt;a href=&quot;https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/&quot;&gt;Infinite Pixels&lt;/a&gt;, HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.&lt;/p&gt;
 &lt;p&gt;Our approach to this issue in hightable is to &lt;strong&gt;set a maximum height for the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt; and downscale the scrollbar resolution above this limit.&lt;/strong&gt; In hightable, the threshold is set to 8 million pixels.&lt;/p&gt;
 &lt;p&gt;Concretely, above the threshold, one scrolled pixel corresponds to multiple pixels in the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt;. The downscaling factor is the ratio between the theoretical height of the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt; and the maximum height of the &lt;span class=&quot;canvas&quot;&gt;canvas&lt;/span&gt;. Thanks to that factor, if you scroll half the scrollbar, you reach the middle of the &lt;span class=&quot;full-table&quot;&gt;full table&lt;/span&gt;, no matter how big it is.&lt;/p&gt;
