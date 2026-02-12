@@ -81,9 +81,17 @@
       font-family: var(--mono-font);
       color: var(--light-color);
 
-      dd {
-        font-size: 1em;
-        padding-bottom: 1em;
+      table {
+        border: none;
+        width: 100%;
+        td {
+          border: none;
+          padding-right: 16px;
+          text-align: right;
+          &:first-child {
+            text-align: left;
+          }
+        }
       }
       .viewport {
         border: revert;

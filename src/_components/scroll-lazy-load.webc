@@ -28,14 +28,20 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt>first visible row (inclusive)</dt>
-          <dd class="first-visible-row"></dd>
-          <dt>last visible row (exclusive)</dt>
-          <dd class="last-visible-row"></dd>
-        </dl>
+        <table>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          </tr>
+            <td>first visible row (inclusive)</td>
+            <td class="first-visible-row"></td>
+          </tr>
+          <tr>
+            <td>last visible row (exclusive)</td>
+            <td class="last-visible-row"></td>
+          </tr>
+        </table>
       </section>
     </div>
   </scroll-common>

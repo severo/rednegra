@@ -35,20 +35,32 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="canvas">canvas</span>.clientHeight</dt>
-          <dd class="canvas-client-height"></dd>
-          <dt><span class="table">table</span>.clientHeight</dt>
-          <dd class="table-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt><span class="table">table</span>.style.top</dt>
-          <dd class="table-style-top"></dd>
-          <dt>downscale factor</dt>
-          <dd class="downscale-factor"></dd>
-          <dt><span class="table">unreachable rows</span> in 1px scroll</dt>
-          <dd class="unreachable-rows-in-1px-scroll"></dd>
-        </dl>
+        <table>
+          <tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+          <tr>
+            <td>downscale factor</td>
+            <td class="downscale-factor"></td>
+          </tr>
+          <tr>
+            <td><span class="table">unreachable rows</span> in 1px scroll</td>
+            <td class="unreachable-rows-in-1px-scroll"></td>
+          </tr>
+        </table>
       </section>
     </div>
   </scroll-common>

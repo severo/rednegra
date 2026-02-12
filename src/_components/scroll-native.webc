@@ -28,20 +28,32 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="viewport">viewport</span>.clientHeight</dt>
-          <dd class="viewport-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollHeight</dt>
-          <dd class="viewport-scroll-height"></dd>
-          <dt><span class="table">table</span>.clientHeight</dt>
-          <dd class="table-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt>first visible pixel (inclusive)</dt>
-          <dd class="first-visible-pixel"></dd>
-          <dt>last visible pixel (exclusive)</dt>
-          <dd class="last-visible-pixel"></dd>
-        </dl>
+        <table>
+          <tr>
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>first visible pixel (inclusive)</td>
+            <td class="first-visible-pixel"></td>
+          </tr>
+          <tr>
+            <td>last visible pixel (exclusive)</td>
+            <td class="last-visible-pixel"></td>
+          </tr>
+        </table>
       </section>
     </div>
   </scroll-common>
