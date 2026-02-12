@@ -83,6 +83,11 @@
       }
     }
 
+    /* the numbers are big, let's reduce the font size */
+    td {
+      font-size: 0.7em;
+    }
+
     .legend {
       .table-legend {
         color: var(--slice-color);
