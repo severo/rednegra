@@ -47,6 +47,8 @@ The component also provides features for columns (sort, hide, resize), rows (sel
 
 The `<HighTable>` component is developed at [hyparam/hightable](https://github.com/hyparam/hightable/). It was created by [Kenny Daniel](https://github.com/platypii) for [Hyperparam](https://hyperparam.app/), and I've had the chance to contribute to its development for one year now.
 
+This blog post was sponsored by [Hyperparam](https://hyperparam.app/). Thanks for the support and for challenging me to solve the fascinating problem of rendering billions of rows in the browser!
+
 ## Demo
 
 Try the [hightable demo](https://hyparam.github.io/demos/hightable/#/large):
@@ -295,8 +297,6 @@ if (fullTableHeight <= maxCanvasHeight) {
     (maxCanvasHeight - viewport.clientHeight)
 }
 ```
-
-<!-- TODO: Diagram/widget with the height vs the number of rows -->
 
 Now, the first visible row is computed with:
 
