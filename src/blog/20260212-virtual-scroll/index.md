@@ -18,7 +18,7 @@ Table of contents:
 - [Scrolling basics](#scrolling-basics)
 - [Technique 1: lazy loading](#technique-1-lazy-loading)
 - [Technique 2: table slice](#technique-2-table-slice)
-- [Technique 3: infinite scroll height](#technique-3-infinite-scroll-height)
+- [Technique 3: infinite pixels](#technique-3-infinite-pixels)
 - [Technique 4: pixel-precise scroll](#technique-4-pixel-precise-scroll)
 - [Technique 5: two-step random access](#technique-5-two-step-random-access)
 - [Conclusion](#conclusion)
@@ -274,7 +274,7 @@ Note that the table slicing technique is not specific to vertical scrolling. The
 
 Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.
 
-## Technique 3: infinite scroll height
+## Technique 3: infinite pixels
 
 Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post [Infinite Pixels](https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/), HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="canvas">canvas</span> height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.
 
