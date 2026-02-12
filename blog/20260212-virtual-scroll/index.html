@@ -32,11 +32,11 @@
 <li><a href="#introduction">Introduction</a></li>
 <li><a href="#demo">Demo</a></li>
 <li><a href="#scrolling-basics">Scrolling basics</a></li>
-<li><a href="#technique-1-load-the-data-lazily">Technique 1: load the data lazily</a></li>
-<li><a href="#technique-2-only-render-a-table-slice">Technique 2: only render a table slice</a></li>
-<li><a href="#technique-3-downscale-the-scrollbar-for-global-positioning">Technique 3: downscale the scrollbar for global positioning</a></li>
-<li><a href="#technique-4-add-a-local-scrolling-mode">Technique 4: add a local scrolling mode</a></li>
-<li><a href="#technique-5-decouple-vertical-and-horizontal-scrolling">Technique 5: decouple vertical and horizontal scrolling</a></li>
+<li><a href="#technique-1-lazy-loading">Technique 1: lazy loading</a></li>
+<li><a href="#technique-2-table-slice">Technique 2: table slice</a></li>
+<li><a href="#technique-3-infinite-scroll-height">Technique 3: infinite scroll height</a></li>
+<li><a href="#technique-4-pixel-precise-scroll">Technique 4: pixel-precise scroll</a></li>
+<li><a href="#technique-5-two-step-random-access">Technique 5: two-step random access</a></li>
 <li><a href="#conclusion">Conclusion</a></li>
 </ul>
 <h2 id="introduction">Introduction</h2>
@@ -54,6 +54,7 @@
 <p>In this post, I'll showcase five techniques we use to <strong>solve challenges related to vertical scrolling</strong> in the <code>&lt;HighTable&gt;</code> React component to handle billions of rows.</p>
 <p>The component also provides features for columns (sort, hide, resize), rows (select), cells (keyboard navigation, pointer interactions, custom rendering). Feel free to ask and look at the code if you're interested in knowing more.</p>
 <p>The <code>&lt;HighTable&gt;</code> component is developed at <a href="https://github.com/hyparam/hightable/">hyparam/hightable</a>. It was created by <a href="https://github.com/platypii">Kenny Daniel</a> for <a href="https://hyperparam.app/">Hyperparam</a>, and I've had the chance to contribute to its development for one year now.</p>
+<p>This blog post was sponsored by <a href="https://hyperparam.app/">Hyperparam</a>. Thanks for the support and for challenging me to solve the fascinating problem of rendering billions of rows in the browser!</p>
 <h2 id="demo">Demo</h2>
 <p>Try the <a href="https://hyparam.github.io/demos/hightable/#/large">hightable demo</a>:</p>
 <iframe src="https://hyparam.github.io/demos/hightable/#/large" title="HighTable demo with a large dataset" width="100%" height="400px"></iframe>
@@ -300,7 +301,7 @@
 </li>
 </ol>
 <p>Now that we have the basics, let's see how to handle large datasets.</p>
-<h2 id="technique-1-load-the-data-lazily">Technique 1: load the data lazily</h2>
+<h2 id="technique-1-lazy-loading">Technique 1: lazy loading</h2>
 <p>The first challenge when working on a large dataset is that it will not fit in your browser memory. The good news: you'll not want to look at every row either, and not at the same time. So, instead of loading the whole data file at start, we <strong>only load the visible cells</strong>.</p>
 <blockquote>
 <p>Note that lazy loading the data does not change the HTML structure of the table.</p>
@@ -546,8 +547,12 @@
 <p>You can find a more complete example of a data frame that loads a remote Parquet file (using HTTP range requests) in the <a href="https://github.com/hyparam/demos/blob/8cbaf815eb75af0699d44242be2cfb2756b02ce7/hyparquet/src/App.tsx#L23">hyparquet demo</a>.</p>
 </blockquote>
 <p>The data frame structure is not oriented towards rows or columns, and allows loading and accessing the data by cell. Currently, in hightable, we load full rows, but we could improve by computing the visible columns and loading them lazily as well. Join the pending <a href="https://github.com/hyparam/hightable/issues/297">discussion</a> if you're interested in this feature.</p>
-<p>Lazy loading the data is the first step to handle large datasets. The next step is to avoid rendering too many HTML elements at once.</p>
-<h2 id="technique-2-only-render-a-table-slice">Technique 2: only render a table slice</h2>
+<blockquote>
+<p><strong>Impact</strong></p>
+<p>If we assume 10 billions of rows, and 100 bytes per row, the <strong>total data size is 1TB</strong>. Loading it all in memory is not possible, but with lazy loading, <strong>we only load 3KB</strong> for the visible part (about 30 rows at a time), and keep good performance.</p>
+</blockquote>
+<p>Lazy loading the data is the first step, required to handle large datasets in the browser. The next step is to avoid rendering too many HTML elements at once.</p>
+<h2 id="technique-2-table-slice">Technique 2: table slice</h2>
 <p>In software engineering, when you try to optimize, the first step is to remove computing that does nothing. In our case, if the table has one million rows and we can see only 30 at a time, why render one million <code>&lt;tr&gt;</code> HTML elements? As a reference, Chrome <a href="https://developer.chrome.com/docs/performance/insights/dom-size">recommends</a> creating or updating less than 300 HTML elements for optimal responsiveness.</p>
 <p>In the <code>&lt;HighTable&gt;</code> component, <strong>only the visible slice of the table is rendered</strong>. The other row elements simply don't exist.</p>
 <p>To achieve this, the HTML structure must be adapted, by adding an intermediate div element, that we call the <span class="canvas">canvas</span>, between the <span class="viewport">viewport</span> and the <span class="table">table</span>:</p>
@@ -844,12 +849,16 @@
 <p>A detail worth mentioning is the sticky header. In <code>&lt;HighTable&gt;</code>, the header with column names is rendered as part of the <span class="table">table</span> element, in <code>&lt;thead&gt;</code>, not as a separate element. It helps with accessibility, as screen readers can easily identify the header cells associated with each data cell, and with columns resizing, as the header and data cells are aligned automatically by the browser. Thanks to the CSS property <code>position: sticky</code> (see <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/position#sticky">sticky</a> on MDN), the header row remains visible at the top of the <span class="viewport">viewport</span> when scrolling. We take it into account to compute the first visible row.</p>
 </blockquote>
 <p>Note that the table slicing technique is not specific to vertical scrolling. The same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending <a href="https://github.com/hyparam/hightable/issues/297">discussion on virtual columns</a> if you're interested in this feature.</p>
+<blockquote>
+<p><strong>Impact</strong></p>
+<p>If we assume 10 billions of rows, and 30 rows are visible at a time, <strong>we only render 30 HTML elements instead of 10 billion</strong>. It allows to keep good performance with any number of rows, as <strong>the number of rendered elements is constant</strong>.</p>
+</blockquote>
 <p>Until now, everything is pretty standard. The next techniques are more specific to hightable, and address challenges that arise when dealing with billions of rows.</p>
-<h2 id="technique-3-downscale-the-scrollbar-for-global-positioning">Technique 3: downscale the scrollbar for global positioning</h2>
+<h2 id="technique-3-infinite-scroll-height">Technique 3: infinite scroll height</h2>
 <p>Technique 2 works perfectly, until it breaks... As Eric Meyer explains in his blog post <a href="https://meyerweb.com/eric/thoughts/2025/08/07/infinite-pixels/">Infinite Pixels</a>, HTML elements have a maximum height, and the exact value depends on the browser. The worst case is Firefox: about 17 million pixels. As the <span class="canvas">canvas</span> height increases with the number of rows, if the row height is 33px (the default in hightable), we cannot render more than 500K rows.</p>
-<p>Our approach to this issue in hightable is to <strong>set a maximum height for the <span class="canvas">canvas</span> and downscale the scrollbar above this limit.</strong> In hightable, the threshold is set to 8 million pixels.</p>
-<p>Concretely, above the threshold, the downscaling factor is the ratio between the theoretical height of the <span class="full-table">full table</span> and the maximum height of the <span class="canvas">canvas</span>. It is used to compute the visible rows so that if you scroll half the scrollbar, you reach the middle of the <span class="full-table">full table</span>.</p>
-<p>Below the threshold, the downscaling factor is 1, so everything works as before.</p>
+<p>Our approach to this issue in hightable is to <strong>set a maximum height for the <span class="canvas">canvas</span> and downscale the scrollbar resolution above this limit.</strong> In hightable, the threshold is set to 8 million pixels.</p>
+<p>Concretely, above the threshold, one scrolled pixel corresponds to multiple pixels in the <span class="full-table">full table</span>. The downscaling factor is the ratio between the theoretical height of the <span class="full-table">full table</span> and the maximum height of the <span class="canvas">canvas</span>. Thanks to that factor, if you scroll half the scrollbar, you reach the middle of the <span class="full-table">full table</span>, no matter how big it is.</p>
+<p>Below the threshold, the downscaling factor is 1, so everything works as before: one scrolled pixel corresponds to one pixel in the <span class="full-table">full table</span>.</p>
 <p>The downscale factor is computed as:</p>
 <pre class="language-typescript"><code class="language-typescript"><span class="token keyword">const</span> fullTableHeight <span class="token operator">=</span> data<span class="token punctuation">.</span>numRows <span class="token operator">*</span> rowHeight
 <span class="token keyword">const</span> maxCanvasHeight <span class="token operator">=</span> <span class="token number">8_000_000</span>
@@ -860,7 +869,6 @@
     <span class="token punctuation">(</span>fullTableHeight <span class="token operator">-</span> viewport<span class="token punctuation">.</span>clientHeight<span class="token punctuation">)</span> <span class="token operator">/</span>
     <span class="token punctuation">(</span>maxCanvasHeight <span class="token operator">-</span> viewport<span class="token punctuation">.</span>clientHeight<span class="token punctuation">)</span>
 <span class="token punctuation">}</span></code></pre>
-<!-- TODO: Diagram/widget with the height vs the number of rows -->
 <p>Now, the first visible row is computed with:</p>
 <pre class="language-typescript"><code class="language-typescript">firstVisibleRow <span class="token operator">=</span> Math<span class="token punctuation">.</span><span class="token function">floor</span><span class="token punctuation">(</span>
   <span class="token punctuation">(</span>viewport<span class="token punctuation">.</span>scrollTop <span class="token operator">*</span> downscaleFactor<span class="token punctuation">)</span> <span class="token operator">/</span> rowHeight
@@ -1084,7 +1092,11 @@
   document.addEventListener("DOMContentLoaded", initSlice);
 </script>
 </scroll-downscale>
-<p>But there is a drawback. The scroll bar precision is limited to 1 <em>physical</em> pixel. On &quot;high-resolution&quot; screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio">devicePixelRatio</a>). But let's keep one pixel for simplicity.</p>
+<p>But there is a drawback. The native scroll bar precision is limited to 1 <em>physical</em> pixel. On &quot;high-resolution&quot; screens, the apparent precision is a fraction of a <em>CSS</em> pixel (1 / <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio">devicePixelRatio</a>). But let's keep one pixel for simplicity.</p>
+<blockquote>
+<p>As an anecdote, setting the scroll value programmatically is hard to predict. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, <code>element.scrollTo({top: 100})</code> might result in <code>scrollTop = 100</code>, <code>scrollTop = 100.23</code>, or <code>scrollTop = 99.89</code>. You cannot know exactly, but within a margin of one pixel.</p>
+<p>The scrollTop value can even be outside of the expected range, for example negative or larger than the maximum value <code>scrollHeight - clientHeight</code>. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, hightable always clamps the <code>scrollTop</code> value within the expected range, and applies the CSS rule <code>overflow-y: clip</code>. <code>clip</code>, instead of <code>hidden</code>, shows the sticky header, even if I'm not sure why to be honest.</p>
+</blockquote>
 <p>So, when the downscale factor is big, like in the example above (2,189,781,021), the minimal scroll move (1px) corresponds to 2,189,781,021 pixels in the full table. With a row height of 30px, it means that the minimal scroll move corresponds to about 72,992,701 rows. It creates <em>gaps</em> in the reachable rows:</p>
 <ul>
 <li>if <code><span class="viewport">viewport</span>.scrollTop = 0</code>, the visible rows are 0 to 5</li>
@@ -1094,13 +1106,14 @@
 </ul>
 <p>There is no way to navigate to the rows 6 to 10, for example. Setting <code><span class="viewport">viewport</span>.scrollTop = 0.00000000274</code> to reach rows 6 to 10 is impossible, because the browser rounds the scroll position to the nearest integer pixel.</p>
 <blockquote>
-<p>As an anecdote, setting the scroll value programmatically is hard to predict anyway. It depends on the device pixel ratio, which itself depends on the zoom, and maybe other factors. For example, <code>element.scrollTo({top: 100})</code> might result in <code>scrollTop = 100</code>, <code>scrollTop = 100.23</code>, or <code>scrollTop = 99.89</code>. You cannot know exactly, but within a margin of one pixel.</p>
-<p>The scrollTop value can even be outside of the expected range, for example negative or larger than the maximum value <code>scrollHeight - clientHeight</code>. To prevent such browser-specific over-scroll effects, when reacting to a scroll event, hightable always clamps the <code>scrollTop</code> value within the expected range, and applies the CSS rule <code>overflow-y: clip</code>. <code>clip</code>, instead of <code>hidden</code>, shows the sticky header, even if I'm not sure why to be honest.</p>
+<p><strong>Impact</strong></p>
+<p>If we assume 10 billions of rows, the infinite scroll height technique allows to navigate through the whole rows span. <strong>There is no limit to the number of rows</strong>, as we can always increase the downscale factor to fit in the maximum canvas height.</p>
+<p>But due to the limited scrollbar precision, if the row height is 30px and the canvas is 8Mpx, each scrolled pixel moves the table by 1,250 rows. It means that <strong>only one row (and its neighbors) out of 1,250 is reachable</strong>.</p>
 </blockquote>
-<p>The technique 3 that consists in downscaling the scroll bar thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.</p>
-<h2 id="technique-4-add-a-local-scrolling-mode">Technique 4: add a local scrolling mode</h2>
+<p>The infinite scroll height technique thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.</p>
+<h2 id="technique-4-pixel-precise-scroll">Technique 4: pixel-precise scroll</h2>
 <p>The previous technique allows to scroll globally through the file, but prevents users from scrolling locally because any scroll gesture will jump over gaps of unreachable rows.</p>
-<p>To fix that, we implement <strong>two scrolling modes: local and global scrolling</strong>. Local scrolling means moving row by row, while global scrolling means jumping to the position given by the scrollbar.</p>
+<p>To fix that, we implement <strong>two scrolling modes: local and global scrolling</strong>. Local scrolling means scrolling the table slice pixel by pixel (i.e. even more precisely than row by row), while global scrolling means jumping to the position given by the scrollbar.</p>
 <p>The logic requires a state with three values: <code>{ scrollTop, globalAnchor, localOffset }</code></p>
 <ul>
 <li>the last <span class="viewport">viewport</span> scroll top value is stored in the state to compute the scroll move on every scroll event.</li>
@@ -1412,17 +1425,23 @@
 </scroll-dual>
 <p>With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.</p>
 <blockquote>
-<p>In hightable, we also resynchronize the global anchor with the scrollbar after accumulating many local scrolls, typically after scrolling more than 500 rows locally.</p>
+<p><strong>Impact</strong></p>
+<p>If we assume 10 billions of rows, the dual scrolling mode allows to <strong>access any pixel of the <span class="full-table">full table</span> using the native scrollbar</strong>. The user can scroll locally with the mouse wheel, and scroll globally by dragging the scrollbar.</p>
+<p>This works if the <span class="full-table">full table</span> height is less than the maximum <span class="canvas">canvas</span> height (8Mpx in hightable) squared, which corresponds to about 64 trillion pixels. So, <strong>1px fidelity is guaranteed up to 2 trillion rows</strong> with a row height of 30px.</p>
+<p>Above that limit, the minimal step is greater than 1px, but <strong>every row is still reachable up to 64 trillion rows!</strong> Above, some rows become unreachable.</p>
 </blockquote>
-<p>The last challenge is to let the user move the active cell with the keyboard, and scroll the table accordingly, without worrying about the local vs global scrolling mode. It requires scrolling programmatic, decoupling vertical and horizontal scrolling. We explain it in the next section.</p>
-<h2 id="technique-5-decouple-vertical-and-horizontal-scrolling">Technique 5: decouple vertical and horizontal scrolling</h2>
+<p>The last challenge is to move to any cell programmatically (i.e. random access to any part of the table), be it using the keyboard or through a &quot;jump to row&quot; input, without worrying about the local vs global scrolling mode. Random access requires decoupling vertical and horizontal scrolling. We explain it in the next section.</p>
+<h2 id="technique-5-two-step-random-access">Technique 5: two-step random access</h2>
 <p>One of the hightable requirements is to allow keyboard navigation (e.g. <kbd>↓</kbd> to go to the next row). Fortunately, the Web Accessibility Initiative (WAI) provides guidance through the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/grid/">Grid Pattern</a> and the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/grid/examples/data-grids/">Data Grid Examples</a>. We use <a href="https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex">tabindex roving</a> to handle the focus, providing all the expected <a href="https://www.w3.org/WAI/ARIA/apg/patterns/grid/#datagridsforpresentingtabularinformation">keyboard interactions</a>.</p>
 <blockquote>
 <p>The browser provides a useful default when calling <code>cell.focus()</code>: it automatically scrolls to the cell and focus it. But in hightable, we don't use the default behavior. Indeed, it positions the cell at the <em>center</em> of the viewport, which does not feel natural.</p>
 <p>To get the expected behavior, we first scroll by the minimal amount to show the next row and column, by calling <code>cell.scrollIntoView({block: 'nearest', inline: 'nearest'})</code>. Then we set the focus with no scroll action using <code>cell.focus({preventScroll: true})</code>.</p>
 </blockquote>
-<p>Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (global scrolling) and 4 (local scrolling), multiple steps are required.. In particular, to let the user move the active cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.</p>
+<p>Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (infinite scroll height) and 4 (pixel-precise scroll), multiple steps are required. In particular, to let the user move the active cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.</p>
 <p>When the user moves the active cell, the final position can be anywhere in the table: <kbd>↓</kbd> moves to the next row, while <kbd>Ctrl</kbd>+<kbd>↓</kbd> moves to the last row. If the move is big, we might have to scroll vertically to have the required cell in the DOM.</p>
+<blockquote>
+<p>The same issue whenever we access a random row in the table, for example if an app embedding <code>&lt;HighTable&gt;</code> provides a &quot;jump to row&quot; feature. The table should programmatically scroll to the expected row, and focus the cell in the expected column, without worrying about the local vs global scrolling mode, or the horizontal scroll position.</p>
+</blockquote>
 <p>The process is as follows:</p>
 <ol>
 <li>compute the next state (global anchor and local offset) that will make the row of the required cell visible,</li>
@@ -1454,11 +1473,13 @@
   cell<span class="token punctuation">.</span><span class="token function">scrollIntoView</span><span class="token punctuation">(</span><span class="token punctuation">{</span>inline<span class="token operator">:</span> <span class="token string">'nearest'</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
   cell<span class="token punctuation">.</span><span class="token function">focus</span><span class="token punctuation">(</span><span class="token punctuation">{</span>preventScroll<span class="token operator">:</span> <span class="token boolean">true</span><span class="token punctuation">}</span><span class="token punctuation">)</span>
 <span class="token punctuation">}</span></code></pre>
-<blockquote>
 <p>We set <code>behavior: 'instant'</code> when scrolling programmatically to ensure we only receive one <code>scroll</code> event. The alternative, <code>behavior: 'smooth'</code>, would trigger multiple <code>scroll</code> events, clearing the flag too early, and generating conflicts with the internal state due to intermediate unexpected <code>scrollTop</code> positions (see the <a href="https://github.com/hyparam/hightable/issues/393">open issue</a>).</p>
+<blockquote>
+<p><strong>Impact</strong></p>
+<p>With this approach, <strong>the user can access any random cell in the table with the keyboard</strong>, and the table will scroll to the expected position, even with billions of rows. The vertical and horizontal scrolling are decoupled, so that the user can move to the next column with <kbd>→</kbd> without triggering a vertical scroll, and vice versa with <kbd>↓</kbd>.</p>
 </blockquote>
 <h2 id="conclusion">Conclusion</h2>
-<p>No need for a <a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">fake scroll bar</a>. No need to render the table <a href="https://github.com/xwinstone/canvastable">as a <code>&lt;canvas&gt;</code></a>. Thanks to these five techniques that rely on native HTML elements, <a href="https://github.com/hyparam/hightable">hightable</a> lets you navigate through billions of rows of a remote data file, in the browser.</p>
+<p>No need for a <a href="https://everyuuid.com/">fake</a> <a href="https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol">scroll bar</a>. No need to render the table <a href="https://github.com/xwinstone/canvastable">as a <code>&lt;canvas&gt;</code></a>. We use the <a href="https://en.wikipedia.org/wiki/Web_platform">Web platform</a>. Thanks to these five techniques that rely on native HTML elements, <a href="https://github.com/hyparam/hightable">hightable</a> lets you navigate seamlessly through billions of rows of a remote data file, in the browser.</p>
 <p>Give a star ⭐ to the <a href="https://github.com/hyparam/hightable">GitHub repo</a> if you liked the article!</p>
 </div>
   </main>
