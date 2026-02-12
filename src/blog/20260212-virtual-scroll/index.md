@@ -268,7 +268,7 @@ These computations are done on every scroll event (and on every other change: wh
 
 Note that the table slicing technique is not specific to vertical scrolling. The same approach can be used for horizontal scrolling (rendering only the visible columns). It's less critical, as tables generally have less columns than rows. Join the pending [discussion on virtual columns](https://github.com/hyparam/hightable/issues/297) if you're interested in this feature.
 
-### Impact of table slice
+### Impact of table slicing
 
 If we assume 10 billions of rows, and 30 rows are visible at a time, <strong>we only render 30 HTML elements instead of 10 billion</strong>. It allows to keep good performance with any number of rows, as <strong>the number of rendered elements is constant</strong>.
 
@@ -400,7 +400,7 @@ The following widget shows the dual scrolling mode. Scroll the left box up and d
 
 With this approach, small scroll moves appear local, while large scroll moves jump to the expected global position. The user can navigate through the whole table, and reach every row. The user can scroll as expected in the browser, with their mouse wheel, touchpad, keyboard (when the table is focused) or scrollbar.
 
-### Impact
+### Impact of pixel-precise scroll
 
 If we assume 10 billions of rows, the dual scrolling mode allows to <strong>access any pixel of the <span class="full-table">full table</span> using the native scrollbar</strong>. The user can scroll locally with the mouse wheel, and scroll globally by dragging the scrollbar.
 
@@ -468,9 +468,9 @@ if (!isFlagSet('programmaticScroll')) {
 
 We set `behavior: 'instant'` when scrolling programmatically to ensure we only receive one `scroll` event. The alternative, `behavior: 'smooth'`, would trigger multiple `scroll` events, clearing the flag too early, and generating conflicts with the internal state due to intermediate unexpected `scrollTop` positions (see the [open issue](https://github.com/hyparam/hightable/issues/393)).
 
-### Impact
+### Impact of two-step random access
 
-Thanks to the two-step random access approach, <strong>the user can access any random cell in the table with the keyboard</strong>, and the table will scroll to the expected position, even with billions of rows. The vertical and horizontal scrolling are decoupled, so that the user can move to the next column with <kbd>→</kbd> without triggering a vertical scroll, and vice versa with <kbd>↓</kbd>.
+Thanks to this technique, <strong>the user can access any random cell in the table with the keyboard</strong>, and the table will scroll to the expected position, even with billions of rows. The vertical and horizontal scrolling are decoupled, so that the user can move to the next column with <kbd>→</kbd> without triggering a vertical scroll, and vice versa with <kbd>↓</kbd>.
 
 ## Conclusion
 
