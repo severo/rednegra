@@ -1088,7 +1088,7 @@
 &lt;span class=&quot;token function&quot;&gt;setState&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;(&lt;/span&gt;state&lt;span class=&quot;token punctuation&quot;&gt;)&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Now, the user can navigate around the current row, but also jump to any part of the data.&lt;/p&gt;
 &lt;p&gt;The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.&lt;/p&gt;
-&lt;scroll-dual class=&quot;w54cnlo5z&quot;&gt;
+&lt;scroll-dual class=&quot;wzf-ofoqd&quot;&gt;
   &lt;scroll-common id=&quot;scroll-dual&quot; class=&quot;scroll-common wymkabdaw&quot;&gt;
     &lt;div class=&quot;main&quot;&gt;
       &lt;section class=&quot;content&quot;&gt;
