@@ -1107,10 +1107,10 @@
 <p>There is no way to navigate to the rows 6 to 10, for example. Setting <code><span class="viewport">viewport</span>.scrollTop = 0.00000000274</code> to reach rows 6 to 10 is impossible, because the browser rounds the scroll position to the nearest integer pixel.</p>
 <blockquote>
 <p><strong>Impact</strong></p>
-<p>If we assume 10 billions of rows, the infinite scroll height technique allows to navigate through the whole rows span. <strong>There is no limit to the number of rows</strong>, as we can always increase the downscale factor to fit in the maximum canvas height.</p>
+<p>If we assume 10 billions of rows, the infinite pixels technique allows to navigate through the whole rows span. <strong>There is no limit to the number of rows</strong>, as we can always increase the downscale factor to fit in the maximum canvas height.</p>
 <p>But due to the limited scrollbar precision, if the row height is 30px and the canvas is 8Mpx, each scrolled pixel moves the table by 1,250 rows. It means that <strong>only one row (and its neighbors) out of 1,250 is reachable</strong>.</p>
 </blockquote>
-<p>The infinite scroll height technique thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.</p>
+<p>The infinite pixels technique thus provides global navigation through billions of rows. But it does not allow fine scrolling, and some rows are unreachable. The technique 4 addresses this issue.</p>
 <h2 id="technique-4-pixel-precise-scroll">Technique 4: pixel-precise scroll</h2>
 <p>The previous technique allows to scroll globally through the file, but prevents users from scrolling locally because any scroll gesture will jump over gaps of unreachable rows.</p>
 <p>To fix that, we implement <strong>two scrolling modes: local and global scrolling</strong>. Local scrolling means scrolling the table slice pixel by pixel (i.e. even more precisely than row by row), while global scrolling means jumping to the position given by the scrollbar.</p>
@@ -1437,7 +1437,7 @@
 <p>The browser provides a useful default when calling <code>cell.focus()</code>: it automatically scrolls to the cell and focus it. But in hightable, we don't use the default behavior. Indeed, it positions the cell at the <em>center</em> of the viewport, which does not feel natural.</p>
 <p>To get the expected behavior, we first scroll by the minimal amount to show the next row and column, by calling <code>cell.scrollIntoView({block: 'nearest', inline: 'nearest'})</code>. Then we set the focus with no scroll action using <code>cell.focus({preventScroll: true})</code>.</p>
 </blockquote>
-<p>Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (infinite scroll height) and 4 (pixel-precise scroll), multiple steps are required. In particular, to let the user move the active cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.</p>
+<p>Unfortunately, the keyboard navigation techniques explained in the WAI resources are designed for full tables. But due to the techniques 2 (table slice), 3 (infinite pixels) and 4 (pixel-precise scroll), multiple steps are required. In particular, to let the user move the active cell with the keyboard, we <strong>separate the vertical scrolling logic from the horizontal one</strong>.</p>
 <p>When the user moves the active cell, the final position can be anywhere in the table: <kbd>↓</kbd> moves to the next row, while <kbd>Ctrl</kbd>+<kbd>↓</kbd> moves to the last row. If the move is big, we might have to scroll vertically to have the required cell in the DOM.</p>
 <blockquote>
 <p>The same issue whenever we access a random row in the table, for example if an app embedding <code>&lt;HighTable&gt;</code> provides a &quot;jump to row&quot; feature. The table should programmatically scroll to the expected row, and focus the cell in the expected column, without worrying about the local vs global scrolling mode, or the horizontal scroll position.</p>
