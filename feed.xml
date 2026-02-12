@@ -833,7 +833,7 @@
 &lt;pre class=&quot;language-typescript&quot;&gt;&lt;code class=&quot;language-typescript&quot;&gt;table&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;style&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;top &lt;span class=&quot;token operator&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;token template-string&quot;&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;token interpolation&quot;&gt;&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;${&lt;/span&gt;viewport&lt;span class=&quot;token punctuation&quot;&gt;.&lt;/span&gt;scrollTop&lt;span class=&quot;token interpolation-punctuation punctuation&quot;&gt;}&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token string&quot;&gt;px&lt;/span&gt;&lt;span class=&quot;token template-punctuation string&quot;&gt;`&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;token punctuation&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;This lets the user navigate through the whole table, even with billions of rows.&lt;/p&gt;
 &lt;p&gt;The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.&lt;/p&gt;
-&lt;scroll-downscale class=&quot;w54cnlo5z&quot;&gt;
+&lt;scroll-downscale class=&quot;wzf-ofoqd&quot;&gt;
   &lt;scroll-common id=&quot;scroll-downscale&quot; class=&quot;scroll-common wymkabdaw&quot;&gt;
     &lt;div class=&quot;main&quot;&gt;
       &lt;section class=&quot;content&quot;&gt;

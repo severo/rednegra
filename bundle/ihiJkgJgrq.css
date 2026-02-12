@@ -155,50 +155,7 @@
         margin: calc(var(--legend-height) + var(--gap)) 0;
       }
     }}
-.wazmcani3{.content {
-      --slice-color: var(--table-color);
-      --legend-height: 150px;
-    }
-
-    .legend {
-      .full-table-legend {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: var(--full-table-color);
-
-        button {
-          font-size: 0.8em;
-          border: var(--border-width) solid var(--full-table-color);
-          border-bottom: none;
-          background-color: transparent;
-          color: var(--full-table-color);
-          cursor: pointer;
-        }
-      }
-      .table-legend {
-        color: var(--slice-color);
-      }
-      .canvas-legend {
-        color: var(--canvas-color);
-      }
-    }
-
-    .explanation {
-      --table-color: var(--full-table-color);
-
-      .full-table {
-        visibility: hidden;
-      }
-
-      .wrapper {
-        --table-color: var(--slice-color);
-        position: absolute;
-        width: 100%;
-        top: 0;
-      }
-    }}
-.w54cnlo5z{.scroll-common {
+.wzf-ofoqd{.scroll-common {
       --num_rows: 10000000000;
       --canvas-height: 300;
       --slice-color: var(--table-color);
@@ -223,6 +180,11 @@
           }
         }
       }
+    }
+
+    /* the numbers are big, let's reduce the font size */
+    td {
+      font-size: 0.7em;
     }
 
     .legend {
