@@ -1,4 +1,4 @@
-.wymkabdaw{* {
+.wgenanzvj{* {
       box-sizing: border-box;
     }
 
@@ -62,9 +62,18 @@
       font-family: var(--mono-font);
       color: var(--light-color);
 
-      dd {
-        font-size: 1em;
-        padding-bottom: 1em;
+      table {
+        border: none;
+        width: 100%;
+        td {
+          white-space: nowrap;
+          border: none;
+          padding-right: 16px;
+          text-align: right;
+          &:first-child {
+            text-align: left;
+          }
+        }
       }
       .viewport {
         border: revert;
@@ -155,27 +164,42 @@
         margin: calc(var(--legend-height) + var(--gap)) 0;
       }
     }}
-.wazmcani3{.content {
+.wl-8jjtnc{.scroll-common {
+      --num_rows: 10000000000;
+      --canvas-height: 300;
       --slice-color: var(--table-color);
       --legend-height: 150px;
     }
 
-    .legend {
-      .full-table-legend {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: var(--full-table-color);
+    .demo {
+      .viewport {
+        overflow-y: scroll;
 
-        button {
-          font-size: 0.8em;
-          border: var(--border-width) solid var(--full-table-color);
-          border-bottom: none;
-          background-color: transparent;
-          color: var(--full-table-color);
-          cursor: pointer;
+        .canvas {
+          position: relative;
+          border: none;
+          height: calc(var(--canvas-height) * 1px);
+          overflow-y: hidden;
+
+          .table-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+          }
         }
       }
+    }
+
+    /* the numbers are big, let's reduce the font size */
+    .content td {
+      font-size: 0.7em;
+    }
+    .variables td {
+      font-size: 0.85em;
+    }
+
+    .legend {
       .table-legend {
         color: var(--slice-color);
       }
@@ -186,10 +210,6 @@
 
     .explanation {
       --table-color: var(--full-table-color);
-
-      .full-table {
-        visibility: hidden;
-      }
 
       .wrapper {
         --table-color: var(--slice-color);

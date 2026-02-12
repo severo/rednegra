@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="/style.css">
   <link rel="stylesheet" href="/prism.css">
-  <link rel="stylesheet" href="/bundle/2ctNCoVK2H.css">
+  <link rel="stylesheet" href="/bundle/WceIs78PuI.css">
   <title>Virtual Scrolling for Billions of Rows — Techniques from HighTable</title>
   <link href="https://huggingface.co/severo" rel="me">
   <link href="https://observablehq.com/@severo" rel="me">
@@ -73,7 +73,7 @@
 <p>If you use a keyboard, you can focus the left box with <kbd>Tab</kbd>, and scroll with the arrow keys <kbd>⏶</kbd> and <kbd>⏷</kbd>. Otherwise, you can use mouse wheel, drag the scroll bar, or slide on a touch screen.</p>
 </blockquote>
 <scroll-native>
-  <scroll-common id="scroll-native" class="wymkabdaw">
+  <scroll-common id="scroll-native" class="wgenanzvj">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -170,20 +170,32 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="viewport">viewport</span>.clientHeight</dt>
-          <dd class="viewport-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollHeight</dt>
-          <dd class="viewport-scroll-height"></dd>
-          <dt><span class="table">table</span>.clientHeight</dt>
-          <dd class="table-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt>first visible pixel (inclusive)</dt>
-          <dd class="first-visible-pixel"></dd>
-          <dt>last visible pixel (exclusive)</dt>
-          <dd class="last-visible-pixel"></dd>
-        </dl>
+        <table>
+          <tbody><tr>
+            <td><span class="viewport">viewport</span>.clientHeight</td>
+            <td class="viewport-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollHeight</td>
+            <td class="viewport-scroll-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>first pixel</td>
+            <td class="first-visible-pixel"></td>
+          </tr>
+          <tr>
+            <td>last pixel</td>
+            <td class="last-visible-pixel"></td>
+          </tr>
+        </tbody></table>
       </section>
     </div>
 </scroll-common>
@@ -295,7 +307,7 @@
 </blockquote>
 <p>The following widget shows how lazy loading works. Scroll the left box up and down to see how the cells are loaded on demand on the right side:</p>
 <scroll-lazy-load>
-  <scroll-common id="scroll-lazy-load" class="wymkabdaw">
+  <scroll-common id="scroll-lazy-load" class="wgenanzvj">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -392,16 +404,21 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt>first visible row (inclusive)</dt>
-          <dd class="first-visible-row"></dd>
-          <dt>last visible row (exclusive)</dt>
-          <dd class="last-visible-row"></dd>
-        </dl>
-      </section>
-    </div>
+        <table>
+          <tbody><tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+<p><tr><td>row start</td>
+<td class="first-visible-row"></td>
+</tr>
+<tr>
+<td>row end</td>
+<td class="last-visible-row"></td>
+</tr>
+</p></tbody></table>
+</section>
+</div><p></p>
 </scroll-common>
 <script>
   function initLazyLoad() {
@@ -552,7 +569,7 @@
 <p>The <span class="canvas">canvas</span> serves as a reference for absolutely positioning the <span class="table">table</span> slice.</p>
 <p>The following widget shows how table slicing works. Scroll the left box up and down to see how the right box mimics the scrolling effect, while rendering only the visible rows. Toggle the <span class="full-table">full table</span> button to see how the rendered rows fit in the full table:</p>
 <scroll-slice class="wazmcani3">
-  <scroll-common id="scroll-slice" class="wymkabdaw">
+  <scroll-common id="scroll-slice" class="wgenanzvj">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -657,18 +674,28 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="canvas">canvas</span>.clientHeight</dt>
-          <dd class="canvas-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt><span class="table">table</span>.clientHeight</dt>
-          <dd class="table-client-height"></dd>
-          <dt><span class="table">table</span>.style.top</dt>
-          <dd class="table-style-top"></dd>
-          <dt><span class="table">hidden pixels</span> above viewport</dt>
-          <dd class="hidden-pixels-above-viewport"></dd>
-        </dl>
+        <table>
+          <tbody><tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">pixels above</span></td>
+            <td class="hidden-pixels-above-viewport"></td>
+          </tr>
+        </tbody></table>
       </section>
     </div>
 </scroll-common>
@@ -842,8 +869,8 @@
 <pre class="language-typescript"><code class="language-typescript">table<span class="token punctuation">.</span>style<span class="token punctuation">.</span>top <span class="token operator">=</span> <span class="token template-string"><span class="token template-punctuation string">`</span><span class="token interpolation"><span class="token interpolation-punctuation punctuation">${</span>viewport<span class="token punctuation">.</span>scrollTop<span class="token interpolation-punctuation punctuation">}</span></span><span class="token string">px</span><span class="token template-punctuation string">`</span></span><span class="token punctuation">;</span></code></pre>
 <p>This lets the user navigate through the whole table, even with billions of rows.</p>
 <p>The following widget shows how scrollbar downscaling works. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate through ten billion rows.</p>
-<scroll-downscale class="wzf-ofoqd">
-  <scroll-common id="scroll-downscale" class="scroll-common wymkabdaw">
+<scroll-downscale class="wl-8jjtnc">
+  <scroll-common id="scroll-downscale" class="scroll-common wgenanzvj">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -879,20 +906,32 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="canvas">canvas</span>.clientHeight</dt>
-          <dd class="canvas-client-height"></dd>
-          <dt><span class="table">table</span>.clientHeight</dt>
-          <dd class="table-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt><span class="table">table</span>.style.top</dt>
-          <dd class="table-style-top"></dd>
-          <dt>downscale factor</dt>
-          <dd class="downscale-factor"></dd>
-          <dt><span class="table">unreachable rows</span> in 1px scroll</dt>
-          <dd class="unreachable-rows-in-1px-scroll"></dd>
-        </dl>
+        <table>
+          <tbody><tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+          <tr>
+            <td>downscale factor</td>
+            <td class="downscale-factor"></td>
+          </tr>
+          <tr>
+            <td><span class="table">unreachable rows / px</span></td>
+            <td class="unreachable-rows-in-1px-scroll"></td>
+          </tr>
+        </tbody></table>
       </section>
     </div>
 </scroll-common>
@@ -936,9 +975,6 @@
     // format values as pixels, hiding sub-pixel values for simplicity
     function px(value) {
       return `${value.toFixed(0)}px`;
-    }
-    function rows(value) {
-      return `${value.toLocaleString("en-US")} rows`;
     }
 
     function update() {
@@ -995,9 +1031,9 @@
       tableStyleTop.textContent = top;
       downscaleFactorElement.textContent =
         Math.round(downscaleFactor).toLocaleString("en-US");
-      unreachableRowsIn1pxScroll.textContent = rows(
-        Math.round(downscaleFactor / rowHeight) - maxRows,
-      );
+      unreachableRowsIn1pxScroll.textContent = (
+        Math.round(downscaleFactor / rowHeight) - maxRows
+      ).toLocaleString("en-US");
     }
 
     viewport.onscroll = function () {
@@ -1097,8 +1133,8 @@
 <span class="token function">setState</span><span class="token punctuation">(</span>state<span class="token punctuation">)</span></code></pre>
 <p>Now, the user can navigate around the current row, but also jump to any part of the data.</p>
 <p>The following widget shows the dual scrolling mode. Scroll the left box up and down to see how the right box mimics the scrolling effect, allowing to navigate both locally and globally through ten billion rows.</p>
-<scroll-dual class="wzf-ofoqd">
-  <scroll-common id="scroll-dual" class="scroll-common wymkabdaw">
+<scroll-dual class="wc2fluvwc">
+  <scroll-common id="scroll-dual" class="scroll-common wgenanzvj">
     <div class="main">
       <section class="content">
         <div class="demo">
@@ -1131,20 +1167,32 @@
         </div>
       </section>
       <section class="variables">
-        <dl>
-          <dt><span class="canvas">canvas</span>.clientHeight</dt>
-          <dd class="canvas-client-height"></dd>
-          <dt><span class="table">table</span>.clientHeight</dt>
-          <dd class="table-client-height"></dd>
-          <dt><span class="viewport">viewport</span>.scrollTop</dt>
-          <dd class="viewport-scroll-top"></dd>
-          <dt>global anchor</dt>
-          <dd class="global-anchor"></dd>
-          <dt>local offset</dt>
-          <dd class="local-offset"></dd>
-          <dt><span class="table">table</span>.style.top</dt>
-          <dd class="table-style-top"></dd>
-        </dl>
+        <table>
+          <tbody><tr>
+            <td><span class="canvas">canvas</span>.clientHeight</td>
+            <td class="canvas-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.clientHeight</td>
+            <td class="table-client-height"></td>
+          </tr>
+          <tr>
+            <td><span class="viewport">viewport</span>.scrollTop</td>
+            <td class="viewport-scroll-top"></td>
+          </tr>
+          <tr>
+            <td>global anchor</td>
+            <td class="global-anchor"></td>
+          </tr>
+          <tr>
+            <td>local offset</td>
+            <td class="local-offset"></td>
+          </tr>
+          <tr>
+            <td><span class="table">table</span>.style.top</td>
+            <td class="table-style-top"></td>
+          </tr>
+        </tbody></table>
       </section>
     </div>
 </scroll-common>

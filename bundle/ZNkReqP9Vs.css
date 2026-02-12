@@ -1,4 +1,4 @@
-.wymkabdaw{* {
+.wgenanzvj{* {
       box-sizing: border-box;
     }
 
@@ -62,9 +62,18 @@
       font-family: var(--mono-font);
       color: var(--light-color);
 
-      dd {
-        font-size: 1em;
-        padding-bottom: 1em;
+      table {
+        border: none;
+        width: 100%;
+        td {
+          white-space: nowrap;
+          border: none;
+          padding-right: 16px;
+          text-align: right;
+          &:first-child {
+            text-align: left;
+          }
+        }
       }
       .viewport {
         border: revert;
@@ -190,57 +199,6 @@
       .full-table {
         visibility: hidden;
       }
-
-      .wrapper {
-        --table-color: var(--slice-color);
-        position: absolute;
-        width: 100%;
-        top: 0;
-      }
-    }}
-.wzf-ofoqd{.scroll-common {
-      --num_rows: 10000000000;
-      --canvas-height: 300;
-      --slice-color: var(--table-color);
-      --legend-height: 150px;
-    }
-
-    .demo {
-      .viewport {
-        overflow-y: scroll;
-
-        .canvas {
-          position: relative;
-          border: none;
-          height: calc(var(--canvas-height) * 1px);
-          overflow-y: hidden;
-
-          .table-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-          }
-        }
-      }
-    }
-
-    /* the numbers are big, let's reduce the font size */
-    td {
-      font-size: 0.7em;
-    }
-
-    .legend {
-      .table-legend {
-        color: var(--slice-color);
-      }
-      .canvas-legend {
-        color: var(--canvas-color);
-      }
-    }
-
-    .explanation {
-      --table-color: var(--full-table-color);
 
       .wrapper {
         --table-color: var(--slice-color);
