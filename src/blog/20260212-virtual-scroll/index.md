@@ -474,6 +474,6 @@ We set `behavior: 'instant'` when scrolling programmatically to ensure we only r
 
 ## Conclusion
 
-No need for a [fake](https://everyuuid.com/) [scroll bar](https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol). No need to render the table [as a `<canvas>`](https://github.com/xwinstone/canvastable). We use the [Web platform](https://en.wikipedia.org/wiki/Web_platform). Thanks to these five techniques that rely on native HTML elements, [hightable](https://github.com/hyparam/hightable) lets you navigate seamlessly through billions of rows of a remote data file, in the browser.
+No need for a [fake](https://everyuuid.com/) [scroll bar](https://dev.to/kohii/how-to-implement-virtual-scrolling-beyond-the-browsers-limit-16ol). No need to render the table [in a canvas](https://github.com/xwinstone/canvastable). We use the [Web platform](https://en.wikipedia.org/wiki/Web_platform). Thanks to these five techniques that rely on native HTML elements, [hightable](https://github.com/hyparam/hightable) lets you navigate seamlessly through billions of rows of a remote data file, in the browser.
 
 Give a star ⭐ to the [GitHub repo](https://github.com/hyparam/hightable) if you liked the article!
