@@ -14,7 +14,8 @@
           </div>
           <div class="text-description">
             <p>
-              Scroll the left box, to see on the right how the cells are loaded lazily.
+              Scroll the left box, to see on the right how the cells are loaded
+              lazily.
             </p>
             <button type="button" class="play">Play</button>
           </div>
@@ -27,32 +28,14 @@
         </div>
       </section>
       <section class="variables">
-        <table>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.clientHeight</td>
-            <td class="viewport-client-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="viewport">viewport</span>.scrollHeight</td>
-            <td class="viewport-scroll-height"></td>
-          </tr>
-          <tr style="display: none">
-            <td><span class="table">table</span>.clientHeight</td>
-            <td class="table-client-height"></td>
-          </tr>
-          <tr>
-            <td><span class="viewport">viewport</span>.scrollTop</td>
-            <td class="viewport-scroll-top"></td>
-          </tr>
-          </tr>
-            <td>first visible row (inclusive)</td>
-            <td class="first-visible-row"></td>
-          </tr>
-          <tr>
-            <td>last visible row (exclusive)</td>
-            <td class="last-visible-row"></td>
-          </tr>
-        </table>
+        <dl>
+          <dt><span class="viewport">viewport</span>.scrollTop</dt>
+          <dd class="viewport-scroll-top"></dd>
+          <dt>first visible row (inclusive)</dt>
+          <dd class="first-visible-row"></dd>
+          <dt>last visible row (exclusive)</dt>
+          <dd class="last-visible-row"></dd>
+        </dl>
       </section>
     </div>
   </scroll-common>
@@ -68,15 +51,16 @@
       ".explanation .background-element",
     );
     const viewportScrollTop = component.querySelector(".viewport-scroll-top");
-    const viewportClientHeight = component.querySelector(
-      ".viewport-client-height",
-    );
-    const viewportScrollHeight = component.querySelector(
-      ".viewport-scroll-height",
-    );
-    const tableClientHeight = component.querySelector(".table-client-height");
     const firstVisibleRowTd = component.querySelector(".first-visible-row");
     const lastVisibleRowTd = component.querySelector(".last-visible-row");
+
+    // format values as pixels, hiding sub-pixel values for simplicity
+    function px(value) {
+      return `${value.toFixed(0)}px`;
+    }
+    function row(value) {
+      return `row ${value}`;
+    }
 
     function update() {
       const scrollTop = viewport.scrollTop;
@@ -98,12 +82,9 @@
         });
       }
 
-      viewportScrollTop.textContent = `${scrollTop}px`;
-      viewportClientHeight.textContent = `${viewport.clientHeight}px`;
-      viewportScrollHeight.textContent = `${viewport.scrollHeight}px`;
-      tableClientHeight.textContent = `${explanationBackground.clientHeight}px`;
-      firstVisibleRowTd.textContent = `row ${firstVisibleRow}`;
-      lastVisibleRowTd.textContent = `row ${lastVisibleRow}`;
+      viewportScrollTop.textContent = px(viewport.scrollTop);
+      firstVisibleRowTd.textContent = row(firstVisibleRow);
+      lastVisibleRowTd.textContent = row(lastVisibleRow);
     }
 
     viewport.onscroll = function () {
