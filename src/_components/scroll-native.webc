@@ -46,11 +46,11 @@
             <td class="viewport-scroll-top"></td>
           </tr>
           <tr>
-            <td>first visible pixel (inclusive)</td>
+            <td>first pixel</td>
             <td class="first-visible-pixel"></td>
           </tr>
           <tr>
-            <td>last visible pixel (exclusive)</td>
+            <td>last pixel</td>
             <td class="last-visible-pixel"></td>
           </tr>
         </table>

@@ -57,7 +57,7 @@
             <td class="downscale-factor"></td>
           </tr>
           <tr>
-            <td><span class="table">unreachable rows</span> in 1px scroll</td>
+            <td><span class="table">unreachable rows / px</span></td>
             <td class="unreachable-rows-in-1px-scroll"></td>
           </tr>
         </table>
@@ -96,8 +96,11 @@
     }
 
     /* the numbers are big, let's reduce the font size */
-    td {
+    .content td {
       font-size: 0.7em;
+    }
+    .variables td {
+      font-size: 0.85em;
     }
 
     .legend {
@@ -163,9 +166,6 @@
     function px(value) {
       return `${value.toFixed(0)}px`;
     }
-    function rows(value) {
-      return `${value.toLocaleString("en-US")} rows`;
-    }
 
     function update() {
       const maxScrollTop = canvasHeight - viewport.clientHeight;
@@ -221,9 +221,9 @@
       tableStyleTop.textContent = top;
       downscaleFactorElement.textContent =
         Math.round(downscaleFactor).toLocaleString("en-US");
-      unreachableRowsIn1pxScroll.textContent = rows(
-        Math.round(downscaleFactor / rowHeight) - maxRows,
-      );
+      unreachableRowsIn1pxScroll.textContent = (
+        Math.round(downscaleFactor / rowHeight) - maxRows
+      ).toLocaleString("en-US");
     }
 
     viewport.onscroll = function () {

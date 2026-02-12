@@ -54,7 +54,7 @@
             <td class="table-style-top"></td>
           </tr>
           <tr>
-            <td><span class="table">hidden pixels</span> above viewport</td>
+            <td><span class="table">pixels above</span></td>
             <td class="hidden-pixels-above-viewport"></td>
           </tr>
         </table>

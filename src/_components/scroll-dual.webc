@@ -98,7 +98,7 @@
     }
 
     /* the numbers are big, let's reduce the font size */
-    td {
+    .content td {
       font-size: 0.7em;
     }
 

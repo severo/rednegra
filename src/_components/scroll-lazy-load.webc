@@ -34,11 +34,11 @@
             <td class="viewport-scroll-top"></td>
           </tr>
           </tr>
-            <td>first visible row (inclusive)</td>
+            <td>row start</td>
             <td class="first-visible-row"></td>
           </tr>
           <tr>
-            <td>last visible row (exclusive)</td>
+            <td>row end</td>
             <td class="last-visible-row"></td>
           </tr>
         </table>
