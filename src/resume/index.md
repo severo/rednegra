@@ -2,11 +2,15 @@
 title: Resume - Sylvain Lesage
 ---
 
+<img src="../../assets/images/sylvain-lesage.jpeg" alt="Portrait of Sylvain Lesage" style="width: 150px; border-radius: 50%; float: right; margin-left: 1em; margin-bottom: 1em;">
+
 # Sylvain Lesage
+
 
 <div class="gray" style="font-size: 0.8em;">
   <a href="https://rednegra.net">rednegra.net</a> · <a href="mailto:severo+resume@rednegra.net">severo@rednegra.net</a>
 </div>
+
 
 **Data visualization developer**
 
@@ -19,7 +23,7 @@ title: Resume - Sylvain Lesage
   <dd>JavaScript / Node.js, React, Next.js, D3.js, three.js, Vue.js, Svelte, TypeScript, Java, Python, R, HTML, SVG, canvas</dd>
 
   <dt>Spatial data</dt>
-  <dd>MapLibre, OpenLayers, PostgreSQL / PostGIS, GeoNetwork, GeoServer, geOrchestra</dd>
+  <dd>Parquet, MapLibre, OpenLayers, PostgreSQL / PostGIS, GeoNetwork, GeoServer, geOrchestra</dd>
 
   <dt>Applied mathematics</dt>
   <dd>Modeling, numerical simulation, algorithms, data structures, optimization, linear algebra, signal processing</dd>
@@ -28,7 +32,7 @@ title: Resume - Sylvain Lesage
   <dd>Project management, redaction of technical standards and technological policies, animation of technical communities, teaching, state of the art studies, oral presentation, public administration</dd>
 
   <dt>Languages</dt>
-  <dd>French, Spanish, English</dd>
+  <dd>English, French, Spanish</dd>
 </dl>
 
 ## Professional experience
@@ -39,9 +43,10 @@ title: Resume - Sylvain Lesage
     <li>for Hyperparam: development of open source React components and apps (React, TypeScript, CSS Modules, Next.js, Parquet)</li>
     <li>for Source Cooperative: development of open source React components (React, TypeScript, Next.js, OpenLayers)</li>
     <li>for Jason Forrest Agency: migration of an interactive map from D3.js to MapLibre (D3.js, MapLibre, React)</li>
+    <li>for Hugging Face: helping with the Dataset Studio on the Hugging Face Hub (Python, Node.js, Svelte)</li>
   </ul></dd>
 
-  <dt>Software Engineer · <a href="https://huggingface.co/">Hugging Face</a> · since 2021 (part-time since 2024)</dt>
+  <dt>Software Engineer · <a href="https://huggingface.co/">Hugging Face</a> · 2021-2024</dt>
   <dd>Building the dataset viewer in the Hugging Face Hub, for >100k datasets. Technologies: Python, MongoDB, Node.js, Svelte, Helm/Kubernetes</dd>
 
   <dt>Independent data visualization developer · 2018-2021</dt>
