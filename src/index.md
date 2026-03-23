@@ -41,5 +41,5 @@ You can find more about my work on my [portfolio](https://illisible.net/sylvain-
 
 You can contact me by mail at ✉️ [severo@rednegra.net](mailto:severo@rednegra.net) .
 
-Find me also on [LinkedIn](https://www.linkedin.com/in/sylvain--lesage/), [GitHub](https://github.com/severo), [Mastodon](https://mastodon.social/@severo), [Hugging Face](https://huggingface.co/severo), [Observable](https://observablehq.com/@severo), [ResearchGate](https://www.researchgate.net/profile/Sylvain_Lesage), [Stack Overflow](https://stackoverflow.com/users/7351594/sylvain-lesage) and [Malt](https://www.malt.fr/profile/sylvainlesage).
+Find me also on [LinkedIn](https://www.linkedin.com/in/sylvain--lesage/), [GitHub](https://github.com/severo), [Mastodon](https://mastodon.social/@severo), [Hugging Face](https://huggingface.co/severo), [Observable](https://observablehq.com/@severo), [ResearchGate](https://www.researchgate.net/profile/Sylvain_Lesage), [Stack Overflow](https://stackoverflow.com/users/7351594/sylvain-lesage), [OpenStreetMap](https://www.openstreetmap.org/user/Sylvain%20Lesage) and [Malt](https://www.malt.fr/profile/sylvainlesage).
 
