@@ -12,4 +12,4 @@ make
 
 ## Details
 
-Favicon: https://favicon.io/favicon-converter/, then copy into src/\_includes/favicon.
+Favicon: https://favicon.io/favicon-converter/, then copy into public/.

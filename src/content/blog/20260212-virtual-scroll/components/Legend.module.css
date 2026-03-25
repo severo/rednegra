@@ -1,0 +1,42 @@
+/* Assumes the following CSS variables are set globally:
+ * --table-color
+ * --viewport-color
+ * --full-table-color
+ * --border-width
+ * --legend-height
+ * --canvas-color
+ */
+
+.legend {
+  height: var(--legend-height);
+  font-size: 0.9em;
+  & > p {
+    border-bottom: 2px solid currentColor;
+  }
+}
+
+.viewportLegend {
+  color: var(--viewport-color);
+}
+.canvasLegend {
+  color: var(--canvas-color);
+}
+.tableLegend {
+  color: var(--table-color);
+}
+
+.fullTableLegend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--full-table-color);
+
+  button {
+    font-size: 0.8em;
+    border: var(--border-width) solid var(--full-table-color);
+    border-bottom: none;
+    background-color: transparent;
+    color: var(--full-table-color);
+    cursor: pointer;
+  }
+}

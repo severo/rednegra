@@ -7,10 +7,10 @@ node_modules:
 install: node_modules
 
 build: install
-	npx @11ty/eleventy --input=src --output=_site
+	npm run build
 
 serve:
-	npx @11ty/eleventy --input=src --output=_site --serve
+	npm run dev
 
 # .SECONDARY with no dependencies marks all file targets mentioned in the makefile as secondary.
 .SECONDARY:

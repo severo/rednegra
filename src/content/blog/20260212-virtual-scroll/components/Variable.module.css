@@ -1,0 +1,18 @@
+.row {
+  font-size: var(--variables-font-size);
+}
+.prefix {
+  border: revert;
+}
+.viewport {
+  color: var(--viewport-color);
+}
+.table {
+  color: var(--table-color);
+}
+.canvas {
+  color: var(--canvas-color);
+}
+.fullTable {
+  color: var(--full-table-color);
+}

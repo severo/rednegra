@@ -1,0 +1,53 @@
+/* Assumes the following CSS variables are set globally:
+ * --viewport-height
+ * --wide-border-width
+ * --viewport-color
+ * --canvas-color
+ * --horizontal-margin
+ * --legend-height
+ * --gap
+ */
+
+.explanation {
+  position: relative;
+  overflow: hidden;
+}
+
+.viewport {
+  composes: viewport from "./common.module.css";
+  position: relative;
+  margin: calc(var(--legend-height) + var(--gap)) 0;
+}
+
+.backgroundElement {
+  composes: backgroundElement from "./common.module.css";
+  position: absolute;
+  top: calc(var(--legend-height) + var(--gap) + var(--wide-border-width));
+  left: 0;
+  width: calc(100% - 2 * var(--horizontal-margin));
+  pointer-events: none;
+}
+
+.canvasWrapper {
+  position: relative;
+  margin: calc(var(--legend-height) + var(--gap)) var(--horizontal-margin);
+}
+
+.canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+
+  box-sizing: border-box;
+  /* border-radius: calc(var(--wide-border-width) * 2); */
+
+  border: var(--wide-border-width) solid var(--canvas-color);
+}
+
+.wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
