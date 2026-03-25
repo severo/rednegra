@@ -1,0 +1,27 @@
+/* Assumes the following CSS variables are set globally:
+ * --gap
+ */
+
+.demo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.viewport {
+  composes: viewport from "./common.module.css";
+  overflow-y: scroll;
+  scroll-behavior: instant;
+}
+
+.backgroundElement {
+  composes: backgroundElement from "./common.module.css";
+}
+
+.textDescription {
+  font-size: 0.9em;
+  line-height: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

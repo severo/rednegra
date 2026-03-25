@@ -1,0 +1,70 @@
+/* Assumes the following CSS variables are set globally:
+ * --dark-color
+ * --light-color
+ * --table-color
+ * --viewport-color
+ * --canvas-color
+ * --full-table-color
+ * --mono-font
+ * --row-height
+ * --num-rows
+ * --wide-border-width
+ */
+
+.widget {
+  * {
+    box-sizing: border-box;
+  }
+
+  --border-width: 1px;
+  --num_visible_rows: 5.7;
+  --viewport-height: calc(var(--row-height) * var(--num_visible_rows));
+  --gap: 16px;
+  --horizontal-margin: 16px;
+
+  /* widget */
+  font-size: 1rem;
+  --cells-font-size: 1em;
+  --variables-font-size: 1em;
+
+  line-height: 1.3;
+  width: 100%;
+}
+
+.main {
+  /* external aspect */
+  margin: 0 auto;
+  width: 80%;
+  min-width: 320px;
+  border-radius: 8px;
+  /* internal layout */
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  /* colors */
+  background-color: var(--dark-color);
+  color: var(--light-color);
+}
+
+.content {
+  --slice-color: var(--table-color);
+  --legend-height: 150px;
+
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 40px;
+}
+
+.viewport {
+  box-sizing: border-box;
+  border-radius: calc(var(--wide-border-width) * 2);
+
+  height: var(--viewport-height);
+  border: var(--wide-border-width) solid var(--viewport-color);
+}
+
+.backgroundElement {
+  position: relative;
+  margin: 0 var(--horizontal-margin);
+}

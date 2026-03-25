@@ -1,0 +1,13 @@
+.backgroundElement {
+  position: relative;
+  border: none;
+  height: var(--canvas-height);
+  overflow-y: hidden;
+}
+
+.tableWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}

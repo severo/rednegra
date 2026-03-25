@@ -1,0 +1,15 @@
+---
+/* This page is used to embed the component as an iframe in https://blog.hyperparam.app/hightable-scrolling-billions-of-rows/ */
+import Demo from "../../content/blog/20260212-virtual-scroll/components/ScrollNative.tsx";
+
+import BaseHead from "../../components/BaseHead.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "../../consts";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  </head>
+  <body><Demo client:only="react" /></body>
+</html>
