@@ -1,132 +1,146 @@
-
-<!DOCTYPE html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/prism.css">
-  
-  <title>Parquet with GEOMETRY type is not GeoParquet</title>
-  <link href="https://huggingface.co/severo" rel="me">
-  <link href="https://observablehq.com/@severo" rel="me">
-  <link href="https://github.com/severo" rel="me">
-  <link href="https://mastodon.social/@severo" rel="me">
-  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
-  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
-  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
-  <link href="https://mamot.fr/@severo_bo" rel="me">
-  <link href="https://seenthis.net/people/severo" rel="me">
-</head>
-<body>
-  <main>
-    <header>
-      <h1 id="parquet-with-geometry-type-is-not-geoparquet">Parquet with GEOMETRY type is not GeoParquet</h1>
-      <p class="date">Published on: 2025-09-25</p>
-      <p class="author">By <a href="/">Sylvain Lesage</a></p>
-    </header>
-    <div><p><a href="https://parquet.apache.org/">Parquet</a> is a column-oriented storage file format I love to use in web apps, because I can access large datasets from a remote location without loading the entire file into memory. Several JavaScript libraries allow reading remote Parquet files: <a href="https://github.com/duckdb/duckdb-wasm">DuckDB-WASM</a>, <a href="kylebarron.dev/parquet-wasm/">Parquet WASM</a> or <a href="https://github.com/hyparam/hyparquet">hyparquet</a> which I regularly contribute to.</p>
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Astro Blog" href="https://example.com/feed.xml"><meta name="generator" content="Astro v6.0.8"><!-- Font preloads --><!-- <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin /> --><!-- <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin /> --><!-- Canonical URL --><link rel="canonical" href="https://example.com/blog/20250925-parquet-with-geometry-type-is-not-geoparquet/"><!-- Primary Meta Tags --><title>Parquet with GEOMETRY type is not GeoParquet</title><meta name="title" content="Parquet with GEOMETRY type is not GeoParquet"><meta name="description"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://example.com/blog/20250925-parquet-with-geometry-type-is-not-geoparquet/"><meta property="og:title" content="Parquet with GEOMETRY type is not GeoParquet"><meta property="og:description"><meta property="og:image" content="https://example.com/_astro/sylvain-lesage.D9hNevsB.jpeg"><link href="https://huggingface.co/severo" rel="me"><link href="https://observablehq.com/@severo" rel="me"><link href="https://github.com/severo" rel="me"><link href="https://mastodon.social/@severo" rel="me"><link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me"><link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me"><link href="https://mamot.fr/@severo_bo" rel="me"><link href="https://seenthis.net/people/severo" rel="me"><!-- <style>
+			main {
+				width: calc(100% - 2em);
+				max-width: 100%;
+				margin: 0;
+			}
+			.hero-image {
+				width: 100%;
+			}
+			.hero-image img {
+				display: block;
+				margin: 0 auto;
+				border-radius: 12px;
+				box-shadow: var(--box-shadow);
+			}
+			.prose {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+				color: rgb(var(--gray-dark));
+			}
+			.title {
+				margin-bottom: 1em;
+				padding: 1em 0;
+				text-align: center;
+				line-height: 1;
+			}
+			.title h1 {
+				margin: 0 0 0.5em 0;
+			}
+			.date {
+				margin-bottom: 0.5em;
+				color: rgb(var(--gray));
+			}
+			.last-updated-on {
+				font-style: italic;
+			}
+		</style> --><link rel="stylesheet" href="/_astro/BaseHead.3uaKHqoO.css">
+<style>footer[data-astro-cid-sz7xmlte]{flex-shrink:0;max-width:45em;padding:2rem 1rem;margin:0 auto;font-size:.8em;color:#666}
+</style></head> <body> <main> <header> <h1>Parquet with GEOMETRY type is not GeoParquet</h1> <p class="date">Published on: <time datetime="2025-09-25T00:00:00.000Z"> 2025-09-25 </time></p> <p class="author">By <a href="/">Sylvain Lesage</a></p> </header>  <p><a href="https://parquet.apache.org/">Parquet</a> is a column-oriented storage file format I love to use in web apps, because I can access large datasets from a remote location without loading the entire file into memory. Several JavaScript libraries allow reading remote Parquet files: <a href="https://github.com/duckdb/duckdb-wasm">DuckDB-WASM</a>, <a href="kylebarron.dev/parquet-wasm/">Parquet WASM</a> or <a href="https://github.com/hyparam/hyparquet">hyparquet</a> which I regularly contribute to.</p>
 <p><a href="https://geoparquet.org/">GeoParquet</a> is an extension of Parquet that defines how to store geospatial data.</p>
 <p>In this blog post, which takes the form of an FAQ, I try to clarify the differences between GeoParquet and Parquet with its new <code>GEOMETRY</code> and <code>GEOGRAPHY</code>.</p>
-<p><em>edit (2025-10-03): I updated parts of this post, after Chris Holmes pointed out that I had misunderstood the chronology. GeoParquet's last version was actually 9 months before the new types, and the goal for GeoParquet is to &quot;go native&quot;.</em></p>
-<h2 id="tl-dr">TL;DR</h2>
+<p><em>edit (2025-10-03): I updated parts of this post, after Chris Holmes pointed out that I had misunderstood the chronology. GeoParquet’s last version was actually 9 months before the new types, and the goal for GeoParquet is to “go native”.</em></p>
+<h2 id="tldr">TL;DR</h2>
 <p>My general understanding is that the two standards are orthogonal, compatible, and can be combined, with the only caveat that the columns must be encoded as <code>WKB</code>.</p>
 <p>The differences between the two standards are summarized in the table below.</p>
-<table>
-<thead>
-<tr>
-<th>Feature</th>
-<th>Parquet with GEOMETRY/GEOGRAPHY</th>
-<th>GeoParquet</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Location</td>
-<td>Columns logical types, and row group level geospatial statistics</td>
-<td><code>geo</code> field in file metadata</td>
-</tr>
-<tr>
-<td>Logical type of <code>BYTE_ARRAY</code></td>
-<td><code>GEOMETRY</code>, <code>GEOGRAPHY</code></td>
-<td>None</td>
-</tr>
-<tr>
-<td>Encoding</td>
-<td>WKB</td>
-<td>WKB or Arrow native types</td>
-</tr>
-<tr>
-<td>Primary geospatial column</td>
-<td>No</td>
-<td>Yes</td>
-</tr>
-<tr>
-<td>Coordinate Reference System (CRS)</td>
-<td>Column level, optional</td>
-<td>Column level, optional</td>
-</tr>
-<tr>
-<td>Epoch (dynamic CRS year)</td>
-<td>No</td>
-<td>Column level, optional</td>
-</tr>
-<tr>
-<td>Geometry types</td>
-<td>Row group level, optional</td>
-<td>Column level, mandatory</td>
-</tr>
-<tr>
-<td>Column bounding box</td>
-<td>Row group level, optional</td>
-<td>Column level, optional</td>
-</tr>
-<tr>
-<td>Covering (link to bounding box column)</td>
-<td>No</td>
-<td>Column level, optional</td>
-</tr>
-<tr>
-<td>Edges (planar/spherical)</td>
-<td>Column level (<code>GEOMETRY</code> / <code>GEOGRAPHY</code>), mandatory</td>
-<td>Column level, optional</td>
-</tr>
-<tr>
-<td>Polygon orientation</td>
-<td>No</td>
-<td>Column level, optional</td>
-</tr>
-<tr>
-<td>Versions compared</td>
-<td>Introduced in <a href="https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0">2.11.0 (March 2025)</a>, last version is <a href="https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.12.0">2.12.0 (August 2025)</a></td>
-<td><a href="https://github.com/opengeospatial/geoparquet/releases/tag/v1.1.0%2Bp1">1.1.0 (June 2024)</a></td>
-</tr>
-<tr>
-<td>Implementations</td>
-<td>See <a href="https://parquet.apache.org/docs/file-format/implementationstatus/">Parquet implementations compliance table</a> (does not include GEOMETRY/GEOGRAPHY yet)</td>
-<td>See <a href="https://geoparquet.org/#implementations">list of GeoParquet implementations</a></td>
-</tr>
-<tr>
-<td>References</td>
-<td><a href="https://parquet.apache.org/">Website</a>, <a href="https://github.com/apache/parquet-format">Specification</a>, <a href="https://github.com/apache/parquet-format/blob/master/src/main/thrift/parquet.thrift">Thrift</a></td>
-<td><a href="https://geoparquet.org/">Website</a>, <a href="https://geoparquet.org/releases/v1.1.0/">Specification</a>, <a href="https://geoparquet.org/releases/v1.1.0/schema.json">JSON Schema</a></td>
-</tr>
-<tr>
-<td>Example file</td>
-<td>TODO</td>
-<td><a href="https://source-cooperative.github.io/parquet-table/?lens=metadata&amp;url=https%3A%2F%2Fraw.githubusercontent.com%2Fopengeospatial%2Fgeoparquet%2Fmain%2Fexamples%2Fexample.parquet">GeoParquet example file</a></td>
-</tr>
-</tbody>
-</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<table><thead><tr><th>Feature</th><th>Parquet with GEOMETRY/GEOGRAPHY</th><th>GeoParquet</th></tr></thead><tbody><tr><td>Location</td><td>Columns logical types, and row group level geospatial statistics</td><td><code>geo</code> field in file metadata</td></tr><tr><td>Logical type of <code>BYTE_ARRAY</code></td><td><code>GEOMETRY</code>, <code>GEOGRAPHY</code></td><td>None</td></tr><tr><td>Encoding</td><td>WKB</td><td>WKB or Arrow native types</td></tr><tr><td>Primary geospatial column</td><td>No</td><td>Yes</td></tr><tr><td>Coordinate Reference System (CRS)</td><td>Column level, optional</td><td>Column level, optional</td></tr><tr><td>Epoch (dynamic CRS year)</td><td>No</td><td>Column level, optional</td></tr><tr><td>Geometry types</td><td>Row group level, optional</td><td>Column level, mandatory</td></tr><tr><td>Column bounding box</td><td>Row group level, optional</td><td>Column level, optional</td></tr><tr><td>Covering (link to bounding box column)</td><td>No</td><td>Column level, optional</td></tr><tr><td>Edges (planar/spherical)</td><td>Column level (<code>GEOMETRY</code> / <code>GEOGRAPHY</code>), mandatory</td><td>Column level, optional</td></tr><tr><td>Polygon orientation</td><td>No</td><td>Column level, optional</td></tr><tr><td>Versions compared</td><td>Introduced in <a href="https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0">2.11.0 (March 2025)</a>, last version is <a href="https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.12.0">2.12.0 (August 2025)</a></td><td><a href="https://github.com/opengeospatial/geoparquet/releases/tag/v1.1.0%2Bp1">1.1.0 (June 2024)</a></td></tr><tr><td>Implementations</td><td>See <a href="https://parquet.apache.org/docs/file-format/implementationstatus/">Parquet implementations compliance table</a> (does not include GEOMETRY/GEOGRAPHY yet)</td><td>See <a href="https://geoparquet.org/#implementations">list of GeoParquet implementations</a></td></tr><tr><td>References</td><td><a href="https://parquet.apache.org/">Website</a>, <a href="https://github.com/apache/parquet-format">Specification</a>, <a href="https://github.com/apache/parquet-format/blob/master/src/main/thrift/parquet.thrift">Thrift</a></td><td><a href="https://geoparquet.org/">Website</a>, <a href="https://geoparquet.org/releases/v1.1.0/">Specification</a>, <a href="https://geoparquet.org/releases/v1.1.0/schema.json">JSON Schema</a></td></tr><tr><td>Example file</td><td>TODO</td><td><a href="https://source-cooperative.github.io/parquet-table/?lens=metadata&#x26;url=https%3A%2F%2Fraw.githubusercontent.com%2Fopengeospatial%2Fgeoparquet%2Fmain%2Fexamples%2Fexample.parquet">GeoParquet example file</a></td></tr></tbody></table>
 <h2 id="what-is-the-geometry-type">What is the GEOMETRY type?</h2>
 <p>The support for the GEOMETRY type in Parquet only brings <a href="https://github.com/apache/parquet-format/pull/240/files#diff-834c5a8d91719350b20995ad99d1cb6d8d68332b9ac35694f40e375bdb2d3e7c">two changes to the standard</a>.</p>
 <h3 id="logical-type">Logical type</h3>
-<p>Logical types in Parquet are a way to add semantic meaning to primitive types. They are defined in the Parquet &quot;schema&quot;, the part of the metadata that lists the columns and their characteristics. <code>GEOMETRY</code> is a new logical type for the primitive type <code>BYTE_ARRAY</code>, and has an optional parameter to define the CRS (Coordinate Reference System) of the column.</p>
+<p>Logical types in Parquet are a way to add semantic meaning to primitive types. They are defined in the Parquet “schema”, the part of the metadata that lists the columns and their characteristics. <code>GEOMETRY</code> is a new logical type for the primitive type <code>BYTE_ARRAY</code>, and has an optional parameter to define the CRS (Coordinate Reference System) of the column.</p>
 <p>The data in the GEOMETRY columns must be encoded in <a href="https://en.wikipedia.org/wiki/Well-known_text_representation_of_geometry#Well-known_binary">WKB</a> (Well-Known Binary), a binary format to represent geometric objects defined by the <a href="https://www.ogc.org/">OGC</a> (Open Geospatial Consortium). Note that the axis order is explicitly <code>(x,y)</code> and cannot be overridden by the CRS.</p>
 <h3 id="statistics">Statistics</h3>
-<p>Apart from the logical type in the schema, the new version also includes optional geospatial statistics in the column metadata at the row group level. The aim is to speed up geospatial queries by filtering out row groups that do not intersect with the query's bounding box.</p>
+<p>Apart from the logical type in the schema, the new version also includes optional geospatial statistics in the column metadata at the row group level. The aim is to speed up geospatial queries by filtering out row groups that do not intersect with the query’s bounding box.</p>
 <p>The geospatial statistics can include two optional fields.</p>
 <p>The first optional statistic is a bounding box that gives the minimum and maximum coordinates of all the geometries in the column chunk. Note that it includes x, y, but also z and m if present.</p>
-<p>The second optional statistics is the list of geospatial types present in the column chunk (e.g., <code>Point</code>, <code>Polygon</code>, <code>MultiLineString</code>, etc.) There is no way to define a specific geometry type for the column, unlike GeoParquet. It's done at the row group level.</p>
+<p>The second optional statistics is the list of geospatial types present in the column chunk (e.g., <code>Point</code>, <code>Polygon</code>, <code>MultiLineString</code>, etc.) There is no way to define a specific geometry type for the column, unlike GeoParquet. It’s done at the row group level.</p>
 <h2 id="what-is-the-geography-type">What is the GEOGRAPHY type?</h2>
 <p><code>GEOGRAPHY</code> can be seen as an extension of <code>GEOMETRY</code> for the sphere. The only difference in the standard is an additional optional parameter for the logical type, which gives the algorithm used for edge interpolation on the sphere.</p>
 <h2 id="when-were-geometry-and-geography-added-to-parquet">When were GEOMETRY and GEOGRAPHY added to Parquet?</h2>
@@ -134,32 +148,32 @@
 <p>It culminated with the addition of the <code>GEOMETRY</code> and <code>GEOGRAPHY</code> logical types in the Parquet format, formally released in March of 2025 with version <a href="https://github.com/apache/parquet-format/releases/tag/apache-parquet-format-2.11.0">2.11.0</a> of the Parquet format.</p>
 <h2 id="are-geoparquet-and-parquet-with-geometry-the-same-thing">Are GeoParquet and Parquet with GEOMETRY the same thing?</h2>
 <p>No. Parquet with <code>GEOMETRY</code> and <code>GEOGRAPHY</code> is the new version of the Parquet standard. GeoParquet is an extension of Parquet, which is thus compatible, and adds more features.</p>
-<p><em>edit (2025-10-03): but the plan for GeoParquet 2.0 is to be Parquet with GEOMETRY/GEOGRAPHY. See these two blog posts by Chris Holmes: <a href="https://cloudnativegeo.org/blog/2025/02/geoparquet-2.0-going-native/">&quot;Geoparquet 2.0: Going Native&quot;</a>, <a href="https://cholmes.medium.com/geoparquet-parquet-geospatial-types-a-time-of-transition-a42e391cdab2">&quot;GeoParquet &amp; Parquet geospatial types: A time of transition&quot;</a>.</em></p>
+<p><em>edit (2025-10-03): but the plan for GeoParquet 2.0 is to be Parquet with GEOMETRY/GEOGRAPHY. See these two blog posts by Chris Holmes: <a href="https://cloudnativegeo.org/blog/2025/02/geoparquet-2.0-going-native/">“Geoparquet 2.0: Going Native”</a>, <a href="https://cholmes.medium.com/geoparquet-parquet-geospatial-types-a-time-of-transition-a42e391cdab2">“GeoParquet &#x26; Parquet geospatial types: A time of transition”</a>.</em></p>
 <h2 id="is-geoparquet-deprecated">Is GeoParquet deprecated?</h2>
-<p>No. It's still an active standard<strike>, and a <a href="https://geoparquet.org/releases/v1.1.0/">version</a> was published three months after the introduction of <code>GEOMETRY</code> and <code>GEOGRAPHY</code> in Parquet</strike>.</p>
-<p><em>edit (2025-10-03): I misread the year! Version v1.1.0 was actually published 9 months before, and the plan for Geoparquet is to &quot;go native&quot;. Sorry about that, and thanks for Chris Holmes for noticing!</em></p>
+<p>No. It’s still an active standard<strike>, and a <a href="https://geoparquet.org/releases/v1.1.0/">version</a> was published three months after the introduction of <code>GEOMETRY</code> and <code>GEOGRAPHY</code> in Parquet</strike>.</p>
+<p><em>edit (2025-10-03): I misread the year! Version v1.1.0 was actually published 9 months before, and the plan for Geoparquet is to “go native”. Sorry about that, and thanks for Chris Holmes for noticing!</em></p>
 <h2 id="does-geoparquet-use-the-geometry-and-geography-logical-types-in-parquet">Does GeoParquet use the GEOMETRY and GEOGRAPHY logical types in Parquet?</h2>
 <p>No. The <a href="https://geoparquet.org/releases/v1.1.0/">GeoParquet 1.1.0 standard</a>, published <strike>three months after</strike> nine months before the introduction of <code>GEOMETRY</code> and <code>GEOGRAPHY</code> in Parquet, does not yet mention these logical types or the new geospatial statistics.</p>
 <p><em>edit (2025-10-03): see above!</em></p>
 <h2 id="what-are-the-differences-between-geoparquet-and-parquet-with-geometry">What are the differences between GeoParquet and Parquet with GEOMETRY?</h2>
 <p><strike>The two standards seem to have diverged, even if the GeoParquet maintainers participated in the creation of the <code>GEOMETRY</code> logical type in Parquet.</strike></p>
-<p><em>edit (2025-10-03): see above! The two standards have not diverged, I misunderstood, and the plan for GeoParquet is to &quot;go native&quot;.</em></p>
+<p><em>edit (2025-10-03): see above! The two standards have not diverged, I misunderstood, and the plan for GeoParquet is to “go native”.</em></p>
 <h3 id="no-overlap">No overlap</h3>
 <p>GeoParquet does not mention the new logical types and geospatial statistics. All GeoParquet features are included in a <code>geo</code> field in the file metadata, which is not part of the Parquet standard.</p>
 <h3 id="geoparquet-features">GeoParquet features</h3>
 <p>GeoParquet has many features that are not in Parquet with <code>GEOMETRY</code>.</p>
-<p>A GeoParquet file must include a <code>geo</code> field, encoded as JSON, in the file metadata. This object contains the GeoParquet version and the name of the primary geospatial column. Parquet has no concept of such a &quot;primary&quot; geospatial column.</p>
+<p>A GeoParquet file must include a <code>geo</code> field, encoded as JSON, in the file metadata. This object contains the GeoParquet version and the name of the primary geospatial column. Parquet has no concept of such a “primary” geospatial column.</p>
 <p>The same <code>geo</code> metadata must also include a list of column metadata for each geospatial column in the file.</p>
 <p>Each column metadata mandatorily includes the encoding, which might be WKB or a native Arrow type, called <code>point</code>, <code>linestring</code>, <code>polygon</code>, etc. This means that the binary data in the columns is not necessarily WKB as in Parquet.</p>
-<p>It also includes the list of geometry types present in the column (e.g., <code>Point</code>, <code>Polygon</code>, etc.) It's done for the entire column, while in Parquet with <code>GEOMETRY</code>, it's optional and done at the row group level.</p>
+<p>It also includes the list of geometry types present in the column (e.g., <code>Point</code>, <code>Polygon</code>, etc.) It’s done for the entire column, while in Parquet with <code>GEOMETRY</code>, it’s optional and done at the row group level.</p>
 <p>The column metadata can also include the CRS (feature parity with Parquet, but not located in the schema).</p>
-<p>The difference between planar and spherical data is given by the &quot;edges&quot; field (<code>spherical</code> or <code>planar</code>). It is complemented by the orientation field that must be <code>counterclockwise</code> or undefined, and gives the orientation of polygon rings. Parquet uses the logical type to differentiate between planar (<code>GEOMETRY</code>) and spherical (<code>GEOGRAPHY</code>) data. It has no concept of orientation, and it gives more details for the GEOGRAPHY logical type by defining how to interpolate edges on the sphere.</p>
+<p>The difference between planar and spherical data is given by the “edges” field (<code>spherical</code> or <code>planar</code>). It is complemented by the orientation field that must be <code>counterclockwise</code> or undefined, and gives the orientation of polygon rings. Parquet uses the logical type to differentiate between planar (<code>GEOMETRY</code>) and spherical (<code>GEOGRAPHY</code>) data. It has no concept of orientation, and it gives more details for the GEOGRAPHY logical type by defining how to interpolate edges on the sphere.</p>
 <p>GeoParquet still has several additional features at the column level that have no equivalent in Parquet.</p>
-<p>It can include a bounding box for the entire column, which is very handy to get an immediate idea of the data extent. I created a small tool, called <a href="https://observablehq.com/@severo/hello-foursquare-places">&quot;Hello Foursquare places&quot;</a>, that uses that information to quickly find which of the 100 GeoParquet files published by Foursquare contains a specific area.</p>
-<p>You can also see a specialized field, called <code>epoch</code>, which gives the year of the CRS when it's a dynamic one. It surely helps in some edge cases.</p>
-<p>Finally, a recent addition to the column metadata is <code>covering</code>, which maps a geospatial column to a bounding box column, which can help to speed up queries. If I read correctly, it's limited to the x and y dimensions. I'm not yet sure what the tradeoffs are between using <code>covering</code> in GeoParquet and using geospatial statistics in Parquet with <code>GEOMETRY</code>.</p>
+<p>It can include a bounding box for the entire column, which is very handy to get an immediate idea of the data extent. I created a small tool, called <a href="https://observablehq.com/@severo/hello-foursquare-places">“Hello Foursquare places”</a>, that uses that information to quickly find which of the 100 GeoParquet files published by Foursquare contains a specific area.</p>
+<p>You can also see a specialized field, called <code>epoch</code>, which gives the year of the CRS when it’s a dynamic one. It surely helps in some edge cases.</p>
+<p>Finally, a recent addition to the column metadata is <code>covering</code>, which maps a geospatial column to a bounding box column, which can help to speed up queries. If I read correctly, it’s limited to the x and y dimensions. I’m not yet sure what the tradeoffs are between using <code>covering</code> in GeoParquet and using geospatial statistics in Parquet with <code>GEOMETRY</code>.</p>
 <h2 id="are-they-compatible">Are they compatible?</h2>
-<p>Yes! It's the good news. As the two standards are orthogonal, you can combine them, with only one caveat: the columns must be encoded as <code>WKB</code>.</p>
+<p>Yes! It’s the good news. As the two standards are orthogonal, you can combine them, with only one caveat: the columns must be encoded as <code>WKB</code>.</p>
 <p>Otherwise, the files can be written with both the <code>geo</code> metadata (GeoParquet), and the <code>GEOMETRY</code>/<code>GEOGRAPHY</code> logical types + geospatial statistics (Parquet).</p>
 <h2 id="how-to-read-them">How to read them?</h2>
 <p>As the two standards are orthogonal, their features can be read and interpreted independently of each other. The only caveat is that the columns must be encoded as <code>WKB</code> to be compatible with both standards, and I imagine that Parquet takes precedence over GeoParquet. So, if a GeoParquet file defines an Arrow native encoding, while the column is marked as a <code>GEOMETRY</code> logical type in the schema, a reader should raise an error.</p>
@@ -170,8 +184,6 @@
 <p><em>edit (2025-10-03): hyparquet now supports reading <code>GEOMETRY</code> and <code>GEOGRAPHY</code>.</em></p>
 <h2 id="conclusion">Conclusion</h2>
 <p>Parquet with <code>GEOMETRY</code> and <code>GEOGRAPHY</code> is not GeoParquet. The two standards are orthogonal and compatible, and can be combined, with the caveat that the columns must be encoded as <code>WKB</code>. GeoParquet has more features, while Parquet with <code>GEOMETRY</code> and <code>GEOGRAPHY</code> brings native support for geospatial data in the Parquet format. The new geospatial additions in Parquet seem too recent to have had widespread adoption.</p>
-<p>Do you have comments? Did I misunderstand something? Do you know if Parquet and GeoParquet will merge at some point? Please reach out on <a href="https://mastodon.social/@severo/">Mastodon</a> or <a href="https://www.linkedin.com/in/sylvain--lesage/">LinkedIn</a>.</p>
-</div>
-  </main>
-</body>
-
+<p>Do you have comments? Did I misunderstand something? Do you know if Parquet and GeoParquet will merge at some point? Please reach out on <a href="https://mastodon.social/@severo/">Mastodon</a> or <a href="https://www.linkedin.com/in/sylvain--lesage/">LinkedIn</a>.</p>  </main> <footer data-astro-cid-sz7xmlte> <p data-astro-cid-sz7xmlte>
+Sylvain Lesage · <a href="/#contact" data-astro-cid-sz7xmlte>Contact</a> · <a href="/resume" data-astro-cid-sz7xmlte>Resume</a> · <a href="https://illisible.net/sylvain-lesage?lang=en" data-astro-cid-sz7xmlte>Portfolio</a> · <a href="/blog/" data-astro-cid-sz7xmlte>Blog</a> (<a href="/feed.xml" data-astro-cid-sz7xmlte>RSS</a>)
+</p> </footer> </body></html>

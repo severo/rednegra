@@ -1,33 +1,47 @@
-
-<!DOCTYPE html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="/style.css">
-  <link rel="stylesheet" href="/prism.css">
-  
-  <title>Parse, don't validate</title>
-  <link href="https://huggingface.co/severo" rel="me">
-  <link href="https://observablehq.com/@severo" rel="me">
-  <link href="https://github.com/severo" rel="me">
-  <link href="https://mastodon.social/@severo" rel="me">
-  <link href="https://bsky.app/profile/severo-dev.bsky.social" rel="me">
-  <link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me">
-  <link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me">
-  <link href="https://mamot.fr/@severo_bo" rel="me">
-  <link href="https://seenthis.net/people/severo" rel="me">
-</head>
-<body>
-  <main>
-    <header>
-      <h1 id="parse-dont-validate">Parse, don't validate</h1>
-      <p class="date">Published on: 2025-08-10</p>
-      <p class="author">By <a href="/">Sylvain Lesage</a></p>
-    </header>
-    <div><p>Alexis King coined the expression <a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/">&quot;Parse, don't validate&quot;</a> in 2019.</p>
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Astro Blog" href="https://example.com/feed.xml"><meta name="generator" content="Astro v6.0.8"><!-- Font preloads --><!-- <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin /> --><!-- <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin /> --><!-- Canonical URL --><link rel="canonical" href="https://example.com/blog/20250810-parse-dont-validate/"><!-- Primary Meta Tags --><title>Parse, don&#39;t validate</title><meta name="title" content="Parse, don't validate"><meta name="description"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://example.com/blog/20250810-parse-dont-validate/"><meta property="og:title" content="Parse, don't validate"><meta property="og:description"><meta property="og:image" content="https://example.com/_astro/sylvain-lesage.D9hNevsB.jpeg"><link href="https://huggingface.co/severo" rel="me"><link href="https://observablehq.com/@severo" rel="me"><link href="https://github.com/severo" rel="me"><link href="https://mastodon.social/@severo" rel="me"><link href="https://www.linkedin.com/in/sylvain--lesage/" rel="me"><link href="https://www.researchgate.net/profile/Sylvain_Lesage" rel="me"><link href="https://mamot.fr/@severo_bo" rel="me"><link href="https://seenthis.net/people/severo" rel="me"><!-- <style>
+			main {
+				width: calc(100% - 2em);
+				max-width: 100%;
+				margin: 0;
+			}
+			.hero-image {
+				width: 100%;
+			}
+			.hero-image img {
+				display: block;
+				margin: 0 auto;
+				border-radius: 12px;
+				box-shadow: var(--box-shadow);
+			}
+			.prose {
+				width: 720px;
+				max-width: calc(100% - 2em);
+				margin: auto;
+				padding: 1em;
+				color: rgb(var(--gray-dark));
+			}
+			.title {
+				margin-bottom: 1em;
+				padding: 1em 0;
+				text-align: center;
+				line-height: 1;
+			}
+			.title h1 {
+				margin: 0 0 0.5em 0;
+			}
+			.date {
+				margin-bottom: 0.5em;
+				color: rgb(var(--gray));
+			}
+			.last-updated-on {
+				font-style: italic;
+			}
+		</style> --><link rel="stylesheet" href="/_astro/BaseHead.3uaKHqoO.css">
+<style>footer[data-astro-cid-sz7xmlte]{flex-shrink:0;max-width:45em;padding:2rem 1rem;margin:0 auto;font-size:.8em;color:#666}
+</style></head> <body> <main> <header> <h1>Parse, don&#39;t validate</h1> <p class="date">Published on: <time datetime="2025-08-10T00:00:00.000Z"> 2025-08-10 </time></p> <p class="author">By <a href="/">Sylvain Lesage</a></p> </header>  <p>Alexis King coined the expression <a href="https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/">“Parse, don’t validate”</a> in 2019.</p>
 <p>I discovered it today reading <a href="https://marvinh.dev/blog/speeding-up-javascript-ecosystem-part-12/">Speeding up the JavaScript ecosystem - Semver</a> by Marvin Hagemeister.</p>
 <blockquote>
-<p>To validate input correctness, both validator functions parse the input data, allocate the resulting data structure and return back the original input string if it passed the check. When we call the satisfies function, we do the same work that we just threw away again. This is a classic case of doing twice the work necessary due to not following the &quot;Parse, don't validate&quot; rule.</p>
+<p>To validate input correctness, both validator functions parse the input data, allocate the resulting data structure and return back the original input string if it passed the check. When we call the satisfies function, we do the same work that we just threw away again. This is a classic case of doing twice the work necessary due to not following the “Parse, don’t validate” rule.</p>
 </blockquote>
 <p>Quoting Alexis King, the principle is to use the typing system to:</p>
 <ul>
@@ -39,24 +53,24 @@
 <p>Model your data using the most precise data structure you reasonably can. If ruling out a particular possibility is too hard using the encoding you are currently using, consider alternate encodings that can express the property you care about more easily. Don’t be afraid to refactor.</p>
 </blockquote>
 <p>The second point is a direct consequence of the first.</p>
-<p>His example uses Haskell and treats the problem of an array that should not be empty. Instead of passing a regular array along all the code, he creates a &quot;non empty array&quot; type, and parses his array as soon as possible, returning a &quot;non empty array&quot;, or failing. It's known as <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html">&quot;type narrowing&quot;</a> (or type guarding) in TypeScript.</p>
+<p>His example uses Haskell and treats the problem of an array that should not be empty. Instead of passing a regular array along all the code, he creates a “non empty array” type, and parses his array as soon as possible, returning a “non empty array”, or failing. It’s known as <a href="https://www.typescriptlang.org/docs/handbook/2/narrowing.html">“type narrowing”</a> (or type guarding) in TypeScript.</p>
 <h2 id="translated-in-typescript">Translated in TypeScript</h2>
-<p>Let's reproduce the example in TypeScript. We want to parse a regular array and ensure it's not empty.</p>
+<p>Let’s reproduce the example in TypeScript. We want to parse a regular array and ensure it’s not empty.</p>
 <p>We define type as:</p>
-<pre class="language-ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">NonEmptyArray<span class="token operator">&lt;</span><span class="token constant">T</span><span class="token operator">></span></span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token constant">T</span><span class="token punctuation">,</span> <span class="token operator">...</span><span class="token constant">T</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span></code></pre>
+<pre class="language-ts" data-language="ts"><code class="language-ts"><span class="token keyword">type</span> <span class="token class-name">NonEmptyArray<span class="token operator">&#x3C;</span><span class="token constant">T</span><span class="token operator">></span></span> <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token constant">T</span><span class="token punctuation">,</span> <span class="token operator">...</span><span class="token constant">T</span><span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">]</span><span class="token punctuation">;</span>
+</code></pre>
 <p>(thanks Copilot for helping me with that, as generic types are not my favorite hobby)</p>
 <p>Then, the parsing function is:</p>
-<pre class="language-ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">parseArray</span><span class="token punctuation">(</span>input<span class="token operator">:</span> <span class="token builtin">unknown</span><span class="token punctuation">)</span><span class="token operator">:</span> NonEmptyArray<span class="token operator">&lt;</span><span class="token builtin">unknown</span><span class="token operator">></span> <span class="token punctuation">{</span>
+<pre class="language-ts" data-language="ts"><code class="language-ts"><span class="token keyword">function</span> <span class="token function">parseArray</span><span class="token punctuation">(</span>input<span class="token operator">:</span> <span class="token builtin">unknown</span><span class="token punctuation">)</span><span class="token operator">:</span> NonEmptyArray<span class="token operator">&#x3C;</span><span class="token builtin">unknown</span><span class="token operator">></span> <span class="token punctuation">{</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span><span class="token operator">!</span><span class="token builtin">Array</span><span class="token punctuation">.</span><span class="token function">isArray</span><span class="token punctuation">(</span>input<span class="token punctuation">)</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">"Input is not an array"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
   <span class="token keyword">if</span> <span class="token punctuation">(</span>input<span class="token punctuation">.</span>length <span class="token operator">===</span> <span class="token number">0</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
     <span class="token keyword">throw</span> <span class="token keyword">new</span> <span class="token class-name">Error</span><span class="token punctuation">(</span><span class="token string">"Array is empty"</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
   <span class="token punctuation">}</span>
-  <span class="token keyword">return</span> input <span class="token keyword">as</span> NonEmptyArray<span class="token operator">&lt;</span><span class="token builtin">unknown</span><span class="token operator">></span><span class="token punctuation">;</span>
-<span class="token punctuation">}</span></code></pre>
-<p>Once the array has been parsed, you will never have to check its emptiness again. If you modify the array with <code>.map</code>, TypeScript will ensure you still have a non-empty array as a result.</p>
-</div>
-  </main>
-</body>
-
+  <span class="token keyword">return</span> input <span class="token keyword">as</span> NonEmptyArray<span class="token operator">&#x3C;</span><span class="token builtin">unknown</span><span class="token operator">></span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>Once the array has been parsed, you will never have to check its emptiness again. If you modify the array with <code>.map</code>, TypeScript will ensure you still have a non-empty array as a result.</p>  </main> <footer data-astro-cid-sz7xmlte> <p data-astro-cid-sz7xmlte>
+Sylvain Lesage · <a href="/#contact" data-astro-cid-sz7xmlte>Contact</a> · <a href="/resume" data-astro-cid-sz7xmlte>Resume</a> · <a href="https://illisible.net/sylvain-lesage?lang=en" data-astro-cid-sz7xmlte>Portfolio</a> · <a href="/blog/" data-astro-cid-sz7xmlte>Blog</a> (<a href="/feed.xml" data-astro-cid-sz7xmlte>RSS</a>)
+</p> </footer> </body></html>
