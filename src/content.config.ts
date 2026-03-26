@@ -1,20 +1,50 @@
-import { defineCollection } from 'astro:content';
-import { glob } from 'astro/loaders';
+import { defineCollection, reference } from 'astro:content';
+import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
 const blog = defineCollection({
-	// Load Markdown and MDX files in the `src/content/blog/` directory.
 	loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
-	// Type-check frontmatter using a schema
-	schema: ({ image }) =>
+	schema: () =>
 		z.object({
 			title: z.string(),
-			// description: z.string(),
-			// Transform string to Date object
 			pubDate: z.coerce.date(),
-			// updatedDate: z.coerce.date().optional(),
-			heroImage: z.optional(image()),
 		}),
 });
 
-export const collections = { blog };
+const tags = defineCollection({
+	loader: file('./src/content/tags.json'),
+	schema: z.object({
+		name: z.string(),
+	}),
+});
+
+const references = defineCollection({
+	loader: file('./src/content/references.json'),
+	schema: z.object({
+		name: z.string(),
+		tags: z.array(reference('tags')).optional(),
+	}),
+});
+
+const activities = defineCollection({
+	loader: glob({ base: './src/content/activities', pattern: '**/*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			title: z.string(),
+			reference: reference('references'),
+			tags: z.array(reference('tags')).optional(),
+		}),
+});
+
+const portfolio = defineCollection({
+	loader: file('./src/content/portfolio.json'),
+	schema: ({image}) =>
+		z.object({
+			activity: reference('activities'),
+			image: image(),
+			alt: z.string(),
+			tags: z.array(reference('tags')).optional(),
+		}),
+});
+
+export const collections = { blog , activities, portfolio, references, tags };

@@ -1,0 +1,181 @@
+---
+import { Image } from "astro:assets";
+import { getCollection, getEntry } from "astro:content";
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+import { SITE_DESCRIPTION } from "../consts";
+import { indexById } from "../utils";
+
+// How to sort?
+
+const activitiesLU = indexById(await getCollection("activities"));
+const referencesLU = indexById(await getCollection("references"));
+const tagsLU = indexById(await getCollection("tags"));
+const entries = (await getCollection("portfolio")).map(
+  ({
+    data: {
+      image,
+      activity: { id: activityId },
+      alt,
+      tags: tagIds,
+    },
+  }) => {
+    const activity = activitiesLU.get(activityId);
+    if (!activity) {
+      throw new Error(
+        `Activity with id ${activityId} not found for portfolio entry`,
+      );
+    }
+    const reference = referencesLU.get(activity.data.reference.id);
+    if (!reference) {
+      throw new Error(
+        `Reference with id ${activity.data.reference.id} not found for activity ${activityId}`,
+      );
+    }
+    const tags = tagIds?.map((tag) => {
+      const tagEntry = tagsLU.get(tag.id);
+      if (!tagEntry) {
+        throw new Error(
+          `Tag with id ${tag.id} not found for portfolio entry with activity ${activityId}`,
+        );
+      }
+      return tagEntry;
+    });
+    return {
+      alt,
+      image,
+      referenceName: reference.data.name,
+      tags,
+    };
+  },
+);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title={"Portfolio - Sylvain Lesage"}
+      description={SITE_DESCRIPTION}
+    />
+    <style type="text/css">
+      .portfolio {
+        width: 100%;
+        max-width: 100%;
+        padding: 2rem 4rem;
+
+        .gallery {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 2rem;
+
+          ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            list-style: none;
+            padding: 0;
+
+            li {
+              max-width: 360px;
+              max-height: 240px;
+              border-radius: 8px;
+              overflow: hidden;
+              /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+              /* border: 2px solid transparent; */
+
+              &:hover {
+                figcaption {
+                  display: block;
+                }
+                /* border: 2px solid rgba(0, 0, 0, 0.8); */
+              }
+
+              figure {
+                margin: 0;
+                position: relative;
+                height: 100%;
+
+                img {
+                  width: 100%;
+                  height: auto;
+                  display: block;
+                }
+
+                figcaption {
+                  display: none;
+                  position: absolute;
+                  inset: 0;
+
+                  p {
+                    position: absolute;
+                    left: 0;
+                    right: 0;
+                    margin: 0;
+                    padding: 0.25rem 0.5rem;
+                    color: white;
+                    font-size: 0.9rem;
+                    font-weight: bold;
+
+                    &.top {
+                      top: 0;
+                      background: linear-gradient(
+                        rgba(0, 0, 100, 0.9),
+                        transparent
+                      );
+                      padding-bottom: 2rem;
+                    }
+                    &.bottom {
+                      bottom: 0;
+                      background: linear-gradient(
+                        transparent,
+                        rgba(0, 0, 100, 0.9)
+                      );
+                      padding-top: 2em;
+
+                      .tags {
+                        display: block;
+                        font-size: 0.75rem;
+                        font-weight: normal;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="portfolio">
+      <h1>Portfolio</h1>
+      <section class="gallery">
+        <ul>
+          {
+            entries.map((entry) => (
+              <li>
+                <figure>
+                  <Image src={entry.image} alt={entry.alt} />
+                  <figcaption>
+                    <p class="top">{entry.referenceName}</p>
+                    <p class="bottom">
+                      <span class="alt">{entry.alt}</span>
+                      {entry.tags && (
+                        <span class="tags">
+                          {entry.tags.map((tag) => tag.data.name).join(", ")}
+                        </span>
+                      )}
+                    </p>
+                  </figcaption>
+                </figure>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </main>
+    <Footer />
+  </body>
+</html>
