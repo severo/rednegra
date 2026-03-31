@@ -1,10 +1,11 @@
 ---
 import { Image } from "astro:assets";
-import { getCollection, getEntry } from "astro:content";
+import { getCollection } from "astro:content";
 import BaseHead from "../components/BaseHead.astro";
 import Footer from "../components/Footer.astro";
 import { SITE_DESCRIPTION } from "../consts";
-import { indexById } from "../utils";
+import { indexById } from "../lib/utils";
+import { Masonry } from "astro-masonry";
 
 // How to sort?
 
@@ -49,6 +50,22 @@ const entries = (await getCollection("portfolio")).map(
     };
   },
 );
+
+const padding = 64;
+const margin = 10;
+const figureWidth = 300;
+const maxColumns = 8;
+const breakpointCols: { default: number; [key: number]: number } = {
+  default: maxColumns,
+};
+for (
+  let width = maxColumns * figureWidth + 2 * padding;
+  width >= figureWidth + 2 * padding;
+  width -= figureWidth
+) {
+  const columns = Math.floor((width - 2 * padding) / figureWidth);
+  breakpointCols[width] = columns;
+}
 ---
 
 <!doctype html>
@@ -58,86 +75,61 @@ const entries = (await getCollection("portfolio")).map(
       title={"Portfolio - Sylvain Lesage"}
       description={SITE_DESCRIPTION}
     />
-    <style type="text/css">
+    <style
+      type="text/css"
+      define:vars={{
+        padding: `${padding}px`,
+        margin: `${margin}px`,
+        "figure-width": `${figureWidth}px`,
+      }}
+    >
       .portfolio {
         width: 100%;
         max-width: 100%;
-        padding: 2rem 4rem;
+        padding: 2rem calc(var(--padding) - var(--margin)) 2rem var(--padding);
 
-        .gallery {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 2rem;
+        figure {
+          max-width: calc(var(--figure-width) - var(--margin));
+          margin: calc(var(--margin) * 2) calc(var(--margin) * 2) 0 0;
+          border-radius: 8px;
+          overflow: hidden;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          border: 1px solid var(--light-color);
 
-          ul {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 2rem;
-            list-style: none;
-            padding: 0;
+          img {
+            width: 100%;
+            height: auto;
+            display: block;
+          }
 
-            li {
-              max-width: 360px;
-              max-height: 240px;
-              border-radius: 8px;
-              overflow: hidden;
-              /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
-              /* border: 2px solid transparent; */
+          figcaption {
+            display: block;
+            border-top: 1px solid var(--light-color);
+            background: var(--color-white);
 
-              &:hover {
-                figcaption {
-                  display: block;
-                }
-                /* border: 2px solid rgba(0, 0, 0, 0.8); */
+            p {
+              &.alt {
+                margin: 0.5rem;
+                font-weight: bold;
+                font-size: 0.9rem;
+                color: var(--color-1);
               }
 
-              figure {
-                margin: 0;
-                position: relative;
-                height: 100%;
+              &.tags {
+                margin: 0.25rem 0.5rem;
+                display: block;
+                font-size: 0.75rem;
+                color: var(--color-1);
+                overflow: hidden;
+                text-overflow: ellipsis;
 
-                img {
-                  width: 100%;
-                  height: auto;
-                  display: block;
-                }
-
-                figcaption {
-                  display: none;
-                  position: absolute;
-                  inset: 0;
-
-                  p {
-                    position: absolute;
-                    left: 0;
-                    right: 0;
-                    margin: 0;
-                    padding: 0.25rem 0.5rem;
-                    color: white;
-                    font-size: 0.9rem;
-                    font-weight: bold;
-
-                    &.top {
-                      top: 0;
-                      background: linear-gradient(
-                        rgba(0, 0, 100, 0.9),
-                        transparent
-                      );
-                      padding-bottom: 2rem;
-                    }
-                    &.bottom {
-                      bottom: 0;
-                      background: linear-gradient(
-                        transparent,
-                        rgba(0, 0, 100, 0.9)
-                      );
-                      padding-top: 2em;
-
-                      .tags {
-                        display: block;
-                        font-size: 0.75rem;
-                        font-weight: normal;
-                      }
+                .tag {
+                  text-wrap: nowrap;
+                  &:not(:last-child) {
+                    &:after {
+                      content: "•";
+                      padding: 0 0.25em;
+                      color: var(--light-color);
                     }
                   }
                 }
@@ -151,30 +143,31 @@ const entries = (await getCollection("portfolio")).map(
   <body>
     <main class="portfolio">
       <h1>Portfolio</h1>
-      <section class="gallery">
-        <ul>
-          {
-            entries.map((entry) => (
-              <li>
-                <figure>
-                  <Image src={entry.image} alt={entry.alt} />
-                  <figcaption>
-                    <p class="top">{entry.referenceName}</p>
-                    <p class="bottom">
-                      <span class="alt">{entry.alt}</span>
-                      {entry.tags && (
-                        <span class="tags">
-                          {entry.tags.map((tag) => tag.data.name).join(", ")}
-                        </span>
-                      )}
-                    </p>
-                  </figcaption>
-                </figure>
-              </li>
-            ))
-          }
-        </ul>
-      </section>
+      <p>
+        An overview of my past projects and activities. <a href="/#contact"
+          >Contact me</a
+        > for more information.
+      </p>
+      <Masonry breakpointCols={breakpointCols}>
+        {
+          entries.map((entry) => (
+            <figure>
+              <Image src={entry.image} alt={entry.alt} />
+              <figcaption>
+                <p class="alt">{entry.alt}</p>
+                <p class="tags">
+                  {[
+                    entry.referenceName,
+                    ...(entry.tags?.map((tag) => tag.data.name) ?? []),
+                  ].map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </p>
+              </figcaption>
+            </figure>
+          ))
+        }
+      </Masonry>
     </main>
     <Footer />
   </body>

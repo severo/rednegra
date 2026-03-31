@@ -17,7 +17,7 @@
     "id": "134-converted-parquet",
     "activity": "134",
     "image": "./activities/134/converted-parquet.png",
-    "alt": "Convert every dataset to Parquet.",
+    "alt": "Convert every dataset to Parquet",
     "tags": ["python", "parquet"]
   }
 ]
