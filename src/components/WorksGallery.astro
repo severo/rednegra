@@ -1,0 +1,172 @@
+---
+import { Image } from "astro:assets";
+import { type CollectionEntry, getCollection } from "astro:content";
+import { indexById } from "../lib/utils";
+import { Masonry } from "astro-masonry";
+
+// How to sort?
+
+export interface Entry {
+  alt: string;
+  image: ImageMetadata;
+  tagNames?: string[];
+  work: CollectionEntry<"works">;
+  reference?: CollectionEntry<"references">;
+}
+
+interface Props {
+  padding?: number; /* The padding around the gallery, in pixels. This is the space between the gallery and the edges of its container. */
+  gap?: number; /* The gap between figures, vertically and horizontally, in pixels. */
+  figureWidth?: number; /* The width of each figure in pixels. The gallery will adapt the number of columns to fit the screen, but figures will never be wider than this value. */
+  maxColumns?: number; /* The maximum number of columns to display. This is used to calculate the breakpoints for the responsive layout. */
+  filter?: (entry: Entry) => boolean;
+}
+
+const worksLU = indexById(await getCollection("works"));
+const referencesLU = indexById(await getCollection("references"));
+const tagsLU = indexById(await getCollection("tags"));
+const images = await getCollection("images");
+const entries = images.map(
+  ({
+    data: {
+      id: image,
+      work: { id: workId },
+      alt,
+      tags: tagIds,
+    },
+  }) => {
+    const work = worksLU.get(workId);
+    if (!work) {
+      throw new Error(`Work with id ${workId} not found for portfolio entry`);
+    }
+
+    const tagNames = tagIds?.map((tag) => {
+      const tagEntry = tagsLU.get(tag.id);
+      if (!tagEntry) {
+        throw new Error(
+          `Tag with id ${tag.id} not found for portfolio entry with work ${workId}`,
+        );
+      }
+      return tagEntry.data.name;
+    });
+    if (work.data.reference) {
+      const reference = referencesLU.get(work.data.reference.id);
+      if (!reference) {
+        throw new Error(
+          `Reference with id ${work.data.reference.id} not found for portfolio entry with work ${workId}`,
+        );
+      }
+      tagNames?.unshift(reference.data.name);
+    }
+
+    return {
+      alt,
+      image,
+      tagNames,
+      work,
+      reference: work.data.reference
+        ? referencesLU.get(work.data.reference.id)
+        : undefined,
+    };
+  },
+);
+const filteredEntries = Astro.props.filter
+  ? entries.filter(Astro.props.filter)
+  : entries;
+
+const padding = Astro.props.padding ?? 64;
+const gap = Astro.props.gap ?? 10;
+const figureWidth = Astro.props.figureWidth ?? 300;
+const maxColumns = Astro.props.maxColumns ?? 3;
+const breakpointCols: { default: number; [key: number]: number } = {
+  default: maxColumns,
+};
+for (
+  let width = maxColumns * figureWidth + 2 * padding;
+  width >= figureWidth + 2 * padding;
+  width -= figureWidth
+) {
+  const columns = Math.floor((width - 2 * padding) / figureWidth);
+  breakpointCols[width] = columns;
+}
+---
+
+<Masonry breakpointCols={breakpointCols}>
+  {
+    filteredEntries.map((entry) => (
+      <a href={`/works/${entry.work.id}`}>
+        <figure>
+          <Image src={entry.image} alt={entry.alt} />
+          <figcaption>
+            <p class="alt">{entry.alt}</p>
+            {entry.tagNames && (
+              <p class="tags">
+                {entry.tagNames.map((name) => (
+                  <span class="tag">{name}</span>
+                ))}
+              </p>
+            )}
+          </figcaption>
+        </figure>
+      </a>
+    ))
+  }
+</Masonry>
+
+<style
+  type="text/css"
+  define:vars={{
+    gap: `${gap}px`,
+    "figure-width": `${figureWidth}px`,
+  }}
+>
+  figure {
+    max-width: calc(var(--figure-width) - var(--gap));
+    margin: calc(var(--gap) * 2) calc(var(--gap) * 2) 0 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--light-color);
+
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    figcaption {
+      display: block;
+      border-top: 1px solid var(--light-color);
+      background: var(--color-white);
+
+      p {
+        &.alt {
+          margin: 0.5rem;
+          font-weight: bold;
+          font-size: 0.9rem;
+          color: var(--color-1);
+        }
+
+        &.tags {
+          margin: 0.25rem 0.5rem;
+          display: block;
+          font-size: 0.75rem;
+          color: var(--color-1);
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          .tag {
+            text-wrap: nowrap;
+            &:not(:last-child) {
+              &:after {
+                content: "•";
+                padding: 0 0.25em;
+                color: var(--light-color);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+</style>

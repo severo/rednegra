@@ -1,0 +1,33 @@
+---
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+import { SITE_DESCRIPTION } from "../../consts";
+import { getCollection } from "astro:content";
+
+const works = await getCollection("works");
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead
+      title={"References - Sylvain Lesage"}
+      description={SITE_DESCRIPTION}
+    />
+  </head>
+  <body>
+    <main class="portfolio">
+      <h1>References</h1>
+      <ul>
+        {
+          works.map((work) => (
+            <li>
+              <a href={`/works/${work.id}`}>{work.data.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </main>
+    <Footer />
+  </body>
+</html>

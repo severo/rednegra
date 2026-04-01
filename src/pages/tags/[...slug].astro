@@ -1,0 +1,39 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+
+export async function getStaticPaths() {
+  const tags = await getCollection("tags");
+  return tags.map((tag) => ({
+    params: { slug: tag.id },
+    props: tag,
+  }));
+}
+type Props = CollectionEntry<"tags">;
+
+const tag = Astro.props;
+const { name } = tag.data;
+const { Content } = await render(tag);
+---
+
+<html lang="en">
+  <head>
+    <BaseHead title={name} description={""} />
+  </head>
+
+  <body>
+    <main>
+      <header>
+        <h1>{name}</h1>
+      </header>
+      <Content />
+
+      <h2>Works</h2>
+      <WorksGallery
+        filter={(entry: Entry) => entry.tagNames?.includes(name) ?? false}
+      />
+    </main>
+  </body><Footer />
+</html>

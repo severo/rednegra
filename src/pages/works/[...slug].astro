@@ -1,7 +1,12 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import Work from "../../layouts/Work.astro";
+// import WorksGallery from "../../components/WorksGallery.astro";
 
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+import { indexById } from "../../lib/utils";
+
+// getStaticPaths creates a static page for each work
 export async function getStaticPaths() {
   const works = await getCollection("works");
   return works.map((work) => ({
@@ -9,12 +14,34 @@ export async function getStaticPaths() {
     props: work,
   }));
 }
-type Props = CollectionEntry<"works">;
 
+type Props = CollectionEntry<"works">;
 const work = Astro.props;
 const { Content } = await render(work);
+const { title, reference: referenceId } = work.data;
+const referencesLU = indexById(await getCollection("references"));
+const reference = referenceId ? referencesLU.get(referenceId.id) : undefined;
 ---
 
-<Work {...work.data}>
-  <Content />
-</Work>
+<html lang="en">
+  <head>
+    <BaseHead title={title} description={""} />
+  </head>
+
+  <body>
+    <main>
+      <header>
+        <h1>{title}</h1>
+      </header>
+      {
+        reference && (
+          <p>
+            Reference:{" "}
+            <a href={`/references/${reference.id}`}>{reference.data.name}</a>
+          </p>
+        )
+      }
+      <Content />
+    </main>
+  </body><Footer />
+</html>

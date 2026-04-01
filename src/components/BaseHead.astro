@@ -9,7 +9,7 @@ import { SITE_TITLE } from "../consts";
 
 interface Props {
   title: string;
-  description: string;
+  description?: string;
   image?: ImageMetadata;
 }
 
@@ -32,23 +32,18 @@ const { title, description, image = FallbackImage } = Astro.props;
 />
 <meta name="generator" content={Astro.generator} />
 
-<!-- Font preloads -->
-<!-- <link rel="preload" href="/fonts/atkinson-regular.woff" as="font" type="font/woff" crossorigin /> -->
-<!-- <link rel="preload" href="/fonts/atkinson-bold.woff" as="font" type="font/woff" crossorigin /> -->
-
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
-<meta name="title" content={title} />
-<meta name="description" content={description} />
+{description && <meta name="description" content={description} />}
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website" />
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
-<meta property="og:description" content={description} />
+{description && <meta property="og:description" content={description} />}
 <meta property="og:image" content={new URL(image.src, Astro.url)} />
 
 <link href="https://huggingface.co/severo" rel="me" />

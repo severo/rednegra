@@ -1,74 +1,13 @@
 ---
-import { Image } from "astro:assets";
-import { getCollection } from "astro:content";
 import BaseHead from "../../components/BaseHead.astro";
 import Footer from "../../components/Footer.astro";
+import WorksGallery from "../../components/WorksGallery.astro";
 import { SITE_DESCRIPTION } from "../../consts";
-import { indexById } from "../../lib/utils";
-import { Masonry } from "astro-masonry";
-
-// How to sort?
-
-const worksLU = indexById(await getCollection("works"));
-const referencesLU = indexById(await getCollection("references"));
-const tagsLU = indexById(await getCollection("tags"));
-const images = (await getCollection("images")).map(
-  ({
-    data: {
-      id: image,
-      work: { id: workId },
-      alt,
-      tags: tagIds,
-    },
-  }) => {
-    const work = worksLU.get(workId);
-    if (!work) {
-      throw new Error(`Work with id ${workId} not found for portfolio entry`);
-    }
-
-    const tagNames = tagIds?.map((tag) => {
-      const tagEntry = tagsLU.get(tag.id);
-      if (!tagEntry) {
-        throw new Error(
-          `Tag with id ${tag.id} not found for portfolio entry with work ${workId}`,
-        );
-      }
-      return tagEntry.data.name;
-    });
-    if (work.data.reference) {
-      const reference = referencesLU.get(work.data.reference.id);
-      if (!reference) {
-        throw new Error(
-          `Reference with id ${work.data.reference.id} not found for portfolio entry with work ${workId}`,
-        );
-      }
-      tagNames?.unshift(reference.data.name);
-    }
-
-    return {
-      alt,
-      image,
-      tagNames,
-      work,
-    };
-  },
-);
 
 const padding = 64;
-const margin = 10;
+const gap = 10;
 const figureWidth = 300;
 const maxColumns = 8;
-const breakpointCols: { default: number; [key: number]: number } = {
-  default: maxColumns,
-};
-for (
-  let width = maxColumns * figureWidth + 2 * padding;
-  width >= figureWidth + 2 * padding;
-  width -= figureWidth
-) {
-  const columns = Math.floor((width - 2 * padding) / figureWidth);
-  breakpointCols[width] = columns;
-}
 ---
 
 <!doctype html>
@@ -82,96 +21,30 @@ for (
       type="text/css"
       define:vars={{
         padding: `${padding}px`,
-        margin: `${margin}px`,
-        "figure-width": `${figureWidth}px`,
+        gap: `${gap}px`,
       }}
     >
-      .portfolio {
+      .works {
         width: 100%;
         max-width: 100%;
-        padding: 2rem calc(var(--padding) - var(--margin)) 2rem var(--padding);
-
-        figure {
-          max-width: calc(var(--figure-width) - var(--margin));
-          margin: calc(var(--margin) * 2) calc(var(--margin) * 2) 0 0;
-          border-radius: 8px;
-          overflow: hidden;
-          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-          border: 1px solid var(--light-color);
-
-          img {
-            width: 100%;
-            height: auto;
-            display: block;
-          }
-
-          figcaption {
-            display: block;
-            border-top: 1px solid var(--light-color);
-            background: var(--color-white);
-
-            p {
-              &.alt {
-                margin: 0.5rem;
-                font-weight: bold;
-                font-size: 0.9rem;
-                color: var(--color-1);
-              }
-
-              &.tags {
-                margin: 0.25rem 0.5rem;
-                display: block;
-                font-size: 0.75rem;
-                color: var(--color-1);
-                overflow: hidden;
-                text-overflow: ellipsis;
-
-                .tag {
-                  text-wrap: nowrap;
-                  &:not(:last-child) {
-                    &:after {
-                      content: "•";
-                      padding: 0 0.25em;
-                      color: var(--light-color);
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+        padding: 2rem calc(var(--padding) - var(--gap)) 2rem var(--padding);
       }
     </style>
   </head>
   <body>
-    <main class="portfolio">
-      <h1>Portfolio</h1>
+    <main class="works">
+      <h1>Works</h1>
       <p>
         An overview of my past projects and activities. <a href="/#contact"
           >Contact me</a
         > for more information.
       </p>
-      <Masonry breakpointCols={breakpointCols}>
-        {
-          images.map((image) => (
-            <a href={`/works/${image.work.id}`}>
-              <figure>
-                <Image src={image.image} alt={image.alt} />
-                <figcaption>
-                  <p class="alt">{image.alt}</p>
-                  {image.tagNames && (
-                    <p class="tags">
-                      {image.tagNames.map((name) => (
-                        <span class="tag">{name}</span>
-                      ))}
-                    </p>
-                  )}
-                </figcaption>
-              </figure>
-            </a>
-          ))
-        }
-      </Masonry>
+      <WorksGallery
+        padding={padding}
+        gap={gap}
+        figureWidth={figureWidth}
+        maxColumns={maxColumns}
+      />
     </main>
     <Footer />
   </body>

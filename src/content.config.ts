@@ -7,23 +7,25 @@ const blog = defineCollection({
 	schema: () =>
 		z.object({
 			title: z.string(),
+			description: z.string().optional(),
 			pubDate: z.coerce.date(),
 		}),
 });
 
 const tags = defineCollection({
-	loader: file('./src/content/tags.json'),
-	schema: z.object({
-		name: z.string(),
-	}),
+	loader: glob({ base: './src/content/tags', pattern: '*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			name: z.string(),
+		}),
 });
 
 const references = defineCollection({
-	loader: file('./src/content/references.json'),
-	schema: z.object({
-		name: z.string(),
-		tags: z.array(reference('tags')).optional(),
-	}),
+	loader: glob({ base: './src/content/references', pattern: '*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			name: z.string(),
+		}),
 });
 
 const works = defineCollection({
