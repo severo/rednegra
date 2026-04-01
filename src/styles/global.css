@@ -56,19 +56,10 @@ td {
 main {
   flex: 1 0 auto;
   box-sizing: border-box;
-  max-width: 45em;
+  max-width: 50em;
   padding: 2rem 1rem;
   margin: 0 auto;
   background: white;
-}
-
-footer {
-  flex-shrink: 0;
-  max-width: 45em;
-  padding: 2rem 1rem;
-  margin: 0 auto;
-  font-size: 0.8em;
-  color: #666;
 }
 
 .three-columns {
