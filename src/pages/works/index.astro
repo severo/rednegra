@@ -1,8 +1,7 @@
 ---
-import BaseHead from "../../components/BaseHead.astro";
-import Footer from "../../components/Footer.astro";
 import WorksGallery from "../../components/WorksGallery.astro";
 import { SITE_DESCRIPTION } from "../../consts";
+import WideLayout from "../../layouts/WideLayout.astro";
 
 const padding = 64;
 const gap = 10;
@@ -10,42 +9,21 @@ const figureWidth = 300;
 const maxColumns = 8;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <BaseHead
-      title={"Portfolio - Sylvain Lesage"}
-      description={SITE_DESCRIPTION}
-    />
-    <style
-      type="text/css"
-      define:vars={{
-        padding: `${padding}px`,
-        gap: `${gap}px`,
-      }}
-    >
-      .works {
-        width: 100%;
-        max-width: 100%;
-        padding: 2rem calc(var(--padding) - var(--gap)) 2rem var(--padding);
-      }
-    </style>
-  </head>
-  <body>
-    <main class="works">
-      <h1>Works</h1>
-      <p>
-        An overview of my past projects and activities. <a href="/#contact"
-          >Contact me</a
-        > for more information.
-      </p>
-      <WorksGallery
-        padding={padding}
-        gap={gap}
-        figureWidth={figureWidth}
-        maxColumns={maxColumns}
-      />
-    </main>
-    <Footer />
-  </body>
-</html>
+<WideLayout
+  title={"Portfolio - Sylvain Lesage"}
+  description={SITE_DESCRIPTION}
+  padding={padding}
+>
+  <h1>Works</h1>
+  <p>
+    An overview of my past projects and activities. <a href="/#contact"
+      >Contact me</a
+    > for more information.
+  </p>
+  <WorksGallery
+    padding={padding}
+    gap={gap}
+    figureWidth={figureWidth}
+    maxColumns={maxColumns}
+  />
+</WideLayout>

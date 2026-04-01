@@ -25,6 +25,7 @@ const references = defineCollection({
 	schema: () =>
 		z.object({
 			name: z.string(),
+			url: z.url(),
 		}),
 });
 

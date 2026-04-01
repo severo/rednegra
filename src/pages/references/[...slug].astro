@@ -1,8 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
-import BaseHead from "../../components/BaseHead.astro";
-import Footer from "../../components/Footer.astro";
+import WideLayout from "../../layouts/WideLayout.astro";
 
 export async function getStaticPaths() {
   const references = await getCollection("references");
@@ -14,26 +13,22 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<"references">;
 
 const reference = Astro.props;
+const { id: referenceId } = reference;
 const { name } = reference.data;
 const { Content } = await render(reference);
 ---
 
-<html lang="en">
-  <head>
-    <BaseHead title={name} description={""} />
-  </head>
+<WideLayout title={name} description={""}>
+  <header>
+    <h1>{name}</h1>
+  </header>
+  <Content />
 
-  <body>
-    <main>
-      <header>
-        <h1>{name}</h1>
-      </header>
-      <Content />
-
-      <h2>Portfolio</h2>
-      <WorksGallery
-        filter={(entry: Entry) => entry.reference?.id === reference.id}
-      />
-    </main>
-  </body><Footer />
-</html>
+  <h2>Portfolio</h2>
+  <WorksGallery
+    filter={(entry: Entry) =>
+      entry.tags?.some(
+        (tag) => tag.id === referenceId && tag.collection === "references",
+      ) ?? false}
+  />
+</WideLayout>

@@ -16,5 +16,11 @@
     "work": "hf-parquet-metadata",
     "alt": "Parquet metadata viewer",
     "tags": ["svelte", "tailwindcss", "parquet", "hyparquet"]
+  },
+  {
+    "id": "./eigenfactor-radial.png",
+    "work": "eigenfactor",
+    "alt": "Eigenfactor visualization",
+    "tags": ["dataviz", "javascript", "d3"]
   }
 ]

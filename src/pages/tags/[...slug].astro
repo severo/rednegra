@@ -1,8 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
-import BaseHead from "../../components/BaseHead.astro";
-import Footer from "../../components/Footer.astro";
+import WideLayout from "../../layouts/WideLayout.astro";
 
 export async function getStaticPaths() {
   const tags = await getCollection("tags");
@@ -14,26 +13,22 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<"tags">;
 
 const tag = Astro.props;
+const { id: tagId } = tag;
 const { name } = tag.data;
 const { Content } = await render(tag);
 ---
 
-<html lang="en">
-  <head>
-    <BaseHead title={name} description={""} />
-  </head>
+<WideLayout title={name} description={""}>
+  <header>
+    <h1>{name}</h1>
+  </header>
+  <Content />
 
-  <body>
-    <main>
-      <header>
-        <h1>{name}</h1>
-      </header>
-      <Content />
-
-      <h2>Works</h2>
-      <WorksGallery
-        filter={(entry: Entry) => entry.tagNames?.includes(name) ?? false}
-      />
-    </main>
-  </body><Footer />
-</html>
+  <h2>Works</h2>
+  <WorksGallery
+    filter={(entry: Entry) =>
+      entry.tags?.some(
+        (tag) => tag.id === tagId && tag.collection === "tags",
+      ) ?? false}
+  />
+</WideLayout>

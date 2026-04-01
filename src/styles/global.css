@@ -10,7 +10,9 @@
   --color-4: hsl(0, 0%, 80%);
   --color-5: hsl(334.7, 60.7%, 67.1%);
   --color-6: hsl(111.3, 67.9%, 52.4%);
+  --color-7: hsl(0, 0%, 30%);
   --color-white: white;
+  --fade-color: var(--color-7);
   --dark-color: var(--color-1);
   --light-color: var(--color-4);
   --table-color: var(--color-2);
