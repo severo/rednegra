@@ -1,52 +1,55 @@
 ---
 import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
-import BaseHead from "../components/BaseHead.astro";
-import Footer from "../components/Footer.astro";
-import { SITE_DESCRIPTION } from "../consts";
-import { indexById } from "../lib/utils";
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+import { SITE_DESCRIPTION } from "../../consts";
+import { indexById } from "../../lib/utils";
 import { Masonry } from "astro-masonry";
 
 // How to sort?
 
-const activitiesLU = indexById(await getCollection("activities"));
+const worksLU = indexById(await getCollection("works"));
 const referencesLU = indexById(await getCollection("references"));
 const tagsLU = indexById(await getCollection("tags"));
-const entries = (await getCollection("portfolio")).map(
+const images = (await getCollection("images")).map(
   ({
     data: {
-      image,
-      activity: { id: activityId },
+      id: image,
+      work: { id: workId },
       alt,
       tags: tagIds,
     },
   }) => {
-    const activity = activitiesLU.get(activityId);
-    if (!activity) {
-      throw new Error(
-        `Activity with id ${activityId} not found for portfolio entry`,
-      );
+    const work = worksLU.get(workId);
+    if (!work) {
+      throw new Error(`Work with id ${workId} not found for portfolio entry`);
     }
-    const reference = referencesLU.get(activity.data.reference.id);
-    if (!reference) {
-      throw new Error(
-        `Reference with id ${activity.data.reference.id} not found for activity ${activityId}`,
-      );
-    }
-    const tags = tagIds?.map((tag) => {
+
+    const tagNames = tagIds?.map((tag) => {
       const tagEntry = tagsLU.get(tag.id);
       if (!tagEntry) {
         throw new Error(
-          `Tag with id ${tag.id} not found for portfolio entry with activity ${activityId}`,
+          `Tag with id ${tag.id} not found for portfolio entry with work ${workId}`,
         );
       }
-      return tagEntry;
+      return tagEntry.data.name;
     });
+    if (work.data.reference) {
+      const reference = referencesLU.get(work.data.reference.id);
+      if (!reference) {
+        throw new Error(
+          `Reference with id ${work.data.reference.id} not found for portfolio entry with work ${workId}`,
+        );
+      }
+      tagNames?.unshift(reference.data.name);
+    }
+
     return {
       alt,
       image,
-      referenceName: reference.data.name,
-      tags,
+      tagNames,
+      work,
     };
   },
 );
@@ -150,21 +153,22 @@ for (
       </p>
       <Masonry breakpointCols={breakpointCols}>
         {
-          entries.map((entry) => (
-            <figure>
-              <Image src={entry.image} alt={entry.alt} />
-              <figcaption>
-                <p class="alt">{entry.alt}</p>
-                <p class="tags">
-                  {[
-                    entry.referenceName,
-                    ...(entry.tags?.map((tag) => tag.data.name) ?? []),
-                  ].map((tag) => (
-                    <span class="tag">{tag}</span>
-                  ))}
-                </p>
-              </figcaption>
-            </figure>
+          images.map((image) => (
+            <a href={`/works/${image.work.id}`}>
+              <figure>
+                <Image src={image.image} alt={image.alt} />
+                <figcaption>
+                  <p class="alt">{image.alt}</p>
+                  {image.tagNames && (
+                    <p class="tags">
+                      {image.tagNames.map((name) => (
+                        <span class="tag">{name}</span>
+                      ))}
+                    </p>
+                  )}
+                </figcaption>
+              </figure>
+            </a>
           ))
         }
       </Masonry>

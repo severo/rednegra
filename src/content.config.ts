@@ -26,25 +26,25 @@ const references = defineCollection({
 	}),
 });
 
-const activities = defineCollection({
-	loader: glob({ base: './src/content/activities', pattern: '**/*.{md,mdx}' }),
+const works = defineCollection({
+	loader: glob({ base: './src/content/works', pattern: '*.{md,mdx}' }),
 	schema: () =>
 		z.object({
 			title: z.string(),
-			reference: reference('references'),
+			reference: reference('references').optional(),
 			tags: z.array(reference('tags')).optional(),
 		}),
 });
 
-const portfolio = defineCollection({
-	loader: file('./src/content/portfolio.json'),
+const images = defineCollection({
+	loader: file('./src/content/images/_index.json'),
 	schema: ({image}) =>
 		z.object({
-			activity: reference('activities'),
-			image: image(),
+			work: reference('works'),
+			id: image(),
 			alt: z.string(),
 			tags: z.array(reference('tags')).optional(),
 		}),
 });
 
-export const collections = { blog , activities, portfolio, references, tags };
+export const collections = { blog, works, images, references, tags };
