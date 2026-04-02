@@ -20,7 +20,25 @@
   {
     "id": "./eigenfactor-radial.png",
     "work": "eigenfactor",
-    "alt": "Eigenfactor visualization",
-    "tags": ["dataviz", "javascript", "d3"]
+    "alt": "Network of scientific citations",
+    "tags": ["dataviz", "javascript", "d3", "chord-diagram"]
+  },
+  {
+    "id": "./eigenfactor-flow.png",
+    "work": "eigenfactor",
+    "alt": "Evolution of Eigenfactor scores of journals",
+    "tags": ["dataviz", "javascript", "d3", "parallel-sets"]
+  },
+  {
+    "id": "./eigenfactor-map.png",
+    "work": "eigenfactor",
+    "alt": "Hierarchical map of scientific fields",
+    "tags": ["dataviz", "javascript", "d3", "treemap"]
+  },
+  {
+    "id": "./eigenfactor-treemap.png",
+    "work": "eigenfactor",
+    "alt": "Zoomable graph of citations between journals",
+    "tags": ["dataviz", "javascript", "d3", "network-diagram"]
   }
 ]
