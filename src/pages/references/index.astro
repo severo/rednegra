@@ -7,7 +7,10 @@ const references = await getCollection("references");
 ---
 
 <WideLayout title="References - Sylvain Lesage" description={SITE_DESCRIPTION}>
-  <h1>References</h1>
+  <header>
+    <p>＜ <a href="/">Home</a></p>
+    <h1>References</h1>
+  </header>
   <ul>
     {
       references.map((reference) => (
