@@ -43,7 +43,7 @@ const entries = images.map(
     }
 
     const referencesAndTags = [
-      ...(work.data.reference ? [work.data.reference] : []),
+      ...(work.data.references ?? []),
       ...(tags ?? []),
     ];
 

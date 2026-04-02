@@ -18,7 +18,10 @@ const { name } = reference.data;
 const { Content } = await render(reference);
 ---
 
-<WideLayout title={name} description={""}>
+<WideLayout
+  title={`${name} — Work references — Sylvain Lesage`}
+  description={""}
+>
   <header>
     <p>＜ <a href="/references">See references</a></p>
     <h1>{name}</h1>

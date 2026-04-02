@@ -16,21 +16,36 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<"works">;
 const work = Astro.props;
 const { Content } = await render(work);
-const { title, reference: referenceId } = work.data;
+const { title, references: referenceIds } = work.data;
 const referencesLU = indexById(await getCollection("references"));
-const reference = referenceId ? referencesLU.get(referenceId.id) : undefined;
+const references = referenceIds
+  ? referenceIds.map(({ id }) => {
+      const reference = referencesLU.get(id);
+      if (!reference) {
+        throw new Error(
+          `Reference with id "${id}" not found for work "${work.id}"`,
+        );
+      }
+      return reference;
+    })
+  : [];
 ---
 
-<WideLayout title={title} description={""}>
+<WideLayout title={`${title} — Works — Sylvain Lesage`} description={""}>
   <header>
     <p>＜ <a href="/works">See works portfolio</a></p>
     <h1>{title}</h1>
   </header>
   {
-    reference && (
+    references.length > 0 && (
       <p>
-        Reference:{" "}
-        <a href={`/references/${reference.id}`}>{reference.data.name}</a>
+        References:{" "}
+        {references.map((reference, index) => (
+          <span>
+            <a href={`/references/${reference.id}`}>{reference.data.name}</a>
+            {index < references.length - 1 ? ", " : ""}
+          </span>
+        ))}
       </p>
     )
   }

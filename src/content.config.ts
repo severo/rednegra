@@ -34,7 +34,7 @@ const works = defineCollection({
 	schema: () =>
 		z.object({
 			title: z.string(),
-			reference: reference('references').optional(),
+			references: z.array(reference('references')).optional(),
 			tags: z.array(reference('tags')).optional(),
 		}),
 });
