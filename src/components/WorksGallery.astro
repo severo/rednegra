@@ -1,0 +1,145 @@
+---
+import { Image } from "astro:assets";
+import {
+  type CollectionEntry,
+  type ReferenceDataEntry,
+  getCollection,
+} from "astro:content";
+import { indexById } from "../lib/utils";
+import { Masonry } from "astro-masonry";
+import Tag from "./Tag.astro";
+
+// How to sort?
+
+export interface Entry {
+  alt: string;
+  image: ImageMetadata;
+  tags?: (ReferenceDataEntry<"tags"> | ReferenceDataEntry<"references">)[];
+  work: CollectionEntry<"works">;
+}
+
+interface Props {
+  padding?: number; /* The padding around the gallery, in pixels. This is the space between the gallery and the edges of its container. */
+  gap?: number; /* The gap between figures, vertically and horizontally, in pixels. */
+  figureWidth?: number; /* The width of each figure in pixels. The gallery will adapt the number of columns to fit the screen, but figures will never be wider than this value. */
+  maxColumns?: number; /* The maximum number of columns to display. This is used to calculate the breakpoints for the responsive layout. */
+  filter?: (entry: Entry) => boolean;
+}
+
+const worksLU = indexById(await getCollection("works"));
+const images = await getCollection("images");
+const entries = images.map(
+  ({
+    data: {
+      id: image,
+      work: { id: workId },
+      alt,
+      tags,
+    },
+  }) => {
+    const work = worksLU.get(workId);
+    if (!work) {
+      throw new Error(`Work with id ${workId} not found for portfolio entry`);
+    }
+
+    const referencesAndTags = [
+      ...(work.data.references ?? []),
+      ...(tags ?? []),
+    ];
+
+    return {
+      alt,
+      image,
+      tags: referencesAndTags.length > 0 ? referencesAndTags : undefined,
+      work,
+    };
+  },
+);
+const filteredEntries = Astro.props.filter
+  ? entries.filter(Astro.props.filter)
+  : entries;
+
+const padding = Astro.props.padding ?? 64;
+const gap = Astro.props.gap ?? 10;
+const figureWidth = Astro.props.figureWidth ?? 400;
+const maxColumns = Astro.props.maxColumns ?? 8;
+const breakpointCols: { default: number; [key: number]: number } = {
+  default: maxColumns,
+};
+for (
+  let width = maxColumns * figureWidth + 2 * padding;
+  width >= figureWidth + 2 * padding;
+  width -= figureWidth
+) {
+  const columns = Math.floor((width - 2 * padding) / figureWidth);
+  breakpointCols[width] = columns;
+}
+---
+
+<Masonry breakpointCols={breakpointCols}>
+  {
+    filteredEntries.map((entry) => (
+      <figure>
+        <a href={`/works/${entry.work.id}`}>
+          {" "}
+          <Image src={entry.image} alt={entry.alt} />
+        </a>
+        <figcaption>
+          <p class="alt">
+            <a href={`/works/${entry.work.id}`}>{entry.alt}</a>
+          </p>
+          {entry.tags && (
+            <p class="tags">
+              {entry.tags.map((tag) => (
+                <Tag collection={tag.collection} id={tag.id} />
+              ))}
+            </p>
+          )}
+        </figcaption>
+      </figure>
+    ))
+  }
+</Masonry>
+
+<style
+  type="text/css"
+  define:vars={{
+    gap: `${gap}px`,
+    "figure-width": `${figureWidth}px`,
+  }}
+>
+  figure {
+    max-width: calc(var(--figure-width) - var(--gap));
+    margin: calc(var(--gap) * 2) calc(var(--gap) * 2) 0 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--light-color);
+
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    figcaption {
+      display: block;
+      border-top: 1px solid var(--light-color);
+      background: var(--color-white);
+
+      .alt {
+        margin: 0.5rem;
+        font-weight: bold;
+        font-size: 0.9rem;
+        color: var(--color-1);
+      }
+
+      .tags {
+        margin: 0rem 0.5rem 0.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+      }
+    }
+  }
+</style>

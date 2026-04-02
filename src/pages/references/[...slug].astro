@@ -1,0 +1,38 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
+import WideLayout from "../../layouts/WideLayout.astro";
+
+export async function getStaticPaths() {
+  const references = await getCollection("references");
+  return references.map((reference) => ({
+    params: { slug: reference.id },
+    props: reference,
+  }));
+}
+type Props = CollectionEntry<"references">;
+
+const reference = Astro.props;
+const { id: referenceId } = reference;
+const { name } = reference.data;
+const { Content } = await render(reference);
+---
+
+<WideLayout
+  title={`${name} — Work references — Sylvain Lesage`}
+  description={""}
+>
+  <header>
+    <p>＜ <a href="/references">References</a></p>
+    <h1>{name}</h1>
+  </header>
+  <Content />
+
+  <h2>Portfolio</h2>
+  <WorksGallery
+    filter={(entry: Entry) =>
+      entry.tags?.some(
+        (tag) => tag.id === referenceId && tag.collection === "references",
+      ) ?? false}
+  />
+</WideLayout>

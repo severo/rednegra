@@ -1,0 +1,26 @@
+---
+import WideLayout from "../../layouts/WideLayout.astro";
+import { SITE_DESCRIPTION } from "../../consts";
+import { getCollection } from "astro:content";
+
+const references = await getCollection("references");
+---
+
+<WideLayout
+  title="Work references — Sylvain Lesage"
+  description={SITE_DESCRIPTION}
+>
+  <header>
+    <p>＜ <a href="/">Home</a></p>
+    <h1>References</h1>
+  </header>
+  <ul>
+    {
+      references.map((reference) => (
+        <li>
+          <a href={`/references/${reference.id}`}>{reference.data.name}</a>
+        </li>
+      ))
+    }
+  </ul>
+</WideLayout>

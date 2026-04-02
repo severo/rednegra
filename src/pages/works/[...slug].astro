@@ -1,0 +1,53 @@
+---
+import { type CollectionEntry, getCollection, render } from "astro:content";
+
+import WideLayout from "../../layouts/WideLayout.astro";
+import { indexById } from "../../lib/utils";
+
+// getStaticPaths creates a static page for each work
+export async function getStaticPaths() {
+  const works = await getCollection("works");
+  return works.map((work) => ({
+    params: { slug: work.id },
+    props: work,
+  }));
+}
+
+type Props = CollectionEntry<"works">;
+const work = Astro.props;
+const { Content } = await render(work);
+const { title, references: referenceIds } = work.data;
+const referencesLU = indexById(await getCollection("references"));
+const references = referenceIds
+  ? referenceIds.map(({ id }) => {
+      const reference = referencesLU.get(id);
+      if (!reference) {
+        throw new Error(
+          `Reference with id "${id}" not found for work "${work.id}"`,
+        );
+      }
+      return reference;
+    })
+  : [];
+---
+
+<WideLayout title={`${title} — Works — Sylvain Lesage`} description={""}>
+  <header>
+    <p>＜ <a href="/works">Works portfolio</a></p>
+    <h1>{title}</h1>
+  </header>
+  {
+    references.length > 0 && (
+      <p>
+        References:{" "}
+        {references.map((reference, index) => (
+          <span>
+            <a href={`/references/${reference.id}`}>{reference.data.name}</a>
+            {index < references.length - 1 ? ", " : ""}
+          </span>
+        ))}
+      </p>
+    )
+  }
+  <Content />
+</WideLayout>

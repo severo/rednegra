@@ -1,0 +1,17 @@
+---
+import { SITE_DESCRIPTION } from "../../consts";
+import WideLayout from "../../layouts/WideLayout.astro";
+import Tag from "../../components/Tag.astro";
+
+import { getCollection } from "astro:content";
+const tags = await getCollection("tags");
+---
+
+<WideLayout title="Tags — Sylvain Lesage" description={SITE_DESCRIPTION}>
+  <header>
+    <p>＜ <a href="/">Home</a></p>
+    <h1>Tags</h1>
+  </header>
+
+  {tags.map((tag) => <Tag id={tag.id} collection={tag.collection} />)}
+</WideLayout>

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "./dataset-viewer.png",
+    "work": "hf-dataset-viewer",
+    "alt": "Dataset viewer",
+    "tags": ["svelte", "tailwindcss", "svg"]
+  },
+  {
+    "id": "./converted-parquet.png",
+    "work": "hf-dataset-viewer",
+    "alt": "Convert every dataset to Parquet",
+    "tags": ["python", "parquet"]
+  },
+  {
+    "id": "./parquet-metadata.png",
+    "work": "hf-parquet-metadata",
+    "alt": "Parquet metadata viewer",
+    "tags": ["svelte", "tailwindcss", "parquet", "hyparquet"]
+  },
+  {
+    "id": "./eigenfactor-radial.png",
+    "work": "eigenfactor",
+    "alt": "Network of scientific citations",
+    "tags": ["dataviz", "javascript", "d3", "chord-diagram"]
+  },
+  {
+    "id": "./eigenfactor-flow.png",
+    "work": "eigenfactor",
+    "alt": "Evolution of Eigenfactor scores of journals",
+    "tags": ["dataviz", "javascript", "d3", "parallel-sets"]
+  },
+  {
+    "id": "./eigenfactor-map.png",
+    "work": "eigenfactor",
+    "alt": "Hierarchical map of scientific fields",
+    "tags": ["dataviz", "javascript", "d3", "treemap"]
+  },
+  {
+    "id": "./eigenfactor-treemap.png",
+    "work": "eigenfactor",
+    "alt": "Zoomable graph of citations between journals",
+    "tags": ["dataviz", "javascript", "d3", "network-diagram"]
+  }
+]
