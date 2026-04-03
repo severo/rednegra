@@ -1,36 +1,22 @@
 ---
-import BaseHead from "../components/BaseHead.astro";
-import Footer from "../components/Footer.astro";
+import BaseLayout from "./BaseLayout.astro";
 
 interface Props {
   title: string;
   description: string;
   padding?: number;
+  language?: "en" | "es-BO";
 }
 
-const { title, description, padding } = Astro.props;
+const { title, description, padding, language } = Astro.props;
 ---
 
-<html lang="en">
-  <head>
-    <BaseHead title={title} description={description} />
-    <style
-      type="text/css"
-      define:vars={{
-        padding: `${padding ?? 64}px`,
-      }}
-    >
-      .main {
-        width: 100%;
-        max-width: 100%;
-        padding: 2rem var(--padding);
-      }
-    </style>
-  </head>
-  <body>
-    <main class="main">
-      <slot />
-    </main>
-    <Footer />
-  </body>
-</html>
+<BaseLayout
+  title={title}
+  description={description}
+  language={language}
+  className="wide"
+  padding={padding}
+>
+  <slot />
+</BaseLayout>

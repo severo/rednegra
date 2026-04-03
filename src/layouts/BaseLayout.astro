@@ -1,0 +1,39 @@
+---
+import BaseHead from "../components/BaseHead.astro";
+import Footer from "../components/Footer.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  language?: "en" | "es-BO";
+  padding?: number;
+  className?: "wide";
+}
+
+const { title, description, language, padding, className = "" } = Astro.props;
+---
+
+<html lang={language ?? "en"}>
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+  <body>
+    <main class={`main ${className}`}>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style
+  type="text/css"
+  define:vars={{
+    padding: `${padding ?? 64}px`,
+  }}
+>
+  .wide {
+    width: 100%;
+    max-width: 100%;
+    padding: 2rem var(--padding);
+  }
+</style>

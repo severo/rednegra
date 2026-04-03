@@ -7,7 +7,8 @@ const blog = defineCollection({
 	schema: () =>
 		z.object({
 			title: z.string(),
-			description: z.string().optional(),
+			description: z.string(),
+			language: z.enum(['en', 'es-BO']).optional(),
 			pubDate: z.coerce.date(),
 		}),
 });
@@ -34,6 +35,7 @@ const works = defineCollection({
 	schema: () =>
 		z.object({
 			title: z.string(),
+			description: z.string(),
 			references: z.array(reference('references')).optional(),
 			tags: z.array(reference('tags')).optional(),
 		}),

@@ -3,6 +3,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 import BaseHead from "../../components/BaseHead.astro";
 import Footer from "../../components/Footer.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
@@ -14,24 +15,16 @@ export async function getStaticPaths() {
 
 type Props = CollectionEntry<"blog">;
 const post = Astro.props;
-const { title, description, pubDate } = post.data;
+const { title, description, language, pubDate } = post.data;
 const { Content } = await render(post);
 ---
 
-<html lang="en">
-  <head>
-    <BaseHead title={title} description={description} />
-  </head>
-
-  <body>
-    <main>
-      <header>
-        <p>＜ <a href="/blog">Blog posts</a></p>
-        <h1>{title}</h1>
-        <p class="date">Published on: <FormattedDate date={pubDate} /></p>
-        <p class="author">By <a href="/">Sylvain Lesage</a></p>
-      </header>
-      <Content />
-    </main>
-  </body><Footer />
-</html>
+<BaseLayout title={title} description={description} language={language}>
+  <header>
+    <p>＜ <a href="/blog">Blog posts</a></p>
+    <h1>{title}</h1>
+    <p class="date">Published on: <FormattedDate date={pubDate} /></p>
+    <p class="author">By <a href="/">Sylvain Lesage</a></p>
+  </header>
+  <Content />
+</BaseLayout>

@@ -1,5 +1,6 @@
 ---
 title: Know your candidate to uninominal deputy (Bolivia)
+description: "Review of a tool by Mauricio Foronda, to find out who are the candidates for uninominal deputy in your electoral circumscription in Bolivia."
 tags: bolivia, elections
 pubDate: 2025-08-09
 ---

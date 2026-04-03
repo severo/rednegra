@@ -1,6 +1,8 @@
 ---
 title: "Bolivia 20.10.19: ¿dónde estaban el millón de votos que faltaban en el TREP?"
 tags: bolivia,elecciones,trep
+description: Un primer análisis geográfico de los resultados parciales y finales de la elección presidencial 2019 en Bolivia.
+language: es-BO
 pubDate: 2019-11-01
 ---
 

@@ -1,18 +1,18 @@
 [
   {
-    "id": "./dataset-viewer.png",
+    "id": "./hf-dataset-viewer.png",
     "work": "hf-dataset-viewer",
     "alt": "Dataset viewer",
     "tags": ["svelte", "tailwindcss", "svg"]
   },
   {
-    "id": "./converted-parquet.png",
+    "id": "./hf-converted-parquet.png",
     "work": "hf-dataset-viewer",
     "alt": "Convert every dataset to Parquet",
     "tags": ["python", "parquet"]
   },
   {
-    "id": "./parquet-metadata.png",
+    "id": "./hf-parquet-metadata.png",
     "work": "hf-parquet-metadata",
     "alt": "Parquet metadata viewer",
     "tags": ["svelte", "tailwindcss", "parquet", "hyparquet"]

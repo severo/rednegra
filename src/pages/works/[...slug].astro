@@ -1,7 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
 
-import WideLayout from "../../layouts/WideLayout.astro";
+import BaseLayout from "../../layouts/BaseLayout.astro";
 import { indexById } from "../../lib/utils";
 
 // getStaticPaths creates a static page for each work
@@ -16,7 +16,7 @@ export async function getStaticPaths() {
 type Props = CollectionEntry<"works">;
 const work = Astro.props;
 const { Content } = await render(work);
-const { title, references: referenceIds } = work.data;
+const { title, description, references: referenceIds } = work.data;
 const referencesLU = indexById(await getCollection("references"));
 const references = referenceIds
   ? referenceIds.map(({ id }) => {
@@ -31,7 +31,10 @@ const references = referenceIds
   : [];
 ---
 
-<WideLayout title={`${title} — Works — Sylvain Lesage`} description={""}>
+<BaseLayout
+  title={`${title} — Works — Sylvain Lesage`}
+  description={description}
+>
   <header>
     <p>＜ <a href="/works">Works portfolio</a></p>
     <h1>{title}</h1>
@@ -50,4 +53,4 @@ const references = referenceIds
     )
   }
   <Content />
-</WideLayout>
+</BaseLayout>
