@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
 import WideLayout from "../../layouts/WideLayout.astro";
+import ObjectHeader from "../../components/ObjectHeader.astro";
 
 export async function getStaticPaths() {
   const tags = await getCollection("tags");
@@ -19,10 +20,11 @@ const { Content } = await render(tag);
 ---
 
 <WideLayout title={`${name} — Tags — Sylvain Lesage`} description={""}>
-  <header>
-    <p>＜ <a href="/tags">Tags</a></p>
-    <h1>{name}</h1>
-  </header>
+  <ObjectHeader
+    title={name}
+    backLink={{ href: "/tags", label: "Tags" }}
+    type="Tag"
+  />
   <Content />
 
   <h2>Works</h2>

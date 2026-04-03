@@ -1,0 +1,36 @@
+---
+interface Props {
+  backLink: {
+    href: string;
+    label: string;
+  };
+  title: string;
+  type: string;
+}
+
+const { backLink, title, type } = Astro.props;
+---
+
+<header>
+  <p>
+    ＜ <a href={backLink.href}>{backLink.label}</a>
+  </p>
+  <h1>{title}</h1>
+  <p class="type">{type}</p>
+</header>
+
+<style>
+  header {
+    h1 {
+      margin-bottom: 0;
+    }
+    .type {
+      margin-top: 0;
+      border: 1px solid var(--color-7);
+      display: inline-block;
+      padding: 0 0.5rem;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+    }
+  }
+</style>

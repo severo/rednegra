@@ -3,6 +3,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { indexById } from "../../lib/utils";
+import ObjectHeader from "../../components/ObjectHeader.astro";
 
 // getStaticPaths creates a static page for each work
 export async function getStaticPaths() {
@@ -35,10 +36,11 @@ const references = referenceIds
   title={`${title} — Works — Sylvain Lesage`}
   description={description}
 >
-  <header>
-    <p>＜ <a href="/works">Works portfolio</a></p>
-    <h1>{title}</h1>
-  </header>
+  <ObjectHeader
+    title={title}
+    backLink={{ href: "/works", label: "Works portfolio" }}
+    type="Work"
+  />
   {
     references.length > 0 && (
       <p class="references">

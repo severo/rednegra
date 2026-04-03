@@ -2,6 +2,7 @@
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
 import WideLayout from "../../layouts/WideLayout.astro";
+import ObjectHeader from "../../components/ObjectHeader.astro";
 
 export async function getStaticPaths() {
   const references = await getCollection("references");
@@ -22,10 +23,11 @@ const { Content } = await render(reference);
   title={`${name} — Work references — Sylvain Lesage`}
   description={""}
 >
-  <header>
-    <p>＜ <a href="/references">References</a></p>
-    <h1>{name}</h1>
-  </header>
+  <ObjectHeader
+    title={name}
+    backLink={{ href: "/references", label: "References" }}
+    type="Reference"
+  />
   <Content />
 
   <h2>Portfolio</h2>
