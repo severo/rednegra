@@ -1,0 +1,32 @@
+---
+import { Image } from "astro:assets";
+import { getEntry } from "astro:content";
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const entry = await getEntry("images", id);
+if (!entry) {
+  throw new Error(`Entry with id ${id} not found in collection images`);
+}
+const { alt, title, id: image } = entry.data;
+---
+
+<figure>
+  <Image src={image} alt={alt} title={title} />
+  <figcaption>
+    {title ?? alt}
+  </figcaption>
+</figure>
+
+<style>
+  figure {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    max-width: calc(100% - 32px);
+  }
+</style>

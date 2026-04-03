@@ -1,0 +1,14 @@
+---
+title: "Parquet metadata viewer on Hugging Face"
+description: "A tool for viewing Parquet metadata on Hugging Face, built with Svelte and hyparquet."
+references: ["hugging-face"]
+---
+
+import Figure from "../../components/Figure.astro";
+
+
+In 2024, I developed a Parquet metadata viewer for Hugging Face, allowing users to easily inspect the metadata of their Parquet files. The component is based on the [GGUF viewer](https://huggingface.co/prism-ml/Bonsai-8B-gguf/tree/main?show_file_info=Bonsai-8B.gguf) for ML model metadata.
+
+The viewer is a [Svelte](/tags/svelte) component which uses [hyparquet](/tags/hyparquet) to parse the Parquet files.
+
+<Figure id="./hf-parquet-metadata.png" href="https://huggingface.co/datasets/HuggingFaceFW/fineweb/tree/main/data/CC-MAIN-2013-20?show_file_info=data%2FCC-MAIN-2013-20%2F000_00000.parquet" />

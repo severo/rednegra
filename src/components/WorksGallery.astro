@@ -9,8 +9,6 @@ import { indexById } from "../lib/utils";
 import { Masonry } from "astro-masonry";
 import Tag from "./Tag.astro";
 
-// How to sort?
-
 export interface Entry {
   alt: string;
   image: ImageMetadata;
@@ -28,33 +26,35 @@ interface Props {
 
 const worksLU = indexById(await getCollection("works"));
 const images = await getCollection("images");
-const entries = images.map(
-  ({
-    data: {
-      id: image,
-      work: { id: workId },
-      alt,
-      tags,
+const entries = images
+  .map(
+    ({
+      data: {
+        id: image,
+        work: { id: workId },
+        alt,
+        tags,
+      },
+    }) => {
+      const work = worksLU.get(workId);
+      if (!work) {
+        throw new Error(`Work with id ${workId} not found for portfolio entry`);
+      }
+
+      const referencesAndTags = [
+        ...(work.data.references ?? []),
+        ...(tags ?? []),
+      ];
+
+      return {
+        alt,
+        image,
+        tags: referencesAndTags.length > 0 ? referencesAndTags : undefined,
+        work,
+      };
     },
-  }) => {
-    const work = worksLU.get(workId);
-    if (!work) {
-      throw new Error(`Work with id ${workId} not found for portfolio entry`);
-    }
-
-    const referencesAndTags = [
-      ...(work.data.references ?? []),
-      ...(tags ?? []),
-    ];
-
-    return {
-      alt,
-      image,
-      tags: referencesAndTags.length > 0 ? referencesAndTags : undefined,
-      work,
-    };
-  },
-);
+  )
+  .sort(() => Math.random() - 0.5); // Shuffle the entries randomly
 const filteredEntries = Astro.props.filter
   ? entries.filter(Astro.props.filter)
   : entries;
@@ -81,7 +81,6 @@ for (
     filteredEntries.map((entry) => (
       <figure>
         <a href={`/works/${entry.work.id}`}>
-          {" "}
           <Image src={entry.image} alt={entry.alt} />
         </a>
         <figcaption>
