@@ -15,7 +15,8 @@
     "id": "./hf-parquet-metadata.png",
     "work": "hf-parquet-metadata",
     "alt": "Parquet metadata viewer",
-    "tags": ["svelte", "tailwindcss", "parquet", "hyparquet"]
+    "title": "Parquet metadata viewer on Hugging Face",
+    "tags": ["svelte", "tailwindcss", "parquet", "hyparquet", "2024"]
   },
   {
     "id": "./eigenfactor-radial.png",

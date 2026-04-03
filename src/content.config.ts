@@ -48,6 +48,7 @@ const images = defineCollection({
 			work: reference('works'),
 			id: image(),
 			alt: z.string(),
+			title: z.string().optional(),
 			tags: z.array(reference('tags')).optional(),
 		}),
 });
