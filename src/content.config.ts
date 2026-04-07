@@ -37,7 +37,6 @@ const works = defineCollection({
 			title: z.string(),
 			description: z.string(),
 			references: z.array(reference('references')).optional(),
-			tags: z.array(reference('tags')).optional(),
 		}),
 });
 

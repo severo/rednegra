@@ -93,5 +93,23 @@
     "work": "personal-elections",
     "alt": "Distribution of votes along the left-right scale in France, 2024",
     "tags": ["dataviz", "javascript", "plot", "elections", "2024", "observable"]
+  },
+  {
+    "id": "./liris-swimming-videos.png",
+    "work": "liris-sports",
+    "alt": "Synchronized videos of a swimming race, projected on a 3D scene",
+    "tags": ["dataviz", "javascript", "threejs", "video", "2021", "sport", "3d"]
+  },
+  {
+    "id": "./liris-occupapp.png",
+    "work": "liris-sports",
+    "alt": "Collaborative app to work on the partition of spaces",
+    "tags": ["dataviz", "javascript", "typescript", "vue", "2020", "websocket"]
+  },
+  {
+    "id": "./liris-tennis.png",
+    "work": "liris-sports",
+    "alt": "Video of a tennis match, projected on a 3D scene and synchronized with the ball tracking data",
+    "tags": ["dataviz", "javascript", "threejs", "video", "2020", "sport", "3d"]
   }
 ]
