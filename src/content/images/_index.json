@@ -3,13 +3,13 @@
     "id": "./hf-dataset-viewer.png",
     "work": "hf-dataset-viewer",
     "alt": "Dataset viewer",
-    "tags": ["svelte", "tailwindcss", "svg"]
+    "tags": ["svelte", "tailwindcss", "svg", "2022", "2023", "2024"]
   },
   {
     "id": "./hf-converted-parquet.png",
     "work": "hf-dataset-viewer",
     "alt": "Convert every dataset to Parquet",
-    "tags": ["python", "parquet"]
+    "tags": ["python", "parquet", "2022"]
   },
   {
     "id": "./hf-parquet-metadata.png",
@@ -22,25 +22,25 @@
     "id": "./eigenfactor-radial.png",
     "work": "eigenfactor",
     "alt": "Network of scientific citations",
-    "tags": ["dataviz", "javascript", "d3", "chord-diagram", "svg"]
+    "tags": ["dataviz", "javascript", "d3", "chord-diagram", "svg", "2018"]
   },
   {
     "id": "./eigenfactor-flow.png",
     "work": "eigenfactor",
     "alt": "Evolution of Eigenfactor scores of journals",
-    "tags": ["dataviz", "javascript", "d3", "parallel-sets", "svg"]
+    "tags": ["dataviz", "javascript", "d3", "parallel-sets", "svg", "2018"]
   },
   {
     "id": "./eigenfactor-map.png",
     "work": "eigenfactor",
     "alt": "Hierarchical map of scientific fields",
-    "tags": ["dataviz", "javascript", "d3", "treemap", "svg"]
+    "tags": ["dataviz", "javascript", "d3", "treemap", "svg", "2018"]
   },
   {
     "id": "./eigenfactor-treemap.png",
     "work": "eigenfactor",
     "alt": "Zoomable graph of citations between journals",
-    "tags": ["dataviz", "javascript", "d3", "network-diagram", "svg"]
+    "tags": ["dataviz", "javascript", "d3", "network-diagram", "svg", "2018"]
   },
   {
     "id": "./personal-shifting-winds.png",

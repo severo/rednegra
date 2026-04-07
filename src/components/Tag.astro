@@ -3,9 +3,10 @@ import { getEntry } from "astro:content";
 interface Props {
   collection: "references" | "tags";
   id: string;
+  fontSize?: string;
 }
 
-const { collection, id } = Astro.props;
+const { collection, id, fontSize } = Astro.props;
 const entry = await getEntry(collection, id);
 if (!entry) {
   throw new Error(`Entry with id ${id} not found in collection ${collection}`);
@@ -16,13 +17,18 @@ if (!entry) {
   {entry.data.name}
 </a>
 
-<style type="text/css">
+<style
+  type="text/css"
+  define:vars={{
+    fontSize: fontSize ?? "0.7em",
+  }}
+>
   a.tag {
     text-decoration: none;
     border: 1px solid var(--light-color);
     padding: 2px 6px;
     border-radius: 4px;
-    font-size: 0.7em;
+    font-size: var(--fontSize);
     color: var(--fade-color);
 
     &:hover {

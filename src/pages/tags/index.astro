@@ -13,5 +13,19 @@ const tags = await getCollection("tags");
     <h1>Tags</h1>
   </header>
 
-  {tags.map((tag) => <Tag id={tag.id} collection={tag.collection} />)}
+  <section class="tags">
+    {
+      tags.map((tag) => (
+        <Tag id={tag.id} collection={tag.collection} fontSize="1em" />
+      ))
+    }
+  </section>
 </WideLayout>
+
+<style type="text/css">
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+</style>
