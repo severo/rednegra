@@ -22,24 +22,76 @@
     "id": "./eigenfactor-radial.png",
     "work": "eigenfactor",
     "alt": "Network of scientific citations",
-    "tags": ["dataviz", "javascript", "d3", "chord-diagram"]
+    "tags": ["dataviz", "javascript", "d3", "chord-diagram", "svg"]
   },
   {
     "id": "./eigenfactor-flow.png",
     "work": "eigenfactor",
     "alt": "Evolution of Eigenfactor scores of journals",
-    "tags": ["dataviz", "javascript", "d3", "parallel-sets"]
+    "tags": ["dataviz", "javascript", "d3", "parallel-sets", "svg"]
   },
   {
     "id": "./eigenfactor-map.png",
     "work": "eigenfactor",
     "alt": "Hierarchical map of scientific fields",
-    "tags": ["dataviz", "javascript", "d3", "treemap"]
+    "tags": ["dataviz", "javascript", "d3", "treemap", "svg"]
   },
   {
     "id": "./eigenfactor-treemap.png",
     "work": "eigenfactor",
     "alt": "Zoomable graph of citations between journals",
-    "tags": ["dataviz", "javascript", "d3", "network-diagram"]
+    "tags": ["dataviz", "javascript", "d3", "network-diagram", "svg"]
+  },
+  {
+    "id": "./personal-shifting-winds.png",
+    "work": "personal-elections",
+    "alt": "Shifting Winds of French Politics: Mapping Right and Left Shifts in the 2024 vs. 2022 Elections.",
+    "tags": [
+      "dataviz",
+      "javascript",
+      "context2d",
+      "d3",
+      "elections",
+      "2024",
+      "observable"
+    ]
+  },
+  {
+    "id": "./personal-wind.png",
+    "work": "personal-elections",
+    "alt": "Wind effect with particles flowing to the right or left",
+    "tags": ["dataviz", "javascript", "context2d", "d3", "2024", "observable"]
+  },
+  {
+    "id": "./personal-participation.png",
+    "work": "personal-elections",
+    "alt": "Evolution of voter participation in France, 2022-2024",
+    "tags": [
+      "dataviz",
+      "javascript",
+      "context2d",
+      "elections",
+      "2024",
+      "observable"
+    ]
+  },
+  {
+    "id": "./personal-extreme-right.png",
+    "work": "personal-elections",
+    "alt": "Evolution of the extreme right vote in France, 2022-2024",
+    "tags": [
+      "dataviz",
+      "javascript",
+      "context2d",
+      "elections",
+      "2024",
+      "observable"
+    ]
+  },
+  {
+    "id": "./personal-left-right.png",
+    "work": "personal-elections",
+    "alt": "Distribution of votes along the left-right scale in France, 2024",
+    "tags": ["dataviz", "javascript", "plot", "elections", "2024", "observable"]
   }
 ]

@@ -1,0 +1,54 @@
+---
+title: "Elections"
+description: "Visualizations around electoral processes."
+references: ["myself"]
+---
+
+import Figure from "../../components/Figure.astro";
+
+## 2024 Legislative Elections in France
+
+In July of 2024, I took a week off after the legislative elections in France. I had a specific goal. I wanted to replicate the striking animation called ["Shifting Winds of Belgian Politics"](https://www.linkedin.com/posts/karim-douieb_belgium-election2024-datavisualization-activity-7211630615757033473-qfpk) by Karim Douieb.
+
+As I often do, I tackled the technical difficulty one step at a time.
+
+I manually assigned a [left-right position to each political party](https://observablehq.com/@severo/nuances), and looked at the [repartition of votes along that scale](https://observablehq.com/@severo/distribution-gauche-droite-legislatives-2024):
+
+<Figure id="./personal-left-right.png" href="https://observablehq.com/@severo/distribution-gauche-droite-legislatives-2024" />
+
+Then I [replicated the wind effect](https://observablehq.com/@severo/wind) where each particle flows to the right or to the left, with a trail.
+
+<Figure id="./personal-wind.png" href="https://observablehq.com/@severo/wind" />
+
+Here is the embed of the notebook for the wind effect:
+
+<iframe width="100%" height="676" frameborder="0"
+  src="https://observablehq.com/embed/@severo/wind?cells=canvas"></iframe>
+
+The legislative elections in France are 577 independent races, and generally have two rounds. After the first round, I first fetched the data for the participation (the vote is not mandatory in France, so the participation is an important metric). And I applied the wind effect to the participation:
+
+<Figure id="./personal-participation.png" href="https://observablehq.com/@severo/hausse-participation-2022-2024-aux-legislatives-pr" />
+
+Here is the embed of the notebook for the participation:
+
+<iframe width="100%" height="576" frameborder="0"
+  src="https://observablehq.com/embed/@severo/hausse-participation-2022-2024-aux-legislatives-pr?cells=MAP"></iframe>
+
+I produced another map only for the [evolution of the extreme right parties](https://observablehq.com/@severo/hausse-de-lextreme-droite-aux-legislatives-premier), between the 2022 and 2024 elections:
+
+<Figure id="./personal-extreme-right.png" href="https://observablehq.com/@severo/hausse-de-lextreme-droite-aux-legislatives-premier" />
+
+Here is the embed of the notebook for the extreme right:
+
+<iframe width="100%" height="876" frameborder="0"
+  src="https://observablehq.com/embed/@severo/hausse-de-lextreme-droite-aux-legislatives-premier@656?cells=MAP"></iframe>
+
+Finally, I [reproduced the left/right wind effect](https://observablehq.com/@severo/shifting-winds-of-french-politics-mapping-right-an), as in the Belgian elections, but for the 2022 and 2024 legislative elections in France:
+
+<Figure id="./personal-shifting-winds.png" href="https://observablehq.com/@severo/shifting-winds-of-french-politics-mapping-right-an" />
+
+Here is the embed of the notebook for the shifting winds:
+
+<iframe width="100%" height="576" frameborder="0"
+  src="https://observablehq.com/embed/@severo/shifting-winds-of-french-politics-mapping-right-an?cells=MAP"></iframe>
+
