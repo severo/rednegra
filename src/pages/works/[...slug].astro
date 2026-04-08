@@ -4,6 +4,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { indexById } from "../../lib/utils";
 import ObjectHeader from "../../components/ObjectHeader.astro";
+import Tag from "../../components/Tag.astro";
 
 // getStaticPaths creates a static page for each work
 export async function getStaticPaths() {
@@ -30,6 +31,15 @@ const references = referenceIds
       return reference;
     })
   : [];
+const images = await getCollection(
+  "images",
+  (entry) => entry.data.work.id === work.id,
+);
+const tagIds = [
+  ...new Set(
+    images.flatMap((image) => image.data.tags ?? []).map((tag) => tag.id),
+  ),
+].sort();
 ---
 
 <BaseLayout
@@ -54,11 +64,21 @@ const references = referenceIds
       </p>
     )
   }
-  <Content />
-</BaseLayout>
+  <div class="tags">
+    {Array.from(tagIds).map((id) => <Tag collection="tags" id={id} />)}
+    <Content />
+  </div>
 
-<style>
-  .references {
-    font-style: italic;
-  }
-</style>
+  <style>
+    .references {
+      font-style: italic;
+    }
+
+    .tags {
+      margin-top: 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+  </style>
+</BaseLayout>
