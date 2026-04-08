@@ -3,7 +3,15 @@
     "id": "./hf-dataset-viewer.png",
     "work": "hf-dataset-viewer",
     "alt": "Dataset viewer",
-    "tags": ["svelte", "tailwindcss", "svg", "2022", "2023", "2024"]
+    "tags": [
+      "svelte",
+      "typescript",
+      "tailwindcss",
+      "svg",
+      "2022",
+      "2023",
+      "2024"
+    ]
   },
   {
     "id": "./hf-converted-parquet.png",
@@ -16,7 +24,14 @@
     "work": "hf-parquet-metadata",
     "alt": "Parquet metadata viewer",
     "title": "Parquet metadata viewer on Hugging Face",
-    "tags": ["svelte", "tailwindcss", "parquet", "hyparquet", "2024"]
+    "tags": [
+      "svelte",
+      "typescript",
+      "tailwindcss",
+      "parquet",
+      "hyparquet",
+      "2024"
+    ]
   },
   {
     "id": "./eigenfactor-radial.png",
@@ -104,7 +119,15 @@
     "id": "./liris-occupapp.png",
     "work": "liris-sports",
     "alt": "Collaborative app to work on the partition of spaces",
-    "tags": ["dataviz", "javascript", "typescript", "vue", "2020", "websocket"]
+    "tags": [
+      "dataviz",
+      "javascript",
+      "typescript",
+      "vue",
+      "2020",
+      "websocket",
+      "nodejs"
+    ]
   },
   {
     "id": "./liris-tennis.png",
