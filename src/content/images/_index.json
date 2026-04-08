@@ -191,5 +191,17 @@
       "table",
       "ui"
     ]
+  },
+  {
+    "id": "./cartogram-bolivia.jpeg",
+    "work": "cartograms",
+    "alt": "Cartogram of Bolivia, where the size of each department is proportional to the number of representatives",
+    "tags": ["dataviz", "2025", "bolivia"]
+  },
+  {
+    "id": "./cartogram-us.png",
+    "work": "cartograms",
+    "alt": "Review about grid cartograms",
+    "tags": ["dataviz", "2018", "observable", "writing"]
   }
 ]
