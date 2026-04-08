@@ -57,7 +57,11 @@ const tagIds = [
         This work was realized for{" "}
         {references.map((reference, index) => (
           <span>
-            <a href={`/references/${reference.id}`}>{reference.data.name}</a>
+            <a href={`/references/${reference.id}`}>
+              {reference.id === "myself"
+                ? "my own interests and curiosity"
+                : reference.data.name}
+            </a>
             {index < references.length - 1 ? ", " : "."}
           </span>
         ))}

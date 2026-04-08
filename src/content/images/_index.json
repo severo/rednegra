@@ -111,5 +111,11 @@
     "work": "liris-sports",
     "alt": "Video of a tennis match, projected on a 3D scene and synchronized with the ball tracking data",
     "tags": ["dataviz", "javascript", "threejs", "video", "2020", "sport", "3d"]
+  },
+  {
+    "id": "./awesome-parquet.png",
+    "work": "awesome-parquet",
+    "alt": "Awesome Parquet, a curated list of resources about the Parquet file format",
+    "tags": ["parquet", "2025"]
   }
 ]
