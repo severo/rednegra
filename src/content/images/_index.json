@@ -199,9 +199,27 @@
     "tags": ["dataviz", "2025", "bolivia"]
   },
   {
+    "id": "./cartogram-bolivia-deputies.jpeg",
+    "work": "cartograms",
+    "alt": "Cartogram of Bolivia, where the size of each department is proportional to the number of deputies",
+    "tags": ["dataviz", "2025", "bolivia"]
+  },
+  {
     "id": "./cartogram-us.png",
     "work": "cartograms",
     "alt": "Review about grid cartograms",
     "tags": ["dataviz", "2018", "observable", "writing"]
+  },
+  {
+    "id": "./cartogram-format.jpeg",
+    "work": "cartograms",
+    "alt": "Data format for cartograms",
+    "tags": ["dataviz", "2025", "library"]
+  },
+  {
+    "id": "./cycling-seixas.png",
+    "work": "personal-sports",
+    "alt": "Classification of a cycling race, highlighting the performance of young Seixas",
+    "tags": ["dataviz", "plot", "sport", "observable", "2025", "wikidata"]
   }
 ]
