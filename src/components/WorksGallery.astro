@@ -43,7 +43,7 @@ const entries = images
 
       const referencesAndTags = [
         ...(work.data.references ?? []),
-        ...(tags ?? []),
+        ...(tags?.sort((a, b) => a.id.localeCompare(b.id)) ?? []),
       ];
 
       return {
