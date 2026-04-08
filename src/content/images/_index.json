@@ -140,5 +140,27 @@
     "work": "awesome-parquet",
     "alt": "Awesome Parquet, a curated list of resources about the Parquet file format",
     "tags": ["parquet", "2025"]
+  },
+  {
+    "id": "./hyparam-blog.png",
+    "work": "hightable",
+    "alt": "Interactive blog post about virtual scroll and large tables",
+    "tags": [
+      "writing",
+      "javascript",
+      "react",
+      "typescript",
+      "2026",
+      "ui",
+      "performance",
+      "accessibility",
+      "hard"
+    ]
+  },
+  {
+    "id": "./cosovo.jpeg",
+    "work": "cosovo",
+    "alt": "Getting started with cosovo, a CSV fetching and parsing library",
+    "tags": ["2025", "typescript", "library"]
   }
 ]

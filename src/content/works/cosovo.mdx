@@ -1,0 +1,19 @@
+---
+title: Cosovo
+description: A library for fetching and parsing CSV files in TypeScript.
+references: ["myself"]
+---
+
+import Figure from "../../components/Figure.astro";
+
+In 2025, I was struggling to adapt [Papaparse](https://www.papaparse.com/) to my needs in a work for [Source Cooperative](/references/source-coop). Specifically, I wanted to handle very big CSV files, to be able to fetch and parse only a byte range in the middle of them.
+
+Papaparse is a great and mature library, but it was not designed for this use case, and I found it hard to adapt (no typescript, no modularity, etc.)
+
+I thus decided to build my own library for fetching and parsing CSV files in TypeScript. I named it [cosovo](https://github.com/severo/cosovo) in reference to CSV, published it on npm in late 2025, and used it in the CSV viewers in [source.coop](https://source.coop/jrc-lucas/jrc-lucas-ml/ml_data/classes_dataset.csv).
+
+<Figure
+  id="./cosovo.jpeg"
+  href="https://github.com/severo/cosovo"
+/>
+
