@@ -10,7 +10,8 @@
       "svg",
       "2022",
       "2023",
-      "2024"
+      "2024",
+      "table"
     ]
   },
   {
@@ -154,13 +155,41 @@
       "ui",
       "performance",
       "accessibility",
-      "hard"
+      "hard",
+      "table"
     ]
   },
   {
     "id": "./cosovo.jpeg",
     "work": "cosovo",
     "alt": "Getting started with cosovo, a CSV fetching and parsing library",
-    "tags": ["2025", "typescript", "library"]
+    "tags": ["2025", "typescript", "library", "csv"]
+  },
+  {
+    "id": "./source-csv.png",
+    "work": "source-cooperative",
+    "alt": "CSV viewer for Source Cooperative",
+    "tags": ["react", "typescript", "2025", "csv", "table"]
+  },
+  {
+    "id": "./source-parquet.png",
+    "work": "source-cooperative",
+    "alt": "Parquet viewer for Source Cooperative",
+    "tags": ["react", "typescript", "2024", "parquet", "table"]
+  },
+  {
+    "id": "./hyparam-hightable.png",
+    "work": "hightable",
+    "alt": "HighTable component for virtual scroll and large tables",
+    "tags": [
+      "react",
+      "typescript",
+      "2026",
+      "library",
+      "performance",
+      "accessibility",
+      "table",
+      "ui"
+    ]
   }
 ]

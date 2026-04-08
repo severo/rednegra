@@ -1,0 +1,24 @@
+---
+title: Source Cooperative
+description: A catalogue of open datasets, published in Cloud-native formats.
+references: ["radiant-earth"]
+---
+
+import Figure from "../../components/Figure.astro";
+
+Between 2024 and 2026, I built React components to navigate the Parquet and CSV files published in [Source Cooperative](https://source.coop), a catalogue of open datasets, published in [Cloud-native formats](https://cloudnativegeo.org/). The project is led by [Jed Sundwall](https://www.linkedin.com/in/jedsundwall/).
+
+For both formats, I adapted features and style of the open-source [hyparquet demo](https://github.com/hyparam/demos/tree/master/hyparquet), on which I had already worked a lot for [Hyperparam](/references/hyperparam).
+
+<Figure
+  id="./source-parquet.png"
+  href="https://github.com/source-cooperative/parquet-table/"
+/>
+
+For CSV files, I had to build a custom parser to be able to navigate into large files without fetching and parsing the whole file. I published this parser as an open-source library named [cosovo](https://github.com/severo/cosovo), which I developed on my own time.
+
+<Figure
+  id="./source-csv.png"
+  href="https://github.com/source-cooperative/csv-table/"
+/>
+
