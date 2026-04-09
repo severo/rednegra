@@ -22,7 +22,7 @@
   },
   {
     "id": "./hf-parquet-metadata.png",
-    "work": "hf-parquet-metadata",
+    "work": "hf-parquet",
     "alt": "Parquet metadata viewer",
     "title": "Parquet metadata viewer on Hugging Face",
     "tags": [
@@ -227,5 +227,29 @@
     "work": "personal-maps",
     "alt": "Tool to find regional Foursquare places data files on a map",
     "tags": ["map", "2025", "observable", "plot"]
+  },
+  {
+    "id": "./hf-parquet-diff.png",
+    "work": "hf-parquet",
+    "alt": "Diff of two Parquet files on Hugging Face",
+    "tags": ["parquet", "dataviz", "2025", "observable", "hyparquet"]
+  },
+  {
+    "id": "./hf-parquet-cdc.png",
+    "work": "hf-parquet",
+    "alt": "Diff of two Parquet files on Hugging Face",
+    "tags": ["parquet", "dataviz", "2025", "observable", "hyparquet"]
+  },
+  {
+    "id": "./personal-observable-forum.png",
+    "work": "personal-dataviz",
+    "alt": "Dashboard about the activity of the Observable forum",
+    "tags": ["dataviz", "observable", "2024", "plot"]
+  },
+  {
+    "id": "./hf-space-followgraph.png",
+    "work": "hf-spaces",
+    "alt": "Tool to find new Hugging Face users to follow",
+    "tags": ["2024", "typescript", "react", "hf-space"]
   }
 ]

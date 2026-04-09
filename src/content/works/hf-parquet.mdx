@@ -1,0 +1,22 @@
+---
+title: "Parquet at HuggingFace"
+description: "Works related to Parquet files on Hugging Face."
+references: ["hugging-face"]
+---
+
+import Figure from "../../components/Figure.astro";
+
+
+In 2024, I developed a Parquet metadata viewer for Hugging Face, allowing users to easily inspect the metadata of their Parquet files. The component is based on the [GGUF viewer](https://huggingface.co/prism-ml/Bonsai-8B-gguf/tree/main?show_file_info=Bonsai-8B.gguf) for ML model metadata.
+
+The viewer is a [Svelte](/tags/svelte) component which uses [hyparquet](/tags/hyparquet) to parse the Parquet files.
+
+<Figure id="./hf-parquet-metadata.png" href="https://huggingface.co/datasets/HuggingFaceFW/fineweb/tree/main/data/CC-MAIN-2013-20?show_file_info=data%2FCC-MAIN-2013-20%2F000_00000.parquet" />
+
+In 2025, I did experiments to display the content difference between two Parquet files. Parquet is a columnar format, and each column is stored in pages within "row groups". By comparing the size of these pages, we can detect (with some margin of uncertainty) which pages are different between two files. Check the tool in the [Parquet diff notebook](https://observablehq.com/@severo/parquet-diff).
+
+<Figure id="./hf-parquet-diff.png" href="https://observablehq.com/@severo/parquet-diff" />
+
+We also used [visual tools](https://observablehq.com/@severo/parquet-content-defined-chunking-blog-post-reprodu) to represent how parameters like compression or CDC (chunk-based compression) used when writing Parquet files can impact the difference between to files after an operation (read [Parquet Content-Defined Chunking](https://huggingface.co/blog/parquet-cdc) for more details).
+
+<Figure id="./hf-parquet-cdc.png" href="https://observablehq.com/@severo/parquet-content-defined-chunking-blog-post-reprodu" />
