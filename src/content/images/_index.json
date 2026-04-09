@@ -221,5 +221,11 @@
     "work": "personal-sports",
     "alt": "Classification of a cycling race, highlighting the performance of young Seixas",
     "tags": ["dataviz", "plot", "sport", "observable", "2025", "wikidata"]
+  },
+  {
+    "id": "./personal-foursquare.png",
+    "work": "personal-maps",
+    "alt": "Tool to find regional Foursquare places data files on a map",
+    "tags": ["map", "2025", "observable", "plot"]
   }
 ]
