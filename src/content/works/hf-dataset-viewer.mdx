@@ -9,3 +9,8 @@ import Figure from "../../components/Figure.astro";
 The dataset viewer has been my main work at Hugging Face since I joined the company in 2021.
 
 The first goal was to offer a preview of every dataset on the Hugging Face Hub. Back in 2021, the datasets were very heterogeneous, and in many cases were generated using a Python script. I thus created a backend service, that preprocessed every public dataset to extract the first 100 rows, and offered an API to retrieve these data. On the Hub, I built a basic data table to display the data. As each dataset page is generated server-side, it also helped position the datasets in search results, as the preview data is indexed by search engines.
+
+
+Some features we developed over time include [random access / pagination](https://www.linkedin.com/posts/sylvain--lesage_what-does-the-data-look-like-on-page-32643239-activity-7173275835599151104-KhYT), [embedding the viewer in external websites](https://www.linkedin.com/posts/sylvain--lesage_do-like-hamza-tahir-embed-the-dataset-activity-7218620610787061760-Ru8p), support for more [writing systems](https://www.linkedin.com/feed/update/urn:li:activity:7163676260005588992/), full-text search, [filters, sort](https://www.linkedin.com/posts/sylvain--lesage_we-just-released-new-features-for-your-dataset-activity-7203741786316439553-LJAo), support for [private datasets](https://www.linkedin.com/posts/julienchaumond_new-on-hugging-face-the-dataset-viewer-activity-7158482443480559616-AWVd).
+
+<Figure id="./hf-filter-sort.jpeg" href="https://www.linkedin.com/posts/sylvain--lesage_we-just-released-new-features-for-your-dataset-activity-7203741786316439553-LJAo" />

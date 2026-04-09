@@ -248,8 +248,20 @@
   },
   {
     "id": "./hf-space-followgraph.png",
-    "work": "hf-spaces",
+    "work": "hf-hub",
     "alt": "Tool to find new Hugging Face users to follow",
     "tags": ["2024", "typescript", "react", "hf-space"]
+  },
+  {
+    "id": "./hf-datasets-filters.jpeg",
+    "work": "hf-hub",
+    "alt": "UI to filter datasets on Hugging Face",
+    "tags": ["2024", "typescript", "svelte", "python"]
+  },
+  {
+    "id": "./hf-filter-sort.jpeg",
+    "work": "hf-dataset-viewer",
+    "alt": "Sort and filter in Hugging Face dataset viewer",
+    "tags": ["2024", "typescript", "svelte", "python"]
   }
 ]
