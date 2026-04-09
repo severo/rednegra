@@ -16,7 +16,7 @@
   },
   {
     "id": "./hf-converted-parquet.png",
-    "work": "hf-dataset-viewer",
+    "work": "hf-parquet",
     "alt": "Convert every dataset to Parquet",
     "tags": ["python", "parquet", "2022"]
   },

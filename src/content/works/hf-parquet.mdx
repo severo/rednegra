@@ -6,6 +6,13 @@ references: ["hugging-face"]
 
 import Figure from "../../components/Figure.astro";
 
+In 2022, we decided to push the adoption of the Parquet format for datasets, as it's generally adapted to machine learning data. In that sense, we decided to automatically convert every dataset to Parquet. The converted files are available in a special "branch" of the dataset repository. Read the [docs](https://huggingface.co/docs/hub/data-studio#access-the-parquet-files) for more information.
+
+<Figure
+  id="./hf-converted-parquet.png"
+  href="https://github.com/huggingface/dataset-viewer"
+/>
+
 
 In 2024, I developed a Parquet metadata viewer for Hugging Face, allowing users to easily inspect the metadata of their Parquet files. The component is based on the [GGUF viewer](https://huggingface.co/prism-ml/Bonsai-8B-gguf/tree/main?show_file_info=Bonsai-8B.gguf) for ML model metadata.
 
