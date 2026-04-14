@@ -121,6 +121,15 @@ for (
       display: block;
     }
 
+    &:hover,
+    &:focus-within {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+
+      .alt a {
+        text-decoration: underline;
+      }
+    }
+
     figcaption {
       display: block;
       border-top: 1px solid var(--light-color);
@@ -131,6 +140,10 @@ for (
         font-weight: bold;
         font-size: 0.9rem;
         color: var(--color-1);
+
+        a {
+          text-decoration: none;
+        }
       }
 
       .tags {
