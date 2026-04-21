@@ -16,7 +16,7 @@
     "@astrojs/prism": "^4.0.1",
     "@astrojs/react": "^5.0.1",
     "@astrojs/rss": "^4.0.17",
-    "@astrojs/sitemap": "^3.7.1",
+    "@astrojs/sitemap": "^3.7.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "astro": "^6.0.8",
