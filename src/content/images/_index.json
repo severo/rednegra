@@ -263,5 +263,17 @@
     "work": "hf-dataset-viewer",
     "alt": "Sort and filter in Hugging Face dataset viewer",
     "tags": ["2024", "typescript", "svelte", "python"]
+  },
+  {
+    "id": "./pelias-brazil.png",
+    "work": "pelias-geocoder",
+    "alt": "Prepare an offline geocoder (Pelias) with data for Brazil",
+    "tags": ["2026", "geospatial"]
+  },
+  {
+    "id": "./pelias-portland.png",
+    "work": "pelias-geocoder",
+    "alt": "Prepare an offline geocoder (Pelias) with data for Brazil",
+    "tags": ["2026", "geospatial"]
   }
 ]

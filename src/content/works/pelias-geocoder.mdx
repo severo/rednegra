@@ -1,0 +1,31 @@
+---
+title: "Offline geocoder for Brazil"
+description: "Prepare an offline geocoder, configuring Pelias in a virtual machine with data for Brazil"
+references: ["undisclosed"]
+---
+
+import Figure from "../../components/Figure.astro";
+
+In 2026, I was tasked with creating a VirtualBox machine providing [Pelias](https://github.com/pelias/docker), an offline geocoder, with data for Brazil. To make the work reproducible, I used [Vagrant](https://developer.hashicorp.com/vagrant) and versioned the code in a repository: [pelias-vagrant](https://github.com/severo/pelias-vagrant).
+
+Pelias relies on three open [data sources](https://github.com/pelias/documentation/blob/master/data-sources.md): [Who's On First](https://whosonfirst.org/) for the high-level administrative entities, [OpenAddresses](https://openaddresses.io/) for authoritative data (national, local) for street-level addresses and [OpenStreetMap](https://www.openstreetmap.org) for collaborative data about any location. It's also possible to use [Geonames](https://www.geonames.org/) as an alternative to OpenAddresses and OpenStreetMap, but it does not seem to be supported out-of-the-box by the docker install.
+
+The data is processed and then imported in Elasticsearch, which is the core of the geocoder.
+
+## Example with Portland
+
+Pelias provides a sample project with data for Portland, which requires downloading and preparing 6GB of data.
+
+On the following figure, captured on the [Pelias compare tool](https://pelias.github.io/compare/#/v1/search?text=1955%2C+Northwest+Raleigh+Street%2C+Slabtown%2C+Northwest+District%2C+Portland%2C+Multnomah+County%2C+Oregon%2C+97209%2C+USA), you can see the result of requesting a location for the address "1955, Northwest Raleigh Street, Slabtown, Northwest District, Portland, Multnomah County, Oregon, 97209, USA" (on the example offline geocoder for Portland).
+
+<Figure id="./pelias-portland.png" href="https://github.com/severo/pelias-vagrant" />
+
+Pelias gives 2 results with OpenAddresses and 3 results with OpenStreetMap, all with confidence 1 but not the same coordinates 🤷. Only two of them match the street number. This means that some post-processing can be needed when using the geocoder.
+
+## Brazil
+
+Once the local geocoder worked for Portland, I did the same for Brazil, which generates about 100GB data. Only half of it needs to be copied to the machine, ie. the virtual machine was about 50GB. Preparing the data takes about 12 hours.
+
+On the following figure, you can see the result of requesting a location for the address "Estr. do Mendanha, 3345 - Campo Grande, Rio de Janeiro - RJ, 23092-001, Brazil". The result from the offline geocoder is the same as geocode.earth.
+
+<Figure id="./pelias-brazil.png" href="https://github.com/severo/pelias-vagrant" />

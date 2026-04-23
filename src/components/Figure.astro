@@ -11,10 +11,16 @@ const { id, href } = Astro.props;
 
 {
   href ? (
-    <a href={href}>
+    <a class="figure-link" href={href}>
       <BaseFigure id={id} />
     </a>
   ) : (
     <BaseFigure id={id} />
   )
 }
+
+<style>
+  .figure-link {
+    margin: 0 auto;
+  }
+</style>

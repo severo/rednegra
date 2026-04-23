@@ -60,7 +60,9 @@ const tagIds = [
             <a href={`/references/${reference.id}`}>
               {reference.id === "myself"
                 ? "my own interests and curiosity"
-                : reference.data.name}
+                : reference.id === "undisclosed"
+                  ? "an undisclosed contractor"
+                  : reference.data.name}
             </a>
             {index < references.length - 1 ? ", " : "."}
           </span>
