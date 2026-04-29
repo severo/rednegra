@@ -27,3 +27,5 @@ Once the local geocoder worked for Portland, I did the same for Brazil, which ge
 On the following figure, you can see the result of requesting a location for the address "Estr. do Mendanha, 3345 - Campo Grande, Rio de Janeiro - RJ, 23092-001, Brazil". The result from the offline geocoder is the same as geocode.earth.
 
 <Figure id="./pelias-brazil.png" href="https://github.com/severo/pelias-vagrant" />
+
+On my first try, the OpenStreetMap data could not be used to generate polylines (which are used to interpolate the location of addresses on a street), because the PDB file for Brazil is too big. I intially overlooked the warning and provide the virtual machine as such. I then managed to process the OSM data by using the 5 region splits instead of the country-wide file. The client could check on their own side that this slight change increased the percentage of correctly geocoded adddresses in a small city of Brazil from 60% to 75%. The 15% addresses that are now precisely localted using OSM data were previously geocoded from unprecise OpenAddresses data or from the Who's on First city centroid.
