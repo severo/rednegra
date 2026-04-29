@@ -1,3 +1,4 @@
 ---
 name: UI
+tagGroup: web
 ---

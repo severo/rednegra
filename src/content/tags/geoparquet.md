@@ -1,3 +1,4 @@
 ---
 name: GeoParquet
+tagGroup: data
 ---

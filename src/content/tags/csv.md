@@ -1,3 +1,4 @@
 ---
 name: CSV
+tagGroup: data
 ---

@@ -1,4 +1,5 @@
 ---
-name: "HF Space"
+name: HF Space
+tagGroup: software
 ---
 

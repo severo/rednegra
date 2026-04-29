@@ -1,5 +1,5 @@
 ---
-name: "Undisclosed contractors"
+name: Undisclosed contractors
 url: https://rednegra.net
 ---
 

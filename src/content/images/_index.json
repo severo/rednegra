@@ -38,103 +38,73 @@
     "id": "./eigenfactor-radial.png",
     "work": "eigenfactor",
     "alt": "Network of scientific citations",
-    "tags": ["dataviz", "javascript", "d3", "chord-diagram", "svg", "2018"]
+    "tags": ["javascript", "d3", "chord-diagram", "svg", "2018"]
   },
   {
     "id": "./eigenfactor-flow.png",
     "work": "eigenfactor",
     "alt": "Evolution of Eigenfactor scores of journals",
-    "tags": ["dataviz", "javascript", "d3", "parallel-sets", "svg", "2018"]
+    "tags": ["javascript", "d3", "parallel-sets", "svg", "2018"]
   },
   {
     "id": "./eigenfactor-map.png",
     "work": "eigenfactor",
     "alt": "Hierarchical map of scientific fields",
-    "tags": ["dataviz", "javascript", "d3", "treemap", "svg", "2018"]
+    "tags": ["javascript", "d3", "treemap", "svg", "2018"]
   },
   {
     "id": "./eigenfactor-treemap.png",
     "work": "eigenfactor",
     "alt": "Zoomable graph of citations between journals",
-    "tags": ["dataviz", "javascript", "d3", "network-diagram", "svg", "2018"]
+    "tags": ["javascript", "d3", "network-diagram", "svg", "2018"]
   },
   {
     "id": "./personal-shifting-winds.png",
     "work": "personal-elections",
     "alt": "Shifting Winds of French Politics: Mapping Right and Left Shifts in the 2024 vs. 2022 Elections.",
-    "tags": [
-      "dataviz",
-      "javascript",
-      "context2d",
-      "d3",
-      "elections",
-      "2024",
-      "observable"
-    ]
+    "tags": ["javascript", "context2d", "d3", "elections", "2024", "observable"]
   },
   {
     "id": "./personal-wind.png",
     "work": "personal-elections",
     "alt": "Wind effect with particles flowing to the right or left",
-    "tags": ["dataviz", "javascript", "context2d", "d3", "2024", "observable"]
+    "tags": ["javascript", "context2d", "d3", "2024", "observable"]
   },
   {
     "id": "./personal-participation.png",
     "work": "personal-elections",
     "alt": "Evolution of voter participation in France, 2022-2024",
-    "tags": [
-      "dataviz",
-      "javascript",
-      "context2d",
-      "elections",
-      "2024",
-      "observable"
-    ]
+    "tags": ["javascript", "context2d", "elections", "2024", "observable"]
   },
   {
     "id": "./personal-extreme-right.png",
     "work": "personal-elections",
     "alt": "Evolution of the extreme right vote in France, 2022-2024",
-    "tags": [
-      "dataviz",
-      "javascript",
-      "context2d",
-      "elections",
-      "2024",
-      "observable"
-    ]
+    "tags": ["javascript", "context2d", "elections", "2024", "observable"]
   },
   {
     "id": "./personal-left-right.png",
     "work": "personal-elections",
     "alt": "Distribution of votes along the left-right scale in France, 2024",
-    "tags": ["dataviz", "javascript", "plot", "elections", "2024", "observable"]
+    "tags": ["javascript", "plot", "elections", "2024", "observable"]
   },
   {
     "id": "./liris-swimming-videos.png",
     "work": "liris-sports",
     "alt": "Synchronized videos of a swimming race, projected on a 3D scene",
-    "tags": ["dataviz", "javascript", "threejs", "video", "2021", "sport", "3d"]
+    "tags": ["javascript", "threejs", "video", "2021", "sport", "3d"]
   },
   {
     "id": "./liris-occupapp.png",
     "work": "liris-sports",
     "alt": "Collaborative app to work on the partition of spaces",
-    "tags": [
-      "dataviz",
-      "javascript",
-      "typescript",
-      "vue",
-      "2020",
-      "websocket",
-      "nodejs"
-    ]
+    "tags": ["javascript", "typescript", "vue", "2020", "websocket", "nodejs"]
   },
   {
     "id": "./liris-tennis.png",
     "work": "liris-sports",
     "alt": "Video of a tennis match, projected on a 3D scene and synchronized with the ball tracking data",
-    "tags": ["dataviz", "javascript", "threejs", "video", "2020", "sport", "3d"]
+    "tags": ["javascript", "threejs", "video", "2020", "sport", "3d"]
   },
   {
     "id": "./awesome-parquet.png",
@@ -196,31 +166,31 @@
     "id": "./cartogram-bolivia.jpeg",
     "work": "cartograms",
     "alt": "Cartogram of Bolivia, where the size of each department is proportional to the number of representatives",
-    "tags": ["dataviz", "2025", "bolivia"]
+    "tags": ["2025", "bolivia"]
   },
   {
     "id": "./cartogram-bolivia-deputies.jpeg",
     "work": "cartograms",
     "alt": "Cartogram of Bolivia, where the size of each department is proportional to the number of deputies",
-    "tags": ["dataviz", "2025", "bolivia"]
+    "tags": ["2025", "bolivia"]
   },
   {
     "id": "./cartogram-us.png",
     "work": "cartograms",
     "alt": "Review about grid cartograms",
-    "tags": ["dataviz", "2018", "observable", "writing"]
+    "tags": ["2018", "observable", "writing"]
   },
   {
     "id": "./cartogram-format.jpeg",
     "work": "cartograms",
     "alt": "Data format for cartograms",
-    "tags": ["dataviz", "2025", "library"]
+    "tags": ["2025", "library"]
   },
   {
     "id": "./cycling-seixas.png",
     "work": "personal-sports",
     "alt": "Classification of a cycling race, highlighting the performance of young Seixas",
-    "tags": ["dataviz", "plot", "sport", "observable", "2025", "wikidata"]
+    "tags": ["plot", "sport", "observable", "2025", "wikidata"]
   },
   {
     "id": "./personal-foursquare.png",
@@ -232,19 +202,19 @@
     "id": "./hf-parquet-diff.png",
     "work": "hf-parquet",
     "alt": "Diff of two Parquet files on Hugging Face",
-    "tags": ["parquet", "dataviz", "2025", "observable", "hyparquet"]
+    "tags": ["parquet", "2025", "observable", "hyparquet"]
   },
   {
     "id": "./hf-parquet-cdc.png",
     "work": "hf-parquet",
     "alt": "Diff of two Parquet files on Hugging Face",
-    "tags": ["parquet", "dataviz", "2025", "observable", "hyparquet"]
+    "tags": ["parquet", "2025", "observable", "hyparquet"]
   },
   {
     "id": "./personal-observable-forum.png",
     "work": "personal-dataviz",
     "alt": "Dashboard about the activity of the Observable forum",
-    "tags": ["dataviz", "observable", "2024", "plot"]
+    "tags": ["observable", "2024", "plot"]
   },
   {
     "id": "./hf-space-followgraph.png",
@@ -268,12 +238,12 @@
     "id": "./pelias-brazil.png",
     "work": "pelias-geocoder",
     "alt": "Prepare an offline geocoder (Pelias) with data for Brazil",
-    "tags": ["2026", "geospatial"]
+    "tags": ["2026", "geocoding"]
   },
   {
     "id": "./pelias-portland.png",
     "work": "pelias-geocoder",
     "alt": "Prepare an offline geocoder (Pelias) with data for Brazil",
-    "tags": ["2026", "geospatial"]
+    "tags": ["2026", "geocoding"]
   }
 ]

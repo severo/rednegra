@@ -14,11 +14,20 @@ const blog = defineCollection({
 		}),
 });
 
+const tagGroups = defineCollection({
+	loader: glob({ base: './src/content/tagGroups', pattern: '*.{md,mdx}' }),
+	schema: () =>
+		z.object({
+			name: z.string(),
+		}),
+});
+
 const tags = defineCollection({
 	loader: glob({ base: './src/content/tags', pattern: '*.{md,mdx}' }),
 	schema: () =>
 		z.object({
 			name: z.string(),
+			tagGroup: reference('tagGroups'),
 		}),
 });
 
@@ -53,4 +62,4 @@ const images = defineCollection({
 		}),
 });
 
-export const collections = { blog, works, images, references, tags };
+export const collections = { blog, works, images, references, tags, tagGroups };

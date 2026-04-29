@@ -1,3 +1,4 @@
 ---
 name: Standards
+tagGroup: topics
 ---

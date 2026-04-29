@@ -1,3 +1,4 @@
 ---
 name: Sport
+tagGroup: topics
 ---

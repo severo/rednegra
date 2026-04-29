@@ -1,3 +1,4 @@
 ---
-name: "Python"
+name: Python
+tagGroup: software
 ---
