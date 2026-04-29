@@ -9,19 +9,21 @@ const { filter } = Astro.props;
 const posts = (await getCollection("blog")).sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+const filteredPosts = filter ? posts.filter(filter) : posts;
 ---
 
-<section>
-  <ul>
-    {
-      posts
-        .filter((post) => !filter || filter(post))
-        .map((post) => (
+{
+  filteredPosts.length > 0 && (
+    <section>
+      <slot name="before" />
+      <ul>
+        {filteredPosts.map((post) => (
           <li>
             <FormattedDate date={post.data.pubDate} />{" "}
             <a href={`/blog/${post.id}/`}>{post.data.title}</a>
           </li>
-        ))
-    }
-  </ul>
-</section>
+        ))}
+      </ul>
+    </section>
+  )
+}

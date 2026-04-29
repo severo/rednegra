@@ -28,19 +28,21 @@ const { Content } = await render(tag);
   />
   <Content />
 
-  <h2>Blog posts</h2>
   <BlogsGallery
     filter={(entry: CollectionEntry<"blog">) =>
       entry.data.tags?.some(
         (tag) => tag.id === tagId && tag.collection === "tags",
       ) ?? false}
-  />
+  >
+    <h2 slot="before">Blog posts</h2>
+  </BlogsGallery>
 
-  <h2>Works</h2>
   <WorksGallery
     filter={(entry: Entry) =>
       entry.tags?.some(
         (tag) => tag.id === tagId && tag.collection === "tags",
       ) ?? false}
-  />
+  >
+    <h2 slot="before">Works</h2>
+  </WorksGallery>
 </WideLayout>
