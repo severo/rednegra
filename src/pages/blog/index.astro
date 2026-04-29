@@ -1,12 +1,7 @@
 ---
-import { getCollection } from "astro:content";
-import FormattedDate from "../../components/FormattedDate.astro";
 import { SITE_DESCRIPTION } from "../../consts";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-
-const posts = (await getCollection("blog")).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
-);
+import BlogsGallery from "../../components/BlogsGallery.astro";
 ---
 
 <BaseLayout title="Blog — Sylvain Lesage" description={SITE_DESCRIPTION}>
@@ -14,18 +9,8 @@ const posts = (await getCollection("blog")).sort(
     <p>＜ <a href="/">Home</a></p>
     <h1>Blog posts</h1>
   </header>
-  <section>
-    <ul>
-      {
-        posts.map((post) => (
-          <li>
-            <FormattedDate date={post.data.pubDate} />{" "}
-            <a href={`/blog/${post.id}/`}>{post.data.title}</a>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
+
+  <BlogsGallery />
 
   <p>Subscribe to the <a href="/feed.xml">RSS feed</a>.</p>
 </BaseLayout>

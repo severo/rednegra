@@ -76,29 +76,34 @@ for (
 }
 ---
 
-<Masonry breakpointCols={breakpointCols}>
-  {
-    filteredEntries.map((entry) => (
-      <figure>
-        <a href={`/works/${entry.work.id}`}>
-          <Image src={entry.image} alt={entry.alt} />
-        </a>
-        <figcaption>
-          <p class="alt">
-            <a href={`/works/${entry.work.id}`}>{entry.alt}</a>
-          </p>
-          {entry.tags && (
-            <p class="tags">
-              {entry.tags.map((tag) => (
-                <Tag collection={tag.collection} id={tag.id} />
-              ))}
-            </p>
-          )}
-        </figcaption>
-      </figure>
-    ))
-  }
-</Masonry>
+{
+  filteredEntries.length > 0 && (
+    <section>
+      <slot name="before" />
+      <Masonry breakpointCols={breakpointCols}>
+        {filteredEntries.map((entry) => (
+          <figure>
+            <a href={`/works/${entry.work.id}`}>
+              <Image src={entry.image} alt={entry.alt} />
+            </a>
+            <figcaption>
+              <p class="alt">
+                <a href={`/works/${entry.work.id}`}>{entry.alt}</a>
+              </p>
+              {entry.tags && (
+                <p class="tags">
+                  {entry.tags.map((tag) => (
+                    <Tag collection={tag.collection} id={tag.id} />
+                  ))}
+                </p>
+              )}
+            </figcaption>
+          </figure>
+        ))}
+      </Masonry>
+    </section>
+  )
+}
 
 <style
   type="text/css"

@@ -1,7 +1,7 @@
 ---
 title: Parse, don't validate
 description: "The principle of 'Parse, don't validate' is to use the typing system to make illegal states unrepresentable and push the burden of proof upward as far as possible, but no further."
-tags: programming
+tags: [programming, "2025"]
 pubDate: 2025-08-10
 ---
 

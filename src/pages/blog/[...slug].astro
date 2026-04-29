@@ -1,9 +1,8 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import BaseHead from "../../components/BaseHead.astro";
-import Footer from "../../components/Footer.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import TagsList from "../../components/TagsList.astro";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
@@ -15,8 +14,10 @@ export async function getStaticPaths() {
 
 type Props = CollectionEntry<"blog">;
 const post = Astro.props;
-const { title, description, language, pubDate } = post.data;
+const { title, description, language, pubDate, tags } = post.data;
 const { Content } = await render(post);
+
+const tagIds = [...new Set(tags?.map((tag) => tag.id) ?? [])].sort();
 ---
 
 <BaseLayout title={title} description={description} language={language}>
@@ -26,5 +27,6 @@ const { Content } = await render(post);
     <p class="date">Published on: <FormattedDate date={pubDate} /></p>
     <p class="author">By <a href="/">Sylvain Lesage</a></p>
   </header>
+  <TagsList ids={tagIds} />
   <Content />
 </BaseLayout>

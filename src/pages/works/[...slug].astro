@@ -4,7 +4,7 @@ import { type CollectionEntry, getCollection, render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { indexById } from "../../lib/utils";
 import ObjectHeader from "../../components/ObjectHeader.astro";
-import Tag from "../../components/Tag.astro";
+import TagsList from "../../components/TagsList.astro";
 import Figure from "../../components/Figure.astro";
 const components = { Figure };
 
@@ -72,21 +72,13 @@ const tagIds = [
       </p>
     )
   }
-  <div class="tags">
-    {Array.from(tagIds).map((id) => <Tag collection="tags" id={id} />)}
-    <Content {components} />
-  </div>
+  <TagsList ids={tagIds} />
+
+  <Content {components} />
 
   <style>
     .references {
       font-style: italic;
-    }
-
-    .tags {
-      margin-top: 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
     }
   </style>
 </BaseLayout>

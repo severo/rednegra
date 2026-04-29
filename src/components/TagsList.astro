@@ -1,0 +1,21 @@
+---
+import Tag from "./Tag.astro";
+interface Props {
+  ids: string[];
+}
+
+const { ids } = Astro.props;
+---
+
+<div class="tags-list">
+  {ids.map((id) => <Tag collection="tags" id={id} />)}
+</div>
+
+<style>
+  .tags-list {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>

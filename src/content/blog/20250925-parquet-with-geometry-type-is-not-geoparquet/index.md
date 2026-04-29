@@ -1,7 +1,7 @@
 ---
 title: Parquet with GEOMETRY type is not GeoParquet
 description: "Parquet with GEOMETRY and GEOGRAPHY is not GeoParquet. The two standards are compatible, and can be combined, with the caveat that the columns must be encoded as WKB. GeoParquet has more features, while Parquet with GEOMETRY and GEOGRAPHY brings native support for geospatial data in the Parquet format."
-tags: parquet, geoparquet, geospatial, wkb, hyparquet, standards
+tags: [parquet, geoparquet, geospatial, wkb, hyparquet, standards, "2025"]
 pubDate: 2025-09-25
 ---
 
