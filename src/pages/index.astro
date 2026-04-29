@@ -3,6 +3,7 @@ import { Image } from "astro:assets";
 import heroImage from "../assets/sylvain-lesage.jpeg";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import TagsList from "../components/TagsList.astro";
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
@@ -35,24 +36,27 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     >.
   </p>
 
-  <ul class="tags">
-    <li class="tag">HTML</li>
-    <li class="tag">JavaScript</li>
-    <li class="tag">TypeScript</li>
-    <li class="tag">React</li>
-    <li class="tag">Svelte</li>
-    <li class="tag">Vue.js</li>
-    <li class="tag">D3.js</li>
-    <li class="tag">three.js</li>
-    <li class="tag">MapLibre</li>
-    <li class="tag">SVG</li>
-    <li class="tag">canvas</li>
-    <li class="tag">Python</li>
-    <li class="tag">R</li>
-    <li class="tag">PostgreSQL</li>
-    <li class="tag">DuckDB</li>
-    <li class="tag">Parquet</li>
-  </ul>
+  <TagsList
+    ids={[
+      // "html",
+      "web",
+      "javascript",
+      "typescript",
+      "react",
+      "svelte",
+      "vue",
+      "d3",
+      "threejs",
+      "map",
+      "svg",
+      // "canvas",
+      "python",
+      // "r",
+      // "postgresql",
+      // "duckdb",
+      "parquet",
+    ]}
+  />
 
   <p>
     I'm 🟢 <strong>open</strong> to new projects, collaborations and job opportunities.
