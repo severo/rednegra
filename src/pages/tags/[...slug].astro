@@ -1,6 +1,7 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
 import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
+import BlogsGallery from "../../components/BlogsGallery.astro";
 import WideLayout from "../../layouts/WideLayout.astro";
 import ObjectHeader from "../../components/ObjectHeader.astro";
 
@@ -26,6 +27,14 @@ const { Content } = await render(tag);
     type="Tag"
   />
   <Content />
+
+  <h2>Blog posts</h2>
+  <BlogsGallery
+    filter={(entry: CollectionEntry<"blog">) =>
+      entry.data.tags?.some(
+        (tag) => tag.id === tagId && tag.collection === "tags",
+      ) ?? false}
+  />
 
   <h2>Works</h2>
   <WorksGallery
