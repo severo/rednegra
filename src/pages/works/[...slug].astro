@@ -74,8 +74,9 @@ const tagIds = [
   }
   <div class="tags">
     {Array.from(tagIds).map((id) => <Tag collection="tags" id={id} />)}
-    <Content {components} />
   </div>
+
+  <Content {components} />
 
   <style>
     .references {
