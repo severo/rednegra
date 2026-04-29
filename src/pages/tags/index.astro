@@ -1,10 +1,27 @@
 ---
+import { getCollection } from "astro:content";
 import { SITE_DESCRIPTION } from "../../consts";
 import WideLayout from "../../layouts/WideLayout.astro";
-import Tag from "../../components/Tag.astro";
+import TagsList from "../../components/TagsList.astro";
 
-import { getCollection } from "astro:content";
 const tags = await getCollection("tags");
+const tagGroups = await getCollection("tagGroups");
+
+const groups = new Map(
+  tagGroups.map((tagGroup) => [
+    tagGroup.id,
+    { name: tagGroup.data.name, tagIds: [] as string[] },
+  ]),
+);
+tags.forEach((tag) => {
+  const group = groups.get(tag.data.tagGroup.id);
+  if (!group) {
+    throw new Error(
+      `Tag "${tag.id}" references non-existing group "${tag.data.tagGroup.id}".`,
+    );
+  }
+  group.tagIds.push(tag.id);
+});
 ---
 
 <WideLayout title="Tags — Sylvain Lesage" description={SITE_DESCRIPTION}>
@@ -13,19 +30,12 @@ const tags = await getCollection("tags");
     <h1>Tags</h1>
   </header>
 
-  <section class="tags">
-    {
-      tags.map((tag) => (
-        <Tag id={tag.id} collection={tag.collection} fontSize="1em" />
-      ))
-    }
-  </section>
-</WideLayout>
-
-<style type="text/css">
-  .tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+  {
+    [...groups.values()].map(({ name, tagIds }) => (
+      <section>
+        <h2>{name}</h2>
+        <TagsList ids={tagIds} fontSize="1em" />
+      </section>
+    ))
   }
-</style>
+</WideLayout>

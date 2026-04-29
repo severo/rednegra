@@ -93,7 +93,11 @@ for (
               {entry.tags && (
                 <p class="tags">
                   {entry.tags.map((tag) => (
-                    <Tag collection={tag.collection} id={tag.id} />
+                    <Tag
+                      collection={tag.collection}
+                      id={tag.id}
+                      fontSize="0.7em"
+                    />
                   ))}
                 </p>
               )}

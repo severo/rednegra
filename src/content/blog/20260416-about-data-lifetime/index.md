@@ -1,7 +1,7 @@
 ---
 title: About Data Lifetime (2013)
 description: A blog post that influenced a lot my thinking about data and software, and that is still relevant in the AI era and helps me to shape my consulting offering.
-tags: [data, software, ai, metadata, consulting, advice, "2026"]
+tags: [programming, ai, metadata, consulting, advice, "2026"]
 pubDate: 2026-04-16
 ---
 

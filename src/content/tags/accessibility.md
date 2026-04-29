@@ -1,3 +1,4 @@
 ---
-name: "Accessibility"
+name: Accessibility
+tagGroup: web
 ---

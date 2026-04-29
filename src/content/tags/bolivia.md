@@ -1,3 +1,4 @@
 ---
 name: Bolivia
+tagGroup: topics
 ---

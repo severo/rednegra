@@ -1,4 +1,5 @@
 ---
-name: "Parquet"
+name: Parquet
+tagGroup: data
 ---
 

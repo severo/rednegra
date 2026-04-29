@@ -1,3 +1,4 @@
 ---
 name: Metadata
+tagGroup: data
 ---

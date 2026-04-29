@@ -1,3 +1,4 @@
 ---
-name: "Tailwind CSS"
+name: Tailwind CSS
+tagGroup: web
 ---

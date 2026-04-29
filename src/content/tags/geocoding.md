@@ -1,4 +1,4 @@
 ---
-name: WKB
+name: Geocoding
 tagGroup: geospatial
 ---

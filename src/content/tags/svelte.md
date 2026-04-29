@@ -1,3 +1,4 @@
 ---
-name: "Svelte"
+name: Svelte
+tagGroup: web
 ---

@@ -1,3 +1,4 @@
 ---
-name: "Hyparquet"
+name: Hyparquet
+tagGroup: software
 ---

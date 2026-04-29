@@ -1,3 +1,4 @@
 ---
 name: Virtualization
+tagGroup: web
 ---

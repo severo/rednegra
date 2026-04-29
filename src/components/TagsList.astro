@@ -2,13 +2,14 @@
 import Tag from "./Tag.astro";
 interface Props {
   ids: string[];
+  fontSize?: string;
 }
 
-const { ids } = Astro.props;
+const { ids, fontSize } = Astro.props;
 ---
 
 <div class="tags-list">
-  {ids.map((id) => <Tag collection="tags" id={id} />)}
+  {ids.map((id) => <Tag collection="tags" id={id} fontSize={fontSize} />)}
 </div>
 
 <style>

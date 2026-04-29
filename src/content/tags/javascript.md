@@ -1,3 +1,4 @@
 ---
 name: JavaScript
+tagGroup: software
 ---

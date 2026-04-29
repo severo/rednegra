@@ -1,5 +1,6 @@
 ---
 name: Table
+tagGroup: web
 ---
 
 I spent too much time in my life working on displaying data in tables! As it's the most basic way to visualize data, let's say it counts as dataviz.

@@ -1,3 +1,4 @@
 ---
 name: AI
+tagGroup: topics
 ---

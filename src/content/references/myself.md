@@ -1,5 +1,5 @@
 ---
-name: "Personal projects"
+name: Personal projects
 url: https://rednegra.net
 ---
 
