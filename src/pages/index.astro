@@ -36,26 +36,31 @@ import TagsList from "../components/TagsList.astro";
     >.
   </p>
 
-  <TagsList
-    ids={[
-      // "html",
-      "javascript",
-      "typescript",
-      "react",
-      "svelte",
-      "vue",
-      "d3",
-      "threejs",
-      "map",
-      "svg",
-      // "canvas",
-      "python",
-      // "r",
-      // "postgresql",
-      // "duckdb",
-      "parquet",
-    ]}
-  />
+  <figure class="tags">
+    <TagsList
+      ids={[
+        // "html",
+        "javascript",
+        "typescript",
+        "react",
+        "svelte",
+        "vue",
+        "d3",
+        "threejs",
+        "map",
+        "svg",
+        // "canvas",
+        "python",
+        // "r",
+        // "postgresql",
+        // "duckdb",
+        "parquet",
+      ]}
+    />
+    <figcaption>
+      Explore my skills on the <a href="/tags/">tags page</a>.
+    </figcaption>
+  </figure>
 
   <p>
     I'm 🟢 <strong>open</strong> to new projects, collaborations and job opportunities.
@@ -74,11 +79,16 @@ import TagsList from "../components/TagsList.astro";
 
   <h2>Blog</h2>
 
-  Read my thoughts on data visualization, software development and related
-  topics on my ✎ <a href="/blog/">blog</a>. For example, you might like <a
-    href="/blog/20260212-virtual-scroll/"
-    >Virtual Scrolling for Billions of Rows — Techniques from HighTable</a
-  >.
+  <p>
+    Read my thoughts on data visualization, software development and related
+    topics on my ✎ <a href="/blog/">blog</a>.
+  </p>
+
+  <p>
+    For example, you might like <a href="/blog/20260212-virtual-scroll/"
+      >Virtual Scrolling for Billions of Rows — Techniques from HighTable</a
+    >.
+  </p>
 
   <h2>Contact</h2>
   <p>
@@ -104,3 +114,15 @@ import TagsList from "../components/TagsList.astro";
     and <a href="https://www.malt.fr/profile/sylvainlesage">Malt</a>.
   </p>
 </BaseLayout>
+
+<style>
+  .tags {
+    figcaption {
+      font-size: 0.9em;
+      color: var(--color-gray);
+      margin-top: 0.5em;
+      text-align: right;
+      font-style: italic;
+    }
+  }
+</style>

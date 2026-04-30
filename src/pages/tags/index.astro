@@ -2,26 +2,9 @@
 import { getCollection } from "astro:content";
 import { SITE_DESCRIPTION } from "../../consts";
 import WideLayout from "../../layouts/WideLayout.astro";
-import TagsList from "../../components/TagsList.astro";
+import TagGroup from "../../components/TagGroup.astro";
 
-const tags = await getCollection("tags");
 const tagGroups = await getCollection("tagGroups");
-
-const groups = new Map(
-  tagGroups.map((tagGroup) => [
-    tagGroup.id,
-    { name: tagGroup.data.name, tagIds: [] as string[] },
-  ]),
-);
-tags.forEach((tag) => {
-  const group = groups.get(tag.data.tagGroup.id);
-  if (!group) {
-    throw new Error(
-      `Tag "${tag.id}" references non-existing group "${tag.data.tagGroup.id}".`,
-    );
-  }
-  group.tagIds.push(tag.id);
-});
 ---
 
 <WideLayout title="Tags — Sylvain Lesage" description={SITE_DESCRIPTION}>
@@ -30,12 +13,23 @@ tags.forEach((tag) => {
     <h1>Tags</h1>
   </header>
 
-  {
-    [...groups.values()].map(({ name, tagIds }) => (
-      <section>
-        <h2>{name}</h2>
-        <TagsList ids={tagIds} fontSize="1em" />
-      </section>
-    ))
-  }
+  <p>
+    I use tags to categorize my past works and the blog posts. Every tag has its
+    own page, showing the related content (try <a href="/tags/javascript"
+      >JavaScript</a
+    > for example). I group the tags into a few categories that give a high-level
+    overview of my profile.
+  </p>
+
+  <div class="tag-groups">
+    {tagGroups.map(({ id }) => <TagGroup id={id} />)}
+  </div>
 </WideLayout>
+
+<style>
+  .tag-groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(30em, 1fr));
+    gap: 2em;
+  }
+</style>
