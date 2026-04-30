@@ -18,7 +18,7 @@ const tagGroups = defineCollection({
 	loader: glob({ base: './src/content/tagGroups', pattern: '*.{md,mdx}' }),
 	schema: () =>
 		z.object({
-			name: z.string(),
+			name: z.string()
 		}),
 });
 

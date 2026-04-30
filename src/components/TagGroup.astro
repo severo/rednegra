@@ -1,0 +1,25 @@
+---
+import { getEntry, getCollection, render } from "astro:content";
+import TagsList from "./TagsList.astro";
+
+interface Props {
+  id: string;
+}
+
+const tagGroup = await getEntry("tagGroups", Astro.props.id);
+if (!tagGroup) {
+  throw new Error(`Tag group with id "${Astro.props.id}" not found`);
+}
+const { Content } = await render(tagGroup);
+
+const tagIds = await getCollection(
+  "tags",
+  (tag) => tag.data.tagGroup.id === Astro.props.id,
+).then((tags) => tags.map(({ id }) => id));
+---
+
+<section class="tag-group">
+  <h2>{tagGroup.data.name}</h2>
+  <Content />
+  <TagsList ids={tagIds} fontSize="1em" />
+</section>
