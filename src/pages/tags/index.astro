@@ -1,8 +1,8 @@
 ---
 import { getCollection } from "astro:content";
-import { SITE_DESCRIPTION } from "../../consts";
-import WideLayout from "../../layouts/WideLayout.astro";
-import TagGroup from "../../components/TagGroup.astro";
+import TagGroup from "@components/TagGroup.astro";
+import WideLayout from "@layouts/WideLayout.astro";
+import { SITE_DESCRIPTION } from "@lib/consts";
 
 const tagGroups = await getCollection("tagGroups");
 ---

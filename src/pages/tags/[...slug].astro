@@ -1,9 +1,9 @@
 ---
 import { type CollectionEntry, getCollection, render } from "astro:content";
-import WorksGallery, { type Entry } from "../../components/WorksGallery.astro";
-import BlogsGallery from "../../components/BlogsGallery.astro";
-import WideLayout from "../../layouts/WideLayout.astro";
-import ObjectHeader from "../../components/ObjectHeader.astro";
+import BlogsGallery from "@components/BlogsGallery.astro";
+import ObjectHeader from "@components/ObjectHeader.astro";
+import WorksGallery, { type Entry } from "@components/WorksGallery.astro";
+import WideLayout from "@layouts/WideLayout.astro";
 
 export async function getStaticPaths() {
   const tags = await getCollection("tags");
