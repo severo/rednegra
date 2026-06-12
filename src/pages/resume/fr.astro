@@ -1,0 +1,400 @@
+---
+import { Image } from "astro:assets";
+import heroImage from "@assets/sylvain-lesage.jpeg";
+import BaseLayout from "@layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="CV — Sylvain Lesage"
+  description="Curriculum vitae de Sylvain Lesage, développeur fullstack senior avec une expertise en développement frontend et backend, visualisation de données, données spatiales et mathématiques appliquées."
+  language="fr"
+>
+  {
+    heroImage && (
+      <Image
+        width={512}
+        height={512}
+        src={heroImage}
+        alt="Portrait de Sylvain Lesage"
+        style="width: 150px; border-radius: 50%; float: right; margin-left: 1em; margin-bottom: 1em;"
+      />
+    )
+  }
+
+  <h1>Sylvain Lesage</h1>
+
+  <div class="gray" style="font-size: 0.8em;">
+    <a href="https://rednegra.net">rednegra.net</a> · <a
+      href="mailto:severo+cv@rednegra.net">severo@rednegra.net</a
+    >
+  </div>
+
+  <p><strong>Développeur fullstack senior</strong></p>
+
+  <hr />
+
+  <h2>Compétences</h2>
+
+  <dl>
+    <dt>Frontend</dt>
+    <dd>
+      JavaScript, TypeScript, React, Svelte, Vue.js, Java, HTML, CSS, Tailwind
+      CSS, accessibilité, performance, standards web, internationalisation,
+      tests
+    </dd>
+
+    <dt>Backend</dt>
+    <dd>
+      Node.js, Next.js, Python, Java, PostgreSQL, MongoDB, Helm/Kubernetes,
+      Terraform, AWS, Linux, Docker
+    </dd>
+
+    <dt>Visualisation de données</dt>
+    <dd>D3.js, three.js, Observable Plot, SVG, canvas, R</dd>
+
+    <dt>Données spatiales</dt>
+    <dd>
+      MapLibre, GeoParquet, OpenLayers, PostGIS, GeoNetwork, GeoServer,
+      geOrchestra, géocodage
+    </dd>
+
+    <dt>Mathématiques appliquées</dt>
+    <dd>
+      Modélisation, simulation numérique, algorithmes, structures de données,
+      optimisation, algèbre linéaire, traitement du signal
+    </dd>
+
+    <dt>Compétences transversales</dt>
+    <dd>
+      Gestion de projet, rédaction de normes techniques et de politiques
+      technologiques, animation de communautés techniques, enseignement, études
+      de l'état de l'art, présentation orale, administration publique,
+      communautés open source
+    </dd>
+
+    <dt>Langues</dt>
+    <dd>Anglais, Français, Espagnol</dd>
+  </dl>
+
+  <h2>Expérience professionnelle</h2>
+
+  <dl>
+    <dt>Développeur logiciel indépendant · depuis 2024</dt>
+    <dd>
+      <dl>
+        <dt><a href="https://hyperparam.app/">Hyperparam</a></dt>
+        <dd>
+          développement de composants et d'applications React open source
+          (React, TypeScript, CSS Modules, Next.js, Parquet)
+        </dd>
+
+        <dt><a href="https://source.coop/">Source Cooperative</a></dt>
+        <dd>
+          développement de composants React open source (React, TypeScript,
+          Next.js, OpenLayers)
+        </dd>
+
+        <dt><a href="https://fused.io/">FusedLabs</a></dt>
+        <dd>
+          récupération et visualisation efficaces de données tabulaires et de
+          graphiques (hyparquet, hightable, Mosaic, DuckDB, vgplot, React,
+          TypeScript, Next.js)
+        </dd>
+
+        <dt>
+          <a href="https://jasonforrestagency.com/">Jason Forrest Agency</a>
+        </dt>
+        <dd>
+          migration d'une carte interactive de D3.js vers MapLibre (D3.js,
+          MapLibre, React)
+        </dd>
+
+        <dt><a href="https://huggingface.co/">Hugging Face</a></dt>
+        <dd>
+          aide au développement du Dataset Studio sur le Hugging Face Hub
+          (Python, Node.js, Svelte)
+        </dd>
+
+        <dt><a href="https://migreurop.org/">Migreurop</a></dt>
+        <dd>
+          développement d'un site web statique, avec une carte interactive des
+          manifestations et des ressources sur les politiques migratoires en
+          Europe (Astro, TypeScript, Tailwind CSS, Leaflet)
+        </dd>
+
+        <dt>
+          <a href="https://github.com/severo/pelias-vagrant">Client privé</a>
+        </dt>
+        <dd>
+          préparation d'une image de machine virtuelle pour le géocodage des
+          adresses brésiliennes avec Pelias (Pelias, Docker, VirtualBox,
+          Vagrant, Linux)
+        </dd>
+
+        <dt><a href="https://cartes.app/">Cartes.app</a> (bénévole)</dt>
+        <dd>
+          contribution à l'internationalisation et au développement d'une
+          alternative open source à Google Maps (React, TypeScript, Next.js,
+          MapLibre, Lingui, Weblate)
+        </dd>
+      </dl>
+    </dd>
+  </dl>
+
+  <dt>
+    Développeur · <a href="https://huggingface.co/">Hugging Face</a> · 2021-2024
+  </dt>
+  <dd>
+    Développement du visualiseur de jeux de données sur le Hugging Face Hub,
+    pour plus de 100k jeux de données. Technologies&nbsp;: Python, MongoDB,
+    Node.js, Svelte, Helm/Kubernetes
+  </dd>
+
+  <dt>Développeur indépendant en visualisation de données · 2018-2021</dt>
+  <dd>
+    Projets de visualisation de données, d'analyse de données et de
+    développement logiciel pour le <a href="https://projet.liris.cnrs.fr/mi2/"
+      >LIRIS</a
+    >, <a href="https://www.monde-diplomatique.fr/">Le Monde Diplomatique</a>, <a
+      href="https://mabsilico.com/">MabSilico</a
+    >, <a href="https://publiceye.ch/">Public Eye</a>, <a
+      href="https://camptocamp.com/">Camptocamp</a
+    > et le <a href="https://www.purchase.edu/">Purchase College</a>.
+    Technologies&nbsp;: JavaScript, Node.js, D3.js, three.js, Vue.js, Svelte,
+    TypeScript, Java, Python, R, HTML, SVG, canvas. Plus de détails sur les
+    projets sur <a href="https://rednegra.net">rednegra.net</a>.
+  </dd>
+
+  <dt>
+    Chef de l'unité Innovation, Recherche et Développement · <a
+      href="https://agetic.gob.bo/">AGETIC</a
+    > · 2017-2018
+  </dt>
+  <dd>
+    Gestion de projets de simplification de l'administration publique et de
+    gouvernement électronique, évaluation technique et rédaction de rapports
+    techniques, rédaction de textes réglementaires et de normalisation,
+    facilitation de groupes de travail sur les normes techniques dans
+    l'administration publique bolivienne. Équipe de 30 à 40 personnes.
+  </dd>
+
+  <dt>
+    Chef de l'unité Innovation et Développement, puis Directeur exécutif · <a
+      href="https://adsib.gob.bo/">ADSIB</a
+    > · 2014-2017
+  </dt>
+  <dd>
+    <dl>
+      <dt>Directeur exécutif</dt>
+      <dd>
+        prise de décision sur la stratégie, les finances, l'administration
+        publique et les projets techniques, direction exécutive des
+        services&nbsp;: administration des systèmes d'information, développement
+        de domaine de premier niveau national .bo (ccTLD, DNS), et lancement de
+        la première autorité de certification en Bolivie (signature numérique,
+        PKI), participation à l'élaboration des normes (plan national de
+        gouvernement électronique et plan de mise en œuvre des logiciels libres
+        et des standards ouverts), représentation de l'ADSIB au COPLUTIC, le
+        comité national bolivien en charge des politiques publiques et des
+        stratégies du secteur. Institution de 30 à 40 personnes.
+      </dd>
+      <dt>Chef de l'unité Innovation et Développement</dt>
+      <dd>
+        gestion de projet et leadership technique, conception et mise en œuvre
+        de l'autorité de certification publique (PKI, signature numérique),
+        conception technique et supervision des travaux d'installation d'un
+        nouveau centre de données.
+      </dd>
+    </dl>
+  </dd>
+
+  <dt>Développeur indépendant · 2013</dt>
+  <dd>
+    Développement de fonctionnalités et correction de bugs sur geOrchestra pour <a
+      href="https://www.camptocamp.com/">Camptocamp</a
+    >. Java, JavaScript, OpenLayers, ExtJS, LDAP
+  </dd>
+
+  <dt>
+    Développeur web · <a
+      href="https://www.ungeneva.org/en/blue-book/missions/member-states/bolivia-plurinational-state"
+      >Mission bolivienne auprès de l'ONU à Genève</a
+    > · 2013-2014
+  </dt>
+  <dd>
+    Développement d'une application web pour la préservation de la mémoire
+    institutionnelle. Support au travail multilatéral des délégations aux
+    Nations Unies.
+  </dd>
+
+  <dt>
+    Responsable technique · <a href="https://geo.gob.bo">GeoBolivia</a> · 2011-2013
+  </dt>
+  <dd>
+    Création, gestion de projet et leadership technique de GeoBolivia,
+    l'infrastructure nationale de données spatiales bolivienne. Conception
+    technique, développement et mise en œuvre. Rédaction et facilitation de
+    groupes de travail sur les normes techniques pour les logiciels SIG libres,
+    les services web et l'adoption des données ouvertes dans l'État bolivien.
+    Équipe de 10 à 15 personnes. geOrchestra, GeoServer, GeoNetwork,
+    administration des serveurs
+  </dd>
+
+  <dt>
+    Consultant technique · <a href="https://adsib.gob.bo/">ADSIB</a> · 2011
+  </dt>
+  <dd>
+    État de l'art sur les infrastructures à clé publique et rédaction d'un
+    rapport avec des recommandations techniques (algorithmes, normes,
+    organisation) pour la création d'une autorité de certification. PKI,
+    signature numérique
+  </dd>
+
+  <dt>
+    Développement web · <a href="https://www.vicepresidencia.gob.bo/"
+      >Vice-présidence de l'État Plurinational de Bolivie</a
+    > · 2010-2011
+  </dt>
+  <dd>
+    Développement du site web de la Vice-présidence, d'une application web pour
+    la gestion des informations économiques et d'un atlas électoral de la
+    Bolivie. Administration des serveurs et des réseaux. PHP, MySQL, Spip,
+    PostgreSQL, GeoServer, OpenLayers
+  </dd>
+
+  <dt>
+    Développement web · <a href="https://www.abc.gob.bo/"
+      >Administration des routes boliviennes (ABC)</a
+    > · 2009-2010
+  </dt>
+  <dd>
+    Développement du site web et du portail intranet, carte interactive des
+    routes boliviennes, carte du trafic routier, installation d'une solution de
+    streaming en logiciel libre pour la transparence de l'ouverture des plis,
+    administration des serveurs et des réseaux. HTML, CSS, Spip, PHP, MySQL,
+    PostgreSQL, jQuery, Python, OpenLayers, Icecast, ffmpeg, GNU/Linux,
+    vservers, Apache2, firewall, mail, DNS
+  </dd>
+
+  <dt>
+    Développeur Linux pour la télévision numérique · <a
+      href="https://www.sipradius.com/">SipRadius</a
+    > · 2009
+  </dt>
+  <dd>
+    Ajout de l'encapsulation des trames IP dans les trames DVB à la bibliothèque
+    Linux dvbnet (C, Wireshark). Administration des serveurs.
+  </dd>
+
+  <dt>
+    Ingénieur en calcul scientifique · <a href="https://www.acsysteme.com/"
+      >Acsystème</a
+    > · 2007-2009
+  </dt>
+  <dd>
+    Développement avec Matlab, Simulink et C++. Enseignement sur Matlab.
+    Projets&nbsp;:
+    <dl>
+      <dt>industrie automobile</dt><dd>
+        simulation d'un système d'amortisseurs, minimisation de la pollution des
+        échappements, détection de la direction de rotation des roues à partir
+        des signaux des capteurs
+      </dd>
+      <dt>centrale électrique</dt><dd>
+        visualisation des données, simulation et optimisation de la production
+        d'électricité
+      </dd>
+      <dt>industrie alimentaire</dt><dd>
+        vision par ordinateur et classification automatique des espèces de
+        poissons, simulation et optimisation du remplissage des boîtes de
+        poissons
+      </dd>
+      <dt>batterie</dt><dd>
+        simulation pour spécifier les caractéristiques du moteur et de la
+        batterie dans la conception d'un vélo électrique.
+      </dd>
+    </dl>
+  </dd>
+
+  <dt>
+    Développeur logiciel · <a href="https://www.kerlink.com/">Kerlink</a> · 2007
+  </dt>
+  <dd>
+    Développement d'un pilote Linux pour le codec audio Cirrus CS42L51 (C,
+    compilation croisée).
+  </dd>
+
+  <dt>
+    Transfert de R&D · <a href="https://www.irisa.fr/">IRISA</a> · 2006-2007
+  </dt>
+  <dd>
+    Simulation d'une méthode de séparation de haut-parleurs utilisant Matlab,
+    pour le projet européen PELOPS, afin d'analyser les flux audio
+    multisensoriels pour la transcription automatique des événements sportifs
+  </dd>
+
+  <dt>
+    Enseignement · <a href="https://www.univ-rennes1.fr/"
+      >Université de Rennes 1</a
+    > · 2003-2006
+  </dt>
+  <dd>
+    Assistant d'enseignement en mathématiques (analyse fonctionnelle, cours de
+    soutien) et en informatique (C, Matlab)
+  </dd>
+
+  <h2>Enseignement</h2>
+
+  <dl>
+    <dt>
+      <a href="https://www.emi.edu.bo/">École militaire d'ingénierie (EMI)</a> · 2018
+    </dt>
+    <dd>
+      Cours "Sécurité des bases de données relationnelles" dans le Master en
+      Technologies de l'information et de la sécurité. PostgreSQL
+    </dd>
+
+    <dt>
+      <a href="https://lpz.ucb.edu.bo">Université catholique de Bolivie (UCB)</a
+      > · 2015
+    </dt>
+    <dd>
+      Cours "Traitement du signal numérique" pour les diplômes en
+      Télécommunications et Mécatronique
+    </dd>
+
+    <dt>
+      <a href="https://umsa.bo">Université de San Andrés (UMSA)</a> · 2012
+    </dt>
+    <dd>
+      Cours "Logiciels libres pour les données spatiales" dans le Master FLOSS.
+      git, QGis, OpenLayers, GeoServer, PostGIS
+    </dd>
+
+    <dt>
+      <a href="https://www.univ-rennes1.fr/">Université de Rennes 1</a> · 2003-2006
+    </dt>
+    <dd>
+      Assistant d'enseignement en mathématiques (analyse fonctionnelle, cours de
+      soutien) et en informatique (C++, Matlab)
+    </dd>
+  </dl>
+
+  <h2>Formation</h2>
+  <p>
+    Doctorat en Télécommunications et Traitement du Signal · <a
+      href="https://www.univ-rennes1.fr">Université de Rennes 1</a
+    > · 2007
+  </p>
+  <p>
+    Diplôme d'ingénieur en Traitement du Signal ("Signal, Images, Formes") · <a
+      href="https://www.centralesupelec.fr/">Supélec</a
+    > · 2003
+  </p>
+  <p>
+    DEA en Mathématiques Appliquées · <a
+      href="https://web.archive.org/web/20170407213836/http://www.math.univ-metz.fr/~dea/DEA/index.html"
+      >Université de Metz</a
+    > · 2003
+  </p>
+</BaseLayout>

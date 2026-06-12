@@ -2,6 +2,7 @@
 import { Image } from "astro:assets";
 import heroImage from "@assets/sylvain-lesage.jpeg";
 import BaseLayout from "@layouts/BaseLayout.astro";
+import { ACTION_QUERY_PARAMS, ActionError } from "astro:actions";
 ---
 
 <BaseLayout
@@ -38,7 +39,8 @@ import BaseLayout from "@layouts/BaseLayout.astro";
     <dt>Frontend</dt>
     <dd>
       JavaScript, TypeScript, React, Svelte, Vue.js, Java, HTML, CSS, Tailwind
-      CSS, accessibility, performance, web standards
+      CSS, accessibility, performance, web standards, internationalization,
+      tests
     </dd>
 
     <dt>Backend</dt>
@@ -115,7 +117,7 @@ import BaseLayout from "@layouts/BaseLayout.astro";
         <dt><a href="https://migreurop.org/">Migreurop</a></dt>
         <dd>
           development of a static website, with an interactive map of
-          manifestations and resources for migrants in Europe (Astro,
+          manifestations and resources on migration policies in Europe (Astro,
           TypeScript, Tailwind CSS, Leaflet)
         </dd>
 
@@ -178,17 +180,26 @@ import BaseLayout from "@layouts/BaseLayout.astro";
     > · 2014-2017
   </dt>
   <dd>
-    As the executive director: decision-making on strategy, finances, public
-    administration and technical projects, executive direction of services:
-    country-level top level domain .bo (ccTLD, DNS), and launch of the first
-    certification authority in Bolivia (digital signing, PKI), participation to
-    the elaboration of norms (national e-government plan and free software and
-    open standards implementation plan), representation of ADSIB in COPLUTIC,
-    the Bolivian national committee in charge of the public policies and
-    strategies of the sector. 30-40 persons institution. As a head of unit:
-    project management and technical lead, technical design and implementation
-    of the public certification authority (PKI, digital signature), technical
-    design and supervision of the installation works of a new datacenter.
+    <dl>
+      <dt>Executive Director</dt>
+      <dd>
+        decision-making on strategy, finances, public administration and
+        technical projects, executive direction of services: country-level top
+        level domain .bo (ccTLD, DNS), and launch of the first certification
+        authority in Bolivia (digital signing, PKI), participation to the
+        elaboration of norms (national e-government plan and free software and
+        open standards implementation plan), representation of ADSIB in
+        COPLUTIC, the Bolivian national committee in charge of the public
+        policies and strategies of the sector. 30-40 persons institution.
+      </dd>
+      <dt>Head of Innovation and Development Unit</dt>
+      <dd>
+        project management and technical lead, technical design and
+        implementation of the public certification authority (PKI, digital
+        signature), technical design and supervision of the installation works
+        of a new datacenter.
+      </dd>
+    </dl>
   </dd>
 
   <dt>Independent software developer · 2013</dt>
@@ -270,14 +281,25 @@ import BaseLayout from "@layouts/BaseLayout.astro";
     > · 2007-2009
   </dt>
   <dd>
-    Development with Matlab, Simulink and C++. Teaching on Matlab. Projects in
-    car industry: simulation of a shock absorbers system, minimization of escape
-    pollution, detection of wheel rotation direction from sensor signals, power
-    plant: data visualization, simulation and optimization of the electricity
-    production, food industry: computer vision and automatic classification of
-    fish species, simulation and optimization of fish cans filling, battery:
-    simulation to specify motor and battery characteristics in a electric
-    bicycle design.
+    Development with Matlab, Simulink and C++. Teaching on Matlab. Projects:
+    <dl>
+      <dt>car industry</dt><dd>
+        simulation of a shock absorbers system, minimization of escape
+        pollution, detection of wheel rotation direction from sensor signals
+      </dd>
+      <dt>power plant</dt><dd>
+        data visualization, simulation and optimization of the electricity
+        production
+      </dd>
+      <dt>food industry</dt><dd>
+        computer vision and automatic classification of fish species, simulation
+        and optimization of fish cans filling
+      </dd>
+      <dt>battery</dt><dd>
+        simulation to specify motor and battery characteristics in a electric
+        bicycle design.
+      </dd>
+    </dl>
   </dd>
 
   <dt>
