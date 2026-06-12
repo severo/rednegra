@@ -1,9 +1,9 @@
 ---
 import { Image } from "astro:assets";
-import heroImage from "../assets/sylvain-lesage.jpeg";
-import { SITE_DESCRIPTION, SITE_TITLE } from "../consts";
-import BaseLayout from "../layouts/BaseLayout.astro";
-import TagsList from "../components/TagsList.astro";
+import heroImage from "@assets/sylvain-lesage.jpeg";
+import TagsList from "@components/TagsList.astro";
+import BaseLayout from "@layouts/BaseLayout.astro";
+import { SITE_DESCRIPTION, SITE_TITLE } from "@lib/consts";
 ---
 
 <BaseLayout title={SITE_TITLE} description={SITE_DESCRIPTION}>
@@ -21,9 +21,7 @@ import TagsList from "../components/TagsList.astro";
 
   <header>
     <h1 style="margin-bottom: 0em;">Sylvain Lesage</h1>
-    <div class="gray" style="font-size: 1.2em;">
-     Senior frontend developer
-    </div>
+    <div class="gray" style="font-size: 1.2em;">Senior frontend developer</div>
   </header>
 
   <p>

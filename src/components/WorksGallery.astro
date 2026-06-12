@@ -5,9 +5,9 @@ import {
   type ReferenceDataEntry,
   getCollection,
 } from "astro:content";
-import { indexById } from "../lib/utils";
 import { Masonry } from "astro-masonry";
-import Tag from "./Tag.astro";
+import { indexById } from "@lib/utils";
+import Tag from "@components/Tag.astro";
 
 export interface Entry {
   alt: string;

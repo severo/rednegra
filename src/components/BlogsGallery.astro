@@ -1,6 +1,6 @@
 ---
 import { type CollectionEntry, getCollection } from "astro:content";
-import FormattedDate from "./FormattedDate.astro";
+import FormattedDate from "@components/FormattedDate.astro";
 
 interface Props {
   filter?: (blog: CollectionEntry<"blog">) => boolean;
